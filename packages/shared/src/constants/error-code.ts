@@ -13,6 +13,10 @@ export const ErrorCode = {
   NO_VALID_RECOVERY_KEY: "AUTH_NO_VALID_RECOVERY_KEY",
   /** 恢复密钥错误 */
   INVALID_RECOVERY_KEY: "AUTH_INVALID_RECOVERY_KEY",
+  /** 请求参数校验失败 */
+  INVALID_PARAMS: "INVALID_PARAMS",
+  /** 服务器内部错误 */
+  INTERNAL_ERROR: "INTERNAL_ERROR",
 } as const;
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];

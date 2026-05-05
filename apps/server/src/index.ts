@@ -1,4 +1,4 @@
-import { OpenAPIHono } from "@hono/zod-openapi";
+import { createApp } from "~/lib/core/create-app";
 import { connectDB } from "~/db";
 import { authGuard } from "~/middleware/auth-guard";
 import { errorHandler } from "~/middleware/error-handler";
@@ -6,7 +6,7 @@ import authRoutes from "~/modules/auth/auth.index";
 
 await connectDB();
 
-const app = new OpenAPIHono();
+const app = createApp();
 
 app.onError(errorHandler);
 

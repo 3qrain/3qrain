@@ -1,31 +1,27 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import * as HttpStatusCodes from "~/constants/http-status-codes";
-import { baseResponseSchema, createResponseSchema } from "~/utils/response";
+import { successResponseSchema, errorResponseSchema } from "~/utils/response";
 
 // --- Request Schemas ---
 
 export const passwordSchema = z.object({
-  password: z.string().min(6),
-});
-
-export const setupSchema = z.object({
-  password: z.string().min(6),
+  password: z.string().min(6, "密码长度至少6位"),
 });
 
 export const changePasswordSchema = z.object({
-  oldPassword: z.string().min(6),
-  newPassword: z.string().min(6),
+  oldPassword: z.string().min(6, "旧密码长度至少6位"),
+  newPassword: z.string().min(6, "新密码长度至少6位"),
 });
 
 export const recoverSchema = z.object({
-  recoveryKey: z.string().min(32),
+  recoveryKey: z.string().min(32, "恢复密钥长度至少32位"),
 });
 
 // --- Response Schemas ---
 
 const initializedData = z.object({ initialized: z.boolean() });
-const recoveryKeyData = z.object({ recoveryKey: z.string() });
-const newRecoveryKeyData = z.object({ newRecoveryKey: z.string() });
+const recoveryKeyData = z.object({ recoveryKey: z.string().min(32) });
+const newRecoveryKeyData = z.object({ newRecoveryKey: z.string().min(32) });
 
 // --- Routes ---
 
@@ -36,7 +32,7 @@ export const statusRoute = createRoute({
   path: "/status",
   responses: {
     [HttpStatusCodes.OK]: {
-      content: { "application/json": { schema: createResponseSchema(initializedData) } },
+      content: { "application/json": { schema: successResponseSchema(initializedData) } },
       description: "初始化状态",
     },
   },
@@ -48,15 +44,15 @@ export const setupRoute = createRoute({
   method: "post",
   path: "/setup",
   request: {
-    body: { content: { "application/json": { schema: setupSchema } } },
+    body: { content: { "application/json": { schema: passwordSchema } } },
   },
   responses: {
     [HttpStatusCodes.CREATED]: {
-      content: { "application/json": { schema: createResponseSchema(recoveryKeyData) } },
+      content: { "application/json": { schema: successResponseSchema(recoveryKeyData) } },
       description: "设置成功",
     },
     [HttpStatusCodes.CONFLICT]: {
-      content: { "application/json": { schema: baseResponseSchema } },
+      content: { "application/json": { schema: errorResponseSchema } },
       description: "已初始化过",
     },
   },
@@ -71,9 +67,9 @@ export const loginRoute = createRoute({
     body: { content: { "application/json": { schema: passwordSchema } } },
   },
   responses: {
-    [HttpStatusCodes.OK]: { content: { "application/json": { schema: baseResponseSchema } }, description: "登录成功" },
-    [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: baseResponseSchema } }, description: "尚未初始化" },
-    [HttpStatusCodes.UNAUTHORIZED]: { content: { "application/json": { schema: baseResponseSchema } }, description: "密码错误" },
+    [HttpStatusCodes.OK]: { content: { "application/json": { schema: successResponseSchema(z.object({})) } }, description: "登录成功" },
+    [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: errorResponseSchema } }, description: "尚未初始化" },
+    [HttpStatusCodes.UNAUTHORIZED]: { content: { "application/json": { schema: errorResponseSchema } }, description: "密码错误" },
   },
 });
 
@@ -86,9 +82,9 @@ export const changePasswordRoute = createRoute({
     body: { content: { "application/json": { schema: changePasswordSchema } } },
   },
   responses: {
-    [HttpStatusCodes.OK]: { content: { "application/json": { schema: baseResponseSchema } }, description: "修改成功" },
-    [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: baseResponseSchema } }, description: "尚未初始化" },
-    [HttpStatusCodes.UNAUTHORIZED]: { content: { "application/json": { schema: baseResponseSchema } }, description: "旧密码错误" },
+    [HttpStatusCodes.OK]: { content: { "application/json": { schema: successResponseSchema(z.object({})) } }, description: "修改成功" },
+    [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: errorResponseSchema } }, description: "尚未初始化" },
+    [HttpStatusCodes.UNAUTHORIZED]: { content: { "application/json": { schema: errorResponseSchema } }, description: "旧密码错误" },
   },
 });
 
@@ -102,11 +98,11 @@ export const recoverRoute = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: {
-      content: { "application/json": { schema: createResponseSchema(newRecoveryKeyData) } },
+      content: { "application/json": { schema: successResponseSchema(newRecoveryKeyData) } },
       description: "恢复成功",
     },
-    [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: baseResponseSchema } }, description: "无有效恢复密钥" },
-    [HttpStatusCodes.UNAUTHORIZED]: { content: { "application/json": { schema: baseResponseSchema } }, description: "恢复密钥错误" },
+    [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: errorResponseSchema } }, description: "无有效恢复密钥" },
+    [HttpStatusCodes.UNAUTHORIZED]: { content: { "application/json": { schema: errorResponseSchema } }, description: "恢复密钥错误" },
   },
 });
 
@@ -116,6 +112,6 @@ export const logoutRoute = createRoute({
   method: "post",
   path: "/logout",
   responses: {
-    [HttpStatusCodes.OK]: { content: { "application/json": { schema: baseResponseSchema } }, description: "退出成功" },
+    [HttpStatusCodes.OK]: { content: { "application/json": { schema: successResponseSchema(z.object({})) } }, description: "退出成功" },
   },
 });

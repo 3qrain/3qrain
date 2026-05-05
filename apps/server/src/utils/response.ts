@@ -2,22 +2,26 @@ import { z } from "@hono/zod-openapi";
 
 // --- Schema route契约层 ---
 
-export const baseResponseSchema = z.object({
-  success: z.boolean(),
-  code: z.string(),
+export const successResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+  z.object({
+    success: z.literal(true),
+    code: z.string().min(1),
+    message: z.string().min(1),
+    // data: dataSchema.optional(), optional + 泛型导致 zod-openapi 推导异常，导致产生的接口文档中响应都没有data字段，暂时改为必填
+    data: dataSchema,
+  });
+
+export const errorResponseSchema = z.object({
+  success: z.literal(false),
+  code: z.string().min(1),
   message: z.string().min(1),
 });
 
-export const createResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
-  baseResponseSchema.extend({
-    data: dataSchema.optional(),
-  });
-
 // --- Helpers handlers行为层---
 
-export function ok<T>(data?: T, message = "成功") {
+export function ok<T>(data: T, message = "成功") {
   return {
-    success: true,
+    success: true as const,
     code: "OK",
     message,
     data,
@@ -26,7 +30,7 @@ export function ok<T>(data?: T, message = "成功") {
 
 export function fail(code: string, message: string) {
   return {
-    success: false,
+    success: false as const,
     code,
     message,
   };

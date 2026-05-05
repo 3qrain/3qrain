@@ -1,8 +1,8 @@
-import { OpenAPIHono } from "@hono/zod-openapi";
+import { createApp } from "~/lib/core/create-app";
 import * as handlers from "./auth.handlers";
 import * as routes from "./auth.routes";
 
-const auth = new OpenAPIHono();
+const auth = createApp();
 
 auth.openapi(routes.statusRoute, handlers.status);
 auth.openapi(routes.setupRoute, handlers.setup);
@@ -12,4 +12,3 @@ auth.openapi(routes.recoverRoute, handlers.recover);
 auth.openapi(routes.logoutRoute, handlers.logout);
 
 export default auth;
-

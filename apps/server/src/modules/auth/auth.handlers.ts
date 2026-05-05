@@ -24,7 +24,7 @@ function setCookie(c: Context, token: string) {
 
 export async function status(c: Context) {
   const count = await PasswordModel.countDocuments();
-  return c.json(ok({ initialized: count > 0 }), HttpStatusCodes.OK);
+  return c.json(ok({ initialized: count > 0 }, "状态检查成功"), HttpStatusCodes.OK);
 }
 
 export async function setup(c: Context) {
@@ -63,7 +63,7 @@ export async function login(c: Context) {
   const token = await createSession();
   setCookie(c, token);
 
-  return c.json(ok(undefined, "登录成功"), HttpStatusCodes.OK);
+  return c.json(ok({}, "登录成功"), HttpStatusCodes.OK);
 }
 
 export async function changePassword(c: Context) {
@@ -85,7 +85,7 @@ export async function changePassword(c: Context) {
   pw.hash = await hashPassword(newPassword);
   await pw.save();
 
-  return c.json(ok(undefined, "修改成功"), HttpStatusCodes.OK);
+  return c.json(ok({}, "修改成功"), HttpStatusCodes.OK);
 }
 
 export async function recover(c: Context) {
@@ -127,5 +127,5 @@ export async function logout(c: Context) {
       "token=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
     );
   }
-  return c.json(ok(undefined, "已退出"), HttpStatusCodes.OK);
+  return c.json(ok({}, "已退出"), HttpStatusCodes.OK);
 }
