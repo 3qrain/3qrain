@@ -5,10 +5,23 @@ services:
     ports:
       - "27017:27017"
     environment:
+      TZ: Asia/Shanghai
       MONGO_INITDB_DATABASE: 3qrain
     volumes:
       - mongo-data:/data/db
 
+  redis:
+    image: redis:alpine
+    container_name: 3qrain-redis
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - redis-data:/data
+
 volumes:
   mongo-data:
     name: 3qrain-mongo-data
+  redis-data:
+    name: 3qrain-redis-data
