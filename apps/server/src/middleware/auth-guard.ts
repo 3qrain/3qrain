@@ -1,7 +1,11 @@
 import { createMiddleware } from "hono/factory";
 import { redis } from "~/db";
+import { fail } from "~/utils/response";
+import { ErrorCode } from "@3qrain/shared";
+import * as HttpStatusCodes from "~/constants/http-status-codes";
+import { SESSION_ADMIN_PREFIX, sessionValueSchema } from "~/constants/session";
 
-const TOKEN_TTL = Number(process.env.TOKEN_TTL) || 2592000;
+const TOKEN_TTL = Number(process.env.TOKEN_TTL) || 86400;
 
 export const authGuard = createMiddleware(async (c, next) => {
   const cookie = c.req.header("cookie") || "";
@@ -9,15 +13,46 @@ export const authGuard = createMiddleware(async (c, next) => {
   const token = match?.[1];
 
   if (!token) {
-    return c.json({ error: "未登录" }, 401);
+    return c.json(
+      fail(ErrorCode.UNAUTHORIZED, "未登录"),
+      HttpStatusCodes.UNAUTHORIZED,
+    );
   }
 
-  const exists = await redis.exists(`session:${token}`);
-  if (!exists) {
-    return c.json({ error: "未登录" }, 401);
+  const raw = await redis.get(`${SESSION_ADMIN_PREFIX}${token}`);
+  if (!raw) {
+    return c.json(
+      fail(ErrorCode.UNAUTHORIZED, "session数据值不存在"),
+      HttpStatusCodes.UNAUTHORIZED,
+    );
   }
 
-  await redis.expire(`session:${token}`, TOKEN_TTL);
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return c.json(
+      fail(ErrorCode.INTERNAL_ERROR, "session数据值解析异常"),
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+    );
+  }
+
+  const result = sessionValueSchema.safeParse(parsed);
+  if (!result.success) {
+    return c.json(
+      fail(ErrorCode.INTERNAL_ERROR, "session数据值校验失败"),
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+    );
+  }
+
+  result.data.lastActiveAt = Date.now();
+  await redis.setex(
+    `${SESSION_ADMIN_PREFIX}${token}`,
+    TOKEN_TTL,
+    JSON.stringify(result.data),
+  );
+
+  c.set("admin", true);
 
   await next();
 });

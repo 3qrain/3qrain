@@ -8,11 +8,6 @@ export const passwordSchema = z.object({
   password: z.string().min(6, "密码长度至少6位"),
 });
 
-export const changePasswordSchema = z.object({
-  oldPassword: z.string().min(6, "旧密码长度至少6位"),
-  newPassword: z.string().min(6, "新密码长度至少6位"),
-});
-
 export const recoverSchema = z.object({
   recoveryKey: z.string().min(32, "恢复密钥长度至少32位"),
 });
@@ -73,21 +68,6 @@ export const loginRoute = createRoute({
   },
 });
 
-export const changePasswordRoute = createRoute({
-  tags: ["Auth"],
-  summary: "修改密码",
-  method: "post",
-  path: "/change-password",
-  request: {
-    body: { content: { "application/json": { schema: changePasswordSchema } } },
-  },
-  responses: {
-    [HttpStatusCodes.OK]: { content: { "application/json": { schema: successResponseSchema(z.object({})) } }, description: "修改成功" },
-    [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: errorResponseSchema } }, description: "尚未初始化" },
-    [HttpStatusCodes.UNAUTHORIZED]: { content: { "application/json": { schema: errorResponseSchema } }, description: "旧密码错误" },
-  },
-});
-
 export const recoverRoute = createRoute({
   tags: ["Auth"],
   summary: "恢复密钥重置密码",
@@ -103,15 +83,5 @@ export const recoverRoute = createRoute({
     },
     [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: errorResponseSchema } }, description: "无有效恢复密钥" },
     [HttpStatusCodes.UNAUTHORIZED]: { content: { "application/json": { schema: errorResponseSchema } }, description: "恢复密钥错误" },
-  },
-});
-
-export const logoutRoute = createRoute({
-  tags: ["Auth"],
-  summary: "退出登录",
-  method: "post",
-  path: "/logout",
-  responses: {
-    [HttpStatusCodes.OK]: { content: { "application/json": { schema: successResponseSchema(z.object({})) } }, description: "退出成功" },
   },
 });
