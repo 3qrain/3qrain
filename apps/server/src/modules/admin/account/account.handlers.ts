@@ -2,7 +2,7 @@ import type { Context } from "hono";
 import { redis } from "~/db";
 import { hashPassword, verifyPassword } from "~/utils/crypto";
 import { ok, fail } from "~/utils/response";
-import { PasswordModel } from "~/modules/auth/auth.models";
+import { PasswordModel } from "~/models/password.model";
 import { ErrorCode } from "@3qrain/shared";
 import * as HttpStatusCodes from "~/constants/http-status-codes";
 

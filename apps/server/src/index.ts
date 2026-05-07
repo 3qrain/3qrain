@@ -1,9 +1,9 @@
 import { createApp } from "~/lib/core/create-app";
 import { connectDB } from "~/db";
 import { errorHandler } from "~/middleware/error-handler";
-import authRoutes from "~/modules/auth/auth.index";
-import adminRoutes from "~/modules/admin/admin.index";
-import publicRoutes from "~/modules/public/public.index";
+import authRouter from "~/modules/auth/auth.index";
+import adminRouter from "~/modules/admin/admin.index";
+import publicRouter from "~/modules/public/public.index";
 
 await connectDB();
 
@@ -16,9 +16,8 @@ app.doc("/openapi.json", {
   info: { title: "3qrain Admin API", version: "1.0.0" },
 });
 
-app.route("/api", publicRoutes);
-app.route("/api/auth", authRoutes);
-app.route("/api/admin", adminRoutes);
+app.route("/api", publicRouter);
+app.route("/api/auth", authRouter);
+app.route("/api/admin", adminRouter);
 
 export default app;
-

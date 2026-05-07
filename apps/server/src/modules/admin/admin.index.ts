@@ -1,13 +1,11 @@
 import { createApp } from "~/lib/core/create-app";
 import { authGuard } from "~/middleware/auth-guard";
-import * as accountHandlers from "./account/account.handlers";
-import * as accountRoutes from "./account/account.routes";
+import accountRouter from "./account/account.index";
 
-const admin = createApp();
+const adminRouter = createApp();
 
-admin.use("*", authGuard);
+adminRouter.use("*", authGuard);
 
-admin.openapi(accountRoutes.changePasswordRoute, accountHandlers.changePassword);
-admin.openapi(accountRoutes.logoutRoute, accountHandlers.logout);
+adminRouter.route("/", accountRouter);
 
-export default admin;
+export default adminRouter;

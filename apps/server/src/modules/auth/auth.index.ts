@@ -2,11 +2,11 @@ import { createApp } from "~/lib/core/create-app";
 import * as handlers from "./auth.handlers";
 import * as routes from "./auth.routes";
 
-const auth = createApp();
+const authRouter = createApp();
 
-auth.openapi(routes.statusRoute, handlers.status);
-auth.openapi(routes.setupRoute, handlers.setup);
-auth.openapi(routes.loginRoute, handlers.login);
-auth.openapi(routes.recoverRoute, handlers.recover);
+authRouter.openapi(routes.statusRoute, handlers.status);
+authRouter.openapi(routes.setupRoute, handlers.setup);
+authRouter.openapi(routes.loginRoute, handlers.login);
+authRouter.openapi(routes.recoverRoute, handlers.recover);
 
-export default auth;
+export default authRouter;
