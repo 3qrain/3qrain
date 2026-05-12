@@ -1,7 +1,50 @@
-:root {
-  --color-bg: #ffffff;
-  --color-surface: #f5f5f5;
-  --color-text: #213547;
-  --color-border: #e2e2e2;
-  --color-primary: #646cff;
+:root {  
+    color-scheme: light;
+    --color-base-100: oklch(100% 0 0);
+    --color-base-200: oklch(98% 0 0);
+    --color-base-300: oklch(95% 0 0);
+    --color-base-content: oklch(21% .006 285.885);
+    --color-primary: oklch(45% .24 277.023);
+    --color-primary-content: oklch(93% .034 272.788);
+    --color-secondary: oklch(65% .241 354.308);
+    --color-secondary-content: oklch(94% .028 342.258);
+    --color-accent: oklch(77% .152 181.912);
+    --color-accent-content: oklch(38% .063 188.416);
+    --color-neutral: oklch(14% .005 285.823);
+    --color-neutral-content: oklch(92% .004 286.32);
+    --color-info: oklch(74% .16 232.661);
+    --color-info-content: oklch(29% .066 243.157);
+    --color-success: oklch(76% .177 163.223);
+    --color-success-content: oklch(37% .077 168.94);
+    --color-warning: oklch(82% .189 84.429);
+    --color-warning-content: oklch(40.833% 0.11231 45.319);
+    --color-error: oklch(71% .194 13.428);
+    --color-error-content: oklch(27% .105 12.094);
 }
+/* from daisyUI */
+/* 颜色名称	CSS variable	使用场景
+primary	--color-primary	主品牌色，您品牌的主色调
+primary-content	--color-primary-content	Foreground content color to use on primary color
+
+secondary	--color-secondary	次要品牌色，您品牌的可选次要色调
+secondary-content	--color-secondary-content	Foreground content color to use on secondary color
+
+accent	--color-accent	强调品牌色，您品牌的可选强调色调
+accent-content	--color-accent-content	Foreground content color to use on accent color
+
+neutral	--color-neutral	中性深色，用于 UI 中非饱和的部分
+neutral-content	--color-neutral-content	Foreground content color to use on neutral color
+
+base-100	--color-base-100	页面基础表面色，用于空白背景
+base-200	--color-base-200	基色，较深的色度，用于创建层次感
+base-300	--color-base-300	基色，更深的色度，用于创建层次感
+base-content	--color-base-content	Foreground content color to use on base color
+
+info	--color-info	信息色，用于信息性/帮助性消息
+info-content	--color-info-content	Foreground content color to use on info color
+success	--color-success	成功色，用于成功/安全消息
+success-content	--color-success-content	Foreground content color to use on success color
+warning	--color-warning	警告色，用于警告/注意消息
+warning-content	--color-warning-content	Foreground content color to use on warning color
+error	--color-error	错误色，用于错误/危险/破坏性消息
+error-content	--color-error-content	Foreground content color to use on error color */
