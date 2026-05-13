@@ -27,7 +27,7 @@ docker compose stop      # 停止
 ## 技术栈
 
 - **后端**: Hono 4 + Bun + Mongoose + @hono/zod-openapi + bcryptjs + ioredis
-- **前端**: Vite 8 + Vue 3.5 + Pinia + Vue Router
+- **前端**: Vite 8 + Vue 3.5 + Pinia + Vue Router + axios + @lucide/vue
 - **数据库**: MongoDB 9 + Mongoose，Docker Compose 管理
 - **缓存**: Redis (alpine)，Docker Compose 管理
 - **认证**: 单 token (random hex 32B) + Redis session + Cookie (SameSite=Lax, HttpOnly)
@@ -37,79 +37,122 @@ docker compose stop      # 停止
 
 ```
 apps/server/src/
-├── index.ts                     # 入口：connectDB、createApp、挂载路由
+├── index.ts                     # 根：connectDB → createApp → 挂载三层路由
 ├── db.ts                        # mongoose + redis 连接及事件日志
 ├── constants/
-│   └── http-status-codes.ts     # HTTP 状态码常量 (OK, CREATED, BAD_REQUEST...)
-├── lib/
-│   └── core/
-│       └── create-app.ts        # createApp() 工厂，内置 Zod defaultHook
+│   ├── http-status-codes.ts     # HTTP 状态码常量 (OK, CREATED, BAD_REQUEST...)
+│   └── session.ts               # SESSION_ADMIN_PREFIX + sessionValueSchema
+├── models/                      # 全局共享 Mongoose Model
+│   ├── password.model.ts
+│   └── recovery-key.model.ts
+├── lib/core/
+│   └── create-app.ts            # createApp() 工厂，内置 Zod defaultHook
 ├── middleware/
-│   ├── auth-guard.ts            # 认证中间件（读 cookie → redis 校验 → 刷新 TTL）
+│   ├── auth-guard.ts            # 认证中间件（cookie → redis JSON → Zod → c.set("admin")）
 │   └── error-handler.ts         # 全局 onError（兜底 500）
 ├── utils/
-│   ├── crypto.ts                # bcryptjs 密码哈希 + generateToken
-│   └── response.ts              # ok() / fail() 响应辅助 + Zod schema
+│   ├── crypto.ts                # bcryptjs 密码哈希 + generateToken (Web Crypto)
+│   └── response.ts              # ok() / fail() 响应辅助 + Zod schema + timestamp
 └── modules/
-    └── auth/
-        ├── auth.models.ts       # 原生 Mongoose Schema (Password, RecoveryKey)
-        ├── auth.routes.ts       # OpenAPI route 定义 + Zod request/response schema
-        ├── auth.handlers.ts     # 业务逻辑
-        └── auth.index.ts        # createApp() + openapi 注册
+    ├── auth/        # 公开：status / setup / login / recover
+    ├── admin/       # 全鉴权：account/ (change-password / logout)
+    │   └── account/
+    └── public/      # 前台接口（占位）
 ```
+
+## 后端架构要点
+
+### 三层模块划分
+
+```
+/api/*        → public/  无鉴权
+/api/auth/*   → auth/    无鉴权
+/api/admin/*  → admin/   全鉴权，authGuard 挂在模块内部 admin.use("*", authGuard)
+```
+
+根 index.ts 只挂路由，不感知鉴权。
+
+### 命名规范
+
+- **Router 实例** (`export default`): `authRouter`, `adminRouter`, `accountRouter` — 已注册完成的应用
+- **Route 定义** (`export const`): `loginRoute`, `statusRoute` — createRoute 返回值
+- **Handler**: `export async function`
+- 导入：`import * as routes from "./xxx.routes"` / `import * as handlers from "./xxx.handlers"`
+
+### 响应规范
+
+统一格式，所有响应含 `timestamp`：
+
+```typescript
+import { ok, fail } from "~/utils/response";
+import { ErrorCode } from "@3qrain/shared";
+
+ok(data, "消息")    // { success: true,  code: "OK", message: "...", timestamp: ..., data }
+fail(ErrorCode.X, "消息")  // { success: false, code: "X", message: "...", timestamp: ... }
+```
+
+无数据时传空对象：`ok({}, "消息")`。
+
+### Session 数据结构
+
+Redis key: `session:admin:<token>`，值存 JSON（Zod 校验）：
+
+```json
+{ "role": "admin", "loginIp": "...", "userAgent": "...", "createdAt": ..., "lastActiveAt": ... }
+```
+
+guard 每次请求刷新 `lastActiveAt`。改密码时清除 `session:admin:*` 全设备下线。
+
+## 前端目录结构
+
+```
+apps/admin/src/
+├── main.ts              # 挂载 + initTheme()
+├── App.vue
+├── api/                 # 按模块分文件夹
+│   └── auth/
+│       ├── index.ts
+│       └── types.ts
+├── lib/axios/index.ts   # axios 实例 (baseURL 读 VITE_API_BASE_URL)
+├── router/
+│   ├── index.ts
+│   └── routes.ts        # menuRoutes (带 meta.icon) + routes
+├── stores/index.ts
+├── themes/
+│   ├── light.css        # :root (daisyUI oklch)
+│   ├── dark.css         # html.dark
+│   └── index.ts         # getTheme / setTheme / initTheme (含跟随系统)
+├── layouts/
+│   ├── AppLayout.vue    # 侧边栏 + main，≤768px 抽屉
+│   └── components/
+│       └── AppSidebar.vue
+└── views/
+    ├── Login.vue
+    └── Dashboard.vue
+```
+
+### 前端架构要点
+
+- **路径别名**: `~/` → `src/`（tsconfig.app.json + vite.config.ts）
+- **主题**: daisyUI 色彩体系 (oklch)，light/dark/system 三模式，`html.dark` class 切换
+- **AppLayout**: 桌面端 fixed 侧边栏 (240px) + main (margin-left)，移动端 slide-up 抽屉
+- **SFC 顺序**: `<script>` → `<template>` → `<style>`
+- **Vite 代理**: `/api` → `http://localhost:3000`
 
 ## 路径别名
 
-后端 `~/` → `src/`，跨目录 import 一律用别名，模块内部用相对路径。
-
-## HTTP 状态码
-
-从 `~/constants/http-status-codes` 引入，禁止裸数字：
-```typescript
-import * as HttpStatusCodes from "~/constants/http-status-codes";
-```
-
-## 错误码
-
-从 `@3qrain/shared` 引入：
-```typescript
-import { ErrorCode } from "@3qrain/shared";
-// ErrorCode.INVALID_PASSWORD, ErrorCode.NOT_INITIALIZED, ...
-```
-
-## 响应规范
-
-统一格式，通过 `~/utils/response` 的 `ok()` / `fail()` 构建：
-```typescript
-ok(data, "消息")    // { success: true,  code: "OK", message: "...", data }
-fail(ErrorCode.X, "消息")  // { success: false, code: "X", message: "..." }
-```
-
-## 模块结构
-
-每个模块四个文件：`models.ts` / `routes.ts` / `handlers.ts` / `index.ts`
-
-- `index.ts` 用 `createApp()` 创建实例，注册 `openapi(route, handler)`
-- routes 和 handlers 用命名空间导入：`import * as routes from "./xxx.routes"`
-
-## OpenAPIHono 实例
-
-必须通过 `createApp()` 创建，它内置了 Zod 校验 defaultHook：
-```typescript
-import { createApp } from "~/lib/core/create-app";
-const app = createApp();
-```
-
-## 数据模型
-
-原生 Mongoose Schema + `{ timestamps: true }`。不用 typegoose。
+前后端统一 `~/` → `src/`，跨目录 import 用别名，模块内部用相对路径。
 
 ## 环境变量
 
 ```
+# server
 MONGODB_URI=mongodb://localhost:27017/3qrain
 REDIS_URL=redis://localhost:6379
 TOKEN_TTL=86400
+
+# admin
+VITE_API_BASE_URL=/api
 ```
 
 ## Docker
@@ -120,7 +163,10 @@ TOKEN_TTL=86400
 
 ## 注意事项
 
-- 不用 `node:crypto`，用 Web Crypto API 或 `bcryptjs`
-- 安装依赖务必 `cd` 到对应 app 目录
-- 每个 OpenAPIHono 实例都用 `createApp()` 创建
-- 状态码、错误码全部用常量，不写裸数字/字符串
+- **不用 `node:crypto`**，用 Web Crypto API 或 `bcryptjs`
+- **安装依赖务必 `cd` 到对应 app 目录**
+- **状态码**：`import * as HttpStatusCodes from "~/constants/http-status-codes"`，禁止裸数字
+- **错误码**：`import { ErrorCode } from "@3qrain/shared"`，禁止裸字符串
+- **OpenAPIHono** 必须用 `createApp()` 创建
+- **Vue 组件** script 写在 template 上面
+- **前端 api 调用** 按模块建文件夹（`api/auth/`），axios 实例在 `lib/axios/`
