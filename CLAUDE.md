@@ -20,15 +20,16 @@ packages/
 bun dev                  # turbo 并行启动前后端
 bun dev --filter=admin   # 只前端
 bun dev --filter=server  # 只后端
-docker compose up -d     # 启动 MongoDB + Redis
+docker compose up -d     # 启动 Redis
 docker compose stop      # 停止
+bunx drizzle-kit push    # schema 变更后推送数据库
 ```
 
 ## 技术栈
 
-- **后端**: Hono 4 + Bun + Mongoose + @hono/zod-openapi + bcryptjs + ioredis
+- **后端**: Hono 4 + Bun + Drizzle ORM + @hono/zod-openapi + bcryptjs + ioredis
 - **前端**: Vite 8 + Vue 3.5 + Pinia + Vue Router + axios + @lucide/vue
-- **数据库**: MongoDB 9 + Mongoose，Docker Compose 管理
+- **数据库**: SQLite (bun:sqlite 驱动) + Drizzle ORM，文件存储在 `apps/server/data/`
 - **缓存**: Redis (alpine)，Docker Compose 管理
 - **认证**: 单 token (random hex 32B) + Redis session + Cookie (SameSite=Lax, HttpOnly)
 - **共享包**: `@3qrain/shared` — ErrorCode 常量（前后端公用）
@@ -38,13 +39,16 @@ docker compose stop      # 停止
 ```
 apps/server/src/
 ├── index.ts                     # 根：connectDB → createApp → 挂载三层路由
-├── db.ts                        # mongoose + redis 连接及事件日志
+├── db.ts                        # SQLite + Drizzle + Redis 连接
+├── db/
+│   └── schema/                  # Drizzle schema 定义（drizzle-kit 递归读取）
+│       ├── index.ts             # barrel export (passwords, recoveryKeys)
+│       ├── columns.helpers.ts   # 公共 timestamps (createdAt, updatedAt)
+│       ├── passwords.ts
+│       └── recovery-keys.ts
 ├── constants/
 │   ├── http-status-codes.ts     # HTTP 状态码常量 (OK, CREATED, BAD_REQUEST...)
 │   └── session.ts               # SESSION_ADMIN_PREFIX + sessionValueSchema
-├── models/                      # 全局共享 Mongoose Model
-│   ├── password.model.ts
-│   └── recovery-key.model.ts
 ├── lib/core/
 │   └── create-app.ts            # createApp() 工厂，内置 Zod defaultHook
 ├── middleware/
@@ -147,7 +151,7 @@ apps/admin/src/
 
 ```
 # server
-MONGODB_URI=mongodb://localhost:27017/3qrain
+DATABASE_PATH=data/3qrain.db
 REDIS_URL=redis://localhost:6379
 TOKEN_TTL=86400
 
@@ -157,9 +161,9 @@ VITE_API_BASE_URL=/api
 
 ## Docker
 
-- MongoDB 8:27017，Redis alpine:6379
-- TZ=Asia/Shanghai，数据库存 UTC
-- Volume 命名: 3qrain-mongo-data / 3qrain-redis-data
+- Redis alpine:6379，TZ=Asia/Shanghai
+- Volume 命名: 3qrain-redis-data
+- SQLite 为文件数据库，无需容器
 
 ## 注意事项
 
@@ -170,3 +174,6 @@ VITE_API_BASE_URL=/api
 - **OpenAPIHono** 必须用 `createApp()` 创建
 - **Vue 组件** script 写在 template 上面
 - **前端 api 调用** 按模块建文件夹（`api/auth/`），axios 实例在 `lib/axios/`
+- **Drizzle schema 变更**后跑 `bunx drizzle-kit push`，`casing: "snake_case"` 在 `drizzle.config.ts` 和 `db.ts` 两处维护
+- **时间列**：`timestamp_ms` 毫秒模式 + `default(sql\`(unixepoch() * 1000)\`)`，updatedAt 用 `$onUpdate(() => new Date())`
+- **better-sqlite3** 仅 devDeps，供 drizzle-kit CLI 用，运行时走 `bun:sqlite`

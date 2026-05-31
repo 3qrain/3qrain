@@ -1,8 +1,9 @@
 import type { Context } from "hono";
-import { redis } from "~/db";
+import { eq } from "drizzle-orm";
+import { db, redis } from "~/db";
+import { passwords } from "~/db/schema";
 import { hashPassword, verifyPassword } from "~/utils/crypto";
 import { ok, fail } from "~/utils/response";
-import { PasswordModel } from "~/models/password.model";
 import { ErrorCode } from "@3qrain/shared";
 import * as HttpStatusCodes from "~/constants/http-status-codes";
 
@@ -14,7 +15,7 @@ export async function changePassword(c: Context) {
     newPassword: string;
   }>();
 
-  const pw = await PasswordModel.findOne();
+  const pw = db.select().from(passwords).limit(1).all()[0];
   if (!pw) {
     return c.json(fail(ErrorCode.NOT_INITIALIZED, "尚未初始化"), HttpStatusCodes.BAD_REQUEST);
   }
@@ -24,8 +25,8 @@ export async function changePassword(c: Context) {
     return c.json(fail(ErrorCode.INVALID_PASSWORD, "旧密码错误"), HttpStatusCodes.UNAUTHORIZED);
   }
 
-  pw.hash = await hashPassword(newPassword);
-  await pw.save();
+  const newHash = await hashPassword(newPassword);
+  db.update(passwords).set({ hash: newHash }).where(eq(passwords.id, pw.id)).run();
 
   const keys = await redis.keys(`${SESSION_ADMIN_PREFIX}*`);
   if (keys.length > 0) {

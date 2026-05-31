@@ -1,25 +1,14 @@
-import mongoose from "mongoose";
+import { drizzle } from "drizzle-orm/bun-sqlite";
+import { Database } from "bun:sqlite";
 import Redis from "ioredis";
+import * as schema from "~/db/schema";
 
-// --- MongoDB ---
+// --- SQLite ---
 
-mongoose.connection.on("error", (err) => {
-  console.error("[MongoDB] error:", err.message);
-});
+const sqlite = new Database("data/3qrain.db");
+sqlite.run("PRAGMA journal_mode=WAL");
 
-mongoose.connection.once("open", () => {
-  console.log("[MongoDB] connected");
-});
-
-mongoose.connection.on("disconnected", () => {
-  console.log("[MongoDB] disconnected");
-});
-
-export async function connectDB() {
-  await mongoose.connect(
-    process.env.MONGODB_URI || "mongodb://localhost:27017/3qrain",
-  );
-}
+export const db = drizzle(sqlite, { schema, casing: "snake_case" });
 
 // --- Redis ---
 
@@ -32,3 +21,7 @@ redis.on("connect", () => {
 redis.on("error", (err) => {
   console.error("[Redis] error:", err.message);
 });
+
+export async function connectDB() {
+  console.log("[SQLite] connected");
+}

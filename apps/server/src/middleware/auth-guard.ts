@@ -22,7 +22,7 @@ export const authGuard = createMiddleware(async (c, next) => {
   const raw = await redis.get(`${SESSION_ADMIN_PREFIX}${token}`);
   if (!raw) {
     return c.json(
-      fail(ErrorCode.UNAUTHORIZED, "session数据值不存在"),
+      fail(ErrorCode.UNAUTHORIZED, "session不存在"),
       HttpStatusCodes.UNAUTHORIZED,
     );
   }
