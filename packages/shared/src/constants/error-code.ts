@@ -17,6 +17,24 @@ export const ErrorCode = {
   INVALID_PARAMS: "INVALID_PARAMS",
   /** 服务器内部错误 */
   INTERNAL_ERROR: "INTERNAL_ERROR",
+  /** 分类不存在 */
+  CATEGORY_NOT_FOUND: "CATEGORY_NOT_FOUND",
+  /** 分类下存在文章，无法删除 */
+  CATEGORY_HAS_POSTS: "CATEGORY_HAS_POSTS",
+  /** 分类 name 已存在 */
+  CATEGORY_NAME_EXISTS: "CATEGORY_NAME_EXISTS",
+  /** 分类 slug 已存在 */
+  CATEGORY_SLUG_EXISTS: "CATEGORY_SLUG_EXISTS",
+  /** 标签不存在 */
+  TAG_NOT_FOUND: "TAG_NOT_FOUND",
+  /** 标签 name 已存在 */
+  TAG_NAME_EXISTS: "TAG_NAME_EXISTS",
+  /** 标签 slug 已存在 */
+  TAG_SLUG_EXISTS: "TAG_SLUG_EXISTS",
+  /** 文章不存在 */
+  POST_NOT_FOUND: "POST_NOT_FOUND",
+  /** 文章 slug 已存在 */
+  POST_SLUG_EXISTS: "POST_SLUG_EXISTS",
 } as const;
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];

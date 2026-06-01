@@ -1,0 +1,178 @@
+import { createRoute, z } from "@hono/zod-openapi";
+import * as HttpStatusCodes from "~/constants/http-status-codes";
+import { successResponseSchema, errorResponseSchema } from "~/utils/response";
+
+// --- Request Schemas ---
+
+export const createPostSchema = z.object({
+  title: z.string().min(1, "标题不能为空"),
+  slug: z.string().min(1, "标识不能为空"),
+  summary: z.string().optional().default(""),
+  cover: z.string().optional().default(""),
+  content: z.string().optional().default(""),
+  status: z.enum(["draft", "published"]).optional().default("draft"),
+  isPinned: z.boolean().optional().default(false),
+  categoryId: z.number().int("分类ID必须为整数"),
+  tagIds: z.array(z.number().int()).optional().default([]),
+});
+
+export const updatePostSchema = z.object({
+  title: z.string().min(1, "标题不能为空").optional(),
+  slug: z.string().min(1, "标识不能为空").optional(),
+  summary: z.string().optional(),
+  cover: z.string().optional(),
+  content: z.string().optional(),
+  status: z.enum(["draft", "published"]).optional(),
+  isPinned: z.boolean().optional(),
+  categoryId: z.number().int("分类ID必须为整数").optional(),
+  tagIds: z.array(z.number().int()).optional(),
+});
+
+// --- Response Schemas ---
+
+const tagSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  slug: z.string(),
+});
+
+const categorySchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  slug: z.string(),
+});
+
+const postSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  slug: z.string(),
+  summary: z.string(),
+  cover: z.string(),
+  content: z.string(),
+  status: z.string(),
+  isPinned: z.union([z.boolean(), z.number()]),
+  viewCount: z.number(),
+  categoryId: z.number(),
+  category: categorySchema.optional(),
+  tags: z.array(tagSchema).optional(),
+});
+
+const postListSchema = z.object({
+  list: z.array(postSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+});
+
+// --- Routes ---
+
+export const listPostsRoute = createRoute({
+  tags: ["Admin Posts"],
+  summary: "获取文章分页列表",
+  method: "get",
+  path: "/posts",
+  request: {
+    query: z.object({
+      keyword: z.string().optional(),
+      status: z.enum(["draft", "published"]).or(z.literal("")).optional(),
+      categoryId: z.string().optional(),
+      page: z.string().optional().default("1"),
+      pageSize: z.string().optional().default("10"),
+    }),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { "application/json": { schema: successResponseSchema(postListSchema) } },
+      description: "文章列表",
+    },
+  },
+});
+
+export const getPostRoute = createRoute({
+  tags: ["Admin Posts"],
+  summary: "获取文章详情",
+  method: "get",
+  path: "/posts/{id}",
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { "application/json": { schema: successResponseSchema(postSchema) } },
+      description: "文章详情",
+    },
+    [HttpStatusCodes.NOT_FOUND]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "文章不存在",
+    },
+  },
+});
+
+export const createPostRoute = createRoute({
+  tags: ["Admin Posts"],
+  summary: "创建文章",
+  method: "post",
+  path: "/posts",
+  request: {
+    body: { content: { "application/json": { schema: createPostSchema } } },
+  },
+  responses: {
+    [HttpStatusCodes.CREATED]: {
+      content: { "application/json": { schema: successResponseSchema(postSchema) } },
+      description: "创建成功",
+    },
+    [HttpStatusCodes.CONFLICT]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "slug 已存在",
+    },
+    [HttpStatusCodes.NOT_FOUND]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "分类不存在",
+    },
+  },
+});
+
+export const updatePostRoute = createRoute({
+  tags: ["Admin Posts"],
+  summary: "更新文章",
+  method: "patch",
+  path: "/posts/{id}",
+  request: {
+    params: z.object({ id: z.string() }),
+    body: { content: { "application/json": { schema: updatePostSchema } } },
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { "application/json": { schema: successResponseSchema(postSchema) } },
+      description: "更新成功",
+    },
+    [HttpStatusCodes.NOT_FOUND]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "文章或分类不存在",
+    },
+    [HttpStatusCodes.CONFLICT]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "slug 冲突",
+    },
+  },
+});
+
+export const deletePostRoute = createRoute({
+  tags: ["Admin Posts"],
+  summary: "删除文章",
+  method: "delete",
+  path: "/posts/{id}",
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { "application/json": { schema: successResponseSchema(z.object({})) } },
+      description: "删除成功",
+    },
+    [HttpStatusCodes.NOT_FOUND]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "文章不存在",
+    },
+  },
+});

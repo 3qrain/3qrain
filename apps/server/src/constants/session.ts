@@ -1,6 +1,6 @@
 import { z } from "@hono/zod-openapi";
 
-export const SESSION_ADMIN_PREFIX = "session:admin:";
+export const SESSION_ADMIN_PREFIX = "3qrain:session:admin:";
 
 export const sessionValueSchema = z.object({
   role: z.literal("admin"),

@@ -1,5 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { LayoutDashboard, FileText, Settings } from '@lucide/vue'
+import { LayoutDashboard, FileText, FolderTree, Tags } from '@lucide/vue'
 import AppLayout from '~/layouts/AppLayout.vue'
 
 export const menuRoutes: RouteRecordRaw[] = [
@@ -12,24 +12,33 @@ export const menuRoutes: RouteRecordRaw[] = [
       icon: LayoutDashboard
     }
   },
-  // {
-  //   path: '/posts',
-  //   name: 'posts',
-  //   component: () => import('~/views/Posts.vue'),
-  //   meta: {
-  //     title: '文章',
-  //     icon: FileText
-  //   }
-  // },
-  // {
-  //   path: '/settings',
-  //   name: 'settings',
-  //   component: () => import('~/views/Settings.vue'),
-  //   meta: {
-  //     title: '设置',
-  //     icon: Settings
-  //   }
-  // }
+  {
+    path: '/posts',
+    name: 'posts',
+    component: () => import('~/views/Posts.vue'),
+    meta: {
+      title: '文章',
+      icon: FileText
+    }
+  },
+  {
+    path: '/categories',
+    name: 'categories',
+    component: () => import('~/views/Categories.vue'),
+    meta: {
+      title: '分类',
+      icon: FolderTree
+    }
+  },
+  {
+    path: '/tags',
+    name: 'tags',
+    component: () => import('~/views/Tags.vue'),
+    meta: {
+      title: '标签',
+      icon: Tags
+    }
+  },
 ]
 
 export const routes: RouteRecordRaw[] = [
@@ -42,7 +51,19 @@ export const routes: RouteRecordRaw[] = [
     path: "/",
     component: AppLayout,
     redirect: "/dashboard",
-    children: [...menuRoutes],
+    children: [
+      ...menuRoutes,
+      {
+        path: '/posts/new',
+        name: 'postCreate',
+        component: () => import('~/views/PostEdit.vue'),
+      },
+      {
+        path: '/posts/:id',
+        name: 'postEdit',
+        component: () => import('~/views/PostEdit.vue'),
+      },
+    ],
   },
   {
     path: "/:pathMatch(.*)*",

@@ -42,10 +42,15 @@ apps/server/src/
 ├── db.ts                        # SQLite + Drizzle + Redis 连接
 ├── db/
 │   └── schema/                  # Drizzle schema 定义（drizzle-kit 递归读取）
-│       ├── index.ts             # barrel export (passwords, recoveryKeys)
+│       ├── index.ts             # barrel export
 │       ├── columns.helpers.ts   # 公共 timestamps (createdAt, updatedAt)
+│       ├── relations.ts         # Drizzle relations 定义
 │       ├── passwords.ts
-│       └── recovery-keys.ts
+│       ├── recovery-keys.ts
+│       ├── categories.ts
+│       ├── tags.ts
+│       ├── posts.ts
+│       └── post-tags.ts
 ├── constants/
 │   ├── http-status-codes.ts     # HTTP 状态码常量 (OK, CREATED, BAD_REQUEST...)
 │   └── session.ts               # SESSION_ADMIN_PREFIX + sessionValueSchema
@@ -59,8 +64,11 @@ apps/server/src/
 │   └── response.ts              # ok() / fail() 响应辅助 + Zod schema + timestamp
 └── modules/
     ├── auth/        # 公开：status / setup / login / recover
-    ├── admin/       # 全鉴权：account/ (change-password / logout)
-    │   └── account/
+    ├── admin/       # 全鉴权
+    │   ├── account/       # change-password / logout
+    │   ├── categories/    # 分类 CRUD
+    │   ├── tags/          # 标签 CRUD
+    │   └── posts/         # 文章 CRUD
     └── public/      # 前台接口（占位）
 ```
 
@@ -99,7 +107,7 @@ fail(ErrorCode.X, "消息")  // { success: false, code: "X", message: "...", tim
 
 ### Session 数据结构
 
-Redis key: `session:admin:<token>`，值存 JSON（Zod 校验）：
+Redis key: `3qrain:session:admin:<token>`，值存 JSON（Zod 校验）：
 
 ```json
 { "role": "admin", "loginIp": "...", "userAgent": "...", "createdAt": ..., "lastActiveAt": ... }
