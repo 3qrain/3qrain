@@ -12,7 +12,7 @@ const changePasswordSchema = z.object({
 // --- Routes ---
 
 export const changePasswordRoute = createRoute({
-  tags: ["Admin"],
+  tags: ["Admin/Account"],
   summary: "修改密码",
   method: "post",
   path: "/change-password",
@@ -27,7 +27,7 @@ export const changePasswordRoute = createRoute({
 });
 
 export const logoutRoute = createRoute({
-  tags: ["Admin"],
+  tags: ["Admin/Account"],
   summary: "退出登录",
   method: "post",
   path: "/logout",

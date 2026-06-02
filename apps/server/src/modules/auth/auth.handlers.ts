@@ -7,6 +7,7 @@ import { ok, fail } from "~/utils/response";
 import { ErrorCode } from "@3qrain/shared";
 import * as HttpStatusCodes from "~/constants/http-status-codes";
 import { SESSION_ADMIN_PREFIX, type SessionValue } from "~/constants/session";
+import { initConfigs } from "~/modules/admin/config/configs.default";
 
 const TOKEN_TTL = Number(process.env.TOKEN_TTL) || 86400;
 
@@ -39,6 +40,7 @@ export async function status(c: Context) {
   return c.json(ok({ initialized: result!.count > 0 }, "状态检查成功"), HttpStatusCodes.OK);
 }
 
+// 设置系统密码
 export async function setup(c: Context) {
   const result = db.select({ count: count() }).from(passwords).get();
   if (result!.count > 0) {
@@ -53,6 +55,10 @@ export async function setup(c: Context) {
   const recoveryKey = generateToken();
   const recoveryHash = await hashPassword(recoveryKey);
   db.insert(recoveryKeys).values({ hash: recoveryHash }).run();
+
+  // 初始化默认配置，如果此次是第一次设置密码，则说明之前没有配置过，直接初始化默认配置
+  // 如果不是第一次设置密码，则说明之前初始化过，就不会再初始化默认配置了，避免覆盖之前的配置
+  await initConfigs();
 
   const token = await createSession(c);
   setCookie(c, token);

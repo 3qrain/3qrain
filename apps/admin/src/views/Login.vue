@@ -53,6 +53,11 @@ const recoveryKey = ref("");
 const error = ref("");
 
 onMounted(async () => {
+  if (localStorage.getItem("admin")) {
+    router.push("/");
+    return;
+  }
+
   const result = await checkStatus();
   initialized.value = result.initialized;
   loading.value = false;

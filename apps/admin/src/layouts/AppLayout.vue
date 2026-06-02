@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Menu } from '@lucide/vue'
 import AppSidebar from './components/AppSidebar.vue'
+import { apiClient } from '~/lib/axios'
 
 const menuOpen = ref(false)
 const isMobile = ref(false)
@@ -14,7 +15,16 @@ function closeMenu() {
 
 let mediaQuery: MediaQueryList
 
+async function fetchAdminInfo() {
+  try {
+    const { data } = await apiClient.get('/admin/config/personalInfo')
+    localStorage.setItem('admin', JSON.stringify(data.data.personalInfo))
+  } catch { /* 401 拦截器会处理 */ }
+}
+
 onMounted(() => {
+  fetchAdminInfo()
+
   mediaQuery = window.matchMedia(`(width <= ${BREAKPOINT}px)`)
   isMobile.value = mediaQuery.matches
 
@@ -87,7 +97,7 @@ onUnmounted(() => {
   width: @sidebarWidth;
   flex-shrink: 0;
   background: var(--color-base-200);
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-base-300);
   overflow: hidden;
   transition: width 0.3s ease;
   .sidebar-inner {
@@ -110,7 +120,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 0 16px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-base-300);
   background: var(--color-base-100);
 }
 

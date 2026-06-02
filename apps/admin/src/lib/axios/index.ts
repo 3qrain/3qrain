@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "vue-sonner";
 import router from "~/router";
 
 export const apiClient = axios.create({
@@ -9,7 +10,12 @@ apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error?.response?.status === 401) {
-      router.push("/login");
+      localStorage.removeItem("admin");
+      if (router.currentRoute.value.path !== "/login") {
+        toast.error("登录已失效，请重新登录");
+        router.push("/login");
+      }
+      return new Promise(() => {});
     }
     return Promise.reject(error);
   },

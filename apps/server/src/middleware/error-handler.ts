@@ -12,7 +12,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
     )
   }
   return c.json( 
-    fail(ErrorCode.INTERNAL_ERROR, "服务器错误"),
+    fail(ErrorCode.INTERNAL_ERROR, "[服务器异常] " + err),
     HttpStatusCodes.INTERNAL_SERVER_ERROR,
   );
 };

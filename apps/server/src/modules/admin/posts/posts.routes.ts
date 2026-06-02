@@ -67,7 +67,7 @@ const postListSchema = z.object({
 // --- Routes ---
 
 export const listPostsRoute = createRoute({
-  tags: ["Admin Posts"],
+  tags: ["Admin/Posts"],
   summary: "获取文章分页列表",
   method: "get",
   path: "/posts",
@@ -90,7 +90,7 @@ export const listPostsRoute = createRoute({
 });
 
 export const getPostRoute = createRoute({
-  tags: ["Admin Posts"],
+  tags: ["Admin/Posts"],
   summary: "获取文章详情",
   method: "get",
   path: "/posts/{id}",
@@ -110,7 +110,7 @@ export const getPostRoute = createRoute({
 });
 
 export const createPostRoute = createRoute({
-  tags: ["Admin Posts"],
+  tags: ["Admin/Posts"],
   summary: "创建文章",
   method: "post",
   path: "/posts",
@@ -134,7 +134,7 @@ export const createPostRoute = createRoute({
 });
 
 export const updatePostRoute = createRoute({
-  tags: ["Admin Posts"],
+  tags: ["Admin/Posts"],
   summary: "更新文章",
   method: "patch",
   path: "/posts/{id}",
@@ -159,7 +159,7 @@ export const updatePostRoute = createRoute({
 });
 
 export const trashPostRoute = createRoute({
-  tags: ["Admin Posts"],
+  tags: ["Admin/Posts"],
   summary: "移入回收站（软删除）",
   method: "delete",
   path: "/posts/{id}",
@@ -179,7 +179,7 @@ export const trashPostRoute = createRoute({
 });
 
 export const destroyPostRoute = createRoute({
-  tags: ["Admin Posts"],
+  tags: ["Admin/Posts"],
   summary: "物理删除文章",
   method: "delete",
   path: "/posts/{id}/force",
@@ -199,7 +199,7 @@ export const destroyPostRoute = createRoute({
 });
 
 export const restorePostRoute = createRoute({
-  tags: ["Admin Posts"],
+  tags: ["Admin/Posts"],
   summary: "恢复文章",
   method: "patch",
   path: "/posts/{id}/restore",

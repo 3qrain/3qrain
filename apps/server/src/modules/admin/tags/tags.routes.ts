@@ -28,7 +28,7 @@ export const tagResponseSchema = tagSchema;
 // --- Routes ---
 
 export const listTagsRoute = createRoute({
-  tags: ["Admin Tags"],
+  tags: ["Admin/Tags"],
   summary: "获取标签列表",
   method: "get",
   path: "/tags",
@@ -41,7 +41,7 @@ export const listTagsRoute = createRoute({
 });
 
 export const createTagRoute = createRoute({
-  tags: ["Admin Tags"],
+  tags: ["Admin/Tags"],
   summary: "创建标签",
   method: "post",
   path: "/tags",
@@ -61,7 +61,7 @@ export const createTagRoute = createRoute({
 });
 
 export const updateTagRoute = createRoute({
-  tags: ["Admin Tags"],
+  tags: ["Admin/Tags"],
   summary: "更新标签",
   method: "patch",
   path: "/tags/{id}",
@@ -86,7 +86,7 @@ export const updateTagRoute = createRoute({
 });
 
 export const deleteTagRoute = createRoute({
-  tags: ["Admin Tags"],
+  tags: ["Admin/Tags"],
   summary: "删除标签",
   method: "delete",
   path: "/tags/{id}",

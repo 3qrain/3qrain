@@ -28,7 +28,7 @@ export const categoryResponseSchema = categorySchema;
 // --- Routes ---
 
 export const listCategoriesRoute = createRoute({
-  tags: ["Admin Categories"],
+  tags: ["Admin/Categories"],
   summary: "获取分类列表",
   method: "get",
   path: "/categories",
@@ -41,7 +41,7 @@ export const listCategoriesRoute = createRoute({
 });
 
 export const createCategoryRoute = createRoute({
-  tags: ["Admin Categories"],
+  tags: ["Admin/Categories"],
   summary: "创建分类",
   method: "post",
   path: "/categories",
@@ -61,7 +61,7 @@ export const createCategoryRoute = createRoute({
 });
 
 export const updateCategoryRoute = createRoute({
-  tags: ["Admin Categories"],
+  tags: ["Admin/Categories"],
   summary: "更新分类",
   method: "patch",
   path: "/categories/{id}",
@@ -86,7 +86,7 @@ export const updateCategoryRoute = createRoute({
 });
 
 export const deleteCategoryRoute = createRoute({
-  tags: ["Admin Categories"],
+  tags: ["Admin/Categories"],
   summary: "删除分类",
   method: "delete",
   path: "/categories/{id}",

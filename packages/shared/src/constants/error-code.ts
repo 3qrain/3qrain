@@ -35,6 +35,8 @@ export const ErrorCode = {
   POST_NOT_FOUND: "POST_NOT_FOUND",
   /** 文章 slug 已存在 */
   POST_SLUG_EXISTS: "POST_SLUG_EXISTS",
+  /** 配置不存在 */
+  CONFIG_NOT_FOUND: "CONFIG_NOT_FOUND",
 } as const;
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];
