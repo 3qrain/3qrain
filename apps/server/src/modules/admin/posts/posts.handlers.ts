@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { eq, like, and, desc, count as drizzleCount, inArray } from "drizzle-orm";
+import { eq, like, and, desc, count as drizzleCount, inArray, isNull } from "drizzle-orm";
 import { db } from "~/db";
 import { posts, postTags, categories, tags } from "~/db/schema";
 import { ok, fail } from "~/utils/response";
@@ -8,6 +8,10 @@ import * as HttpStatusCodes from "~/constants/http-status-codes";
 
 function buildPostFilters(query: Record<string, string | undefined>) {
   const conditions = [];
+
+  if (!query.deleted) {
+    conditions.push(isNull(posts.deletedAt));
+  }
 
   if (query.keyword) {
     conditions.push(like(posts.title, `%${query.keyword}%`));
@@ -202,7 +206,19 @@ export async function update(c: Context) {
   return c.json(ok(post, "更新成功"), HttpStatusCodes.OK);
 }
 
-export async function remove(c: Context) {
+export async function trash(c: Context) {
+  const id = Number.parseInt(c.req.param("id")!);
+
+  const existing = db.select().from(posts).where(and(eq(posts.id, id), isNull(posts.deletedAt))).get();
+  if (!existing) {
+    return c.json(fail(ErrorCode.POST_NOT_FOUND, "文章不存在"), HttpStatusCodes.NOT_FOUND);
+  }
+
+  db.update(posts).set({ deletedAt: new Date() }).where(eq(posts.id, id)).run();
+  return c.json(ok({}, "已移入回收站"), HttpStatusCodes.OK);
+}
+
+export async function destroy(c: Context) {
   const id = Number.parseInt(c.req.param("id")!);
 
   const existing = db.select().from(posts).where(eq(posts.id, id)).get();
@@ -212,5 +228,21 @@ export async function remove(c: Context) {
 
   db.delete(postTags).where(eq(postTags.postId, id)).run();
   db.delete(posts).where(eq(posts.id, id)).run();
-  return c.json(ok({}, "删除成功"), HttpStatusCodes.OK);
+  return c.json(ok({}, "已永久删除"), HttpStatusCodes.OK);
+}
+
+export async function restore(c: Context) {
+  const id = Number.parseInt(c.req.param("id")!);
+
+  const existing = db.select().from(posts).where(eq(posts.id, id)).get();
+  if (!existing) {
+    return c.json(fail(ErrorCode.POST_NOT_FOUND, "文章不存在"), HttpStatusCodes.NOT_FOUND);
+  }
+  if (!existing.deletedAt) {
+    return c.json(fail(ErrorCode.POST_NOT_FOUND, "文章不在回收站"), HttpStatusCodes.BAD_REQUEST);
+  }
+
+  db.update(posts).set({ deletedAt: null }).where(eq(posts.id, id)).run();
+  const post = await getPostWithRelations(id);
+  return c.json(ok(post, "恢复成功"), HttpStatusCodes.OK);
 }

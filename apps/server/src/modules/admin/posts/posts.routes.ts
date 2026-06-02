@@ -76,6 +76,7 @@ export const listPostsRoute = createRoute({
       keyword: z.string().optional(),
       status: z.enum(["draft", "published"]).or(z.literal("")).optional(),
       categoryId: z.string().optional(),
+      deleted: z.string().optional(),
       page: z.string().optional().default("1"),
       pageSize: z.string().optional().default("10"),
     }),
@@ -157,9 +158,9 @@ export const updatePostRoute = createRoute({
   },
 });
 
-export const deletePostRoute = createRoute({
+export const trashPostRoute = createRoute({
   tags: ["Admin Posts"],
-  summary: "删除文章",
+  summary: "移入回收站（软删除）",
   method: "delete",
   path: "/posts/{id}",
   request: {
@@ -168,7 +169,47 @@ export const deletePostRoute = createRoute({
   responses: {
     [HttpStatusCodes.OK]: {
       content: { "application/json": { schema: successResponseSchema(z.object({})) } },
-      description: "删除成功",
+      description: "已移入回收站",
+    },
+    [HttpStatusCodes.NOT_FOUND]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "文章不存在",
+    },
+  },
+});
+
+export const destroyPostRoute = createRoute({
+  tags: ["Admin Posts"],
+  summary: "物理删除文章",
+  method: "delete",
+  path: "/posts/{id}/force",
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { "application/json": { schema: successResponseSchema(z.object({})) } },
+      description: "已永久删除",
+    },
+    [HttpStatusCodes.NOT_FOUND]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "文章不存在",
+    },
+  },
+});
+
+export const restorePostRoute = createRoute({
+  tags: ["Admin Posts"],
+  summary: "恢复文章",
+  method: "patch",
+  path: "/posts/{id}/restore",
+  request: {
+    params: z.object({ id: z.string() }),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { "application/json": { schema: successResponseSchema(postSchema) } },
+      description: "恢复成功",
     },
     [HttpStatusCodes.NOT_FOUND]: {
       content: { "application/json": { schema: errorResponseSchema } },

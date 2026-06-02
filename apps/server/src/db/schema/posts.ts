@@ -13,5 +13,6 @@ export const posts = sqliteTable("posts", {
   isPinned: integer({ mode: "boolean" }).notNull().default(false),
   viewCount: integer().notNull().default(0),
   categoryId: integer("category_id").notNull().references(() => categories.id),
+  deletedAt: integer({ mode: "timestamp_ms" }),
   ...timestamps,
 });
