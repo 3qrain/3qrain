@@ -15,6 +15,9 @@ dist
 # Debug
 *.log
 
+# Example
+example/
+
 # Misc
 .DS_Store
 *.pem

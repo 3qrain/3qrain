@@ -38,12 +38,12 @@ export async function changePassword(c: Context) {
 
 export async function logout(c: Context) {
   const cookie = c.req.header("cookie") || "";
-  const match = cookie.match(/token=([^;]+)/);
+  const match = cookie.match(/3qrain_token=([^;]+)/);
   if (match) {
     await redis.del(`${SESSION_ADMIN_PREFIX}${match[1]}`);
     c.header(
       "set-cookie",
-      "token=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
+      "3qrain_token=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
     );
   }
   return c.json(ok({}, "已退出"), HttpStatusCodes.OK);

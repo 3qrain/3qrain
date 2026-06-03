@@ -53,7 +53,8 @@ function handleClick() {
 .sidebar-root {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-width: 240px;
+  height: 100%;
   padding: 0 12px;
 }
 

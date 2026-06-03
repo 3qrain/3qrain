@@ -50,9 +50,7 @@ onUnmounted(() => {
 
     <!-- Desktop Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-inner">
-        <AppSidebar />
-      </div>
+      <AppSidebar />
     </aside>
 
     <!-- Mobile Bottom Drawer -->
@@ -100,9 +98,6 @@ onUnmounted(() => {
   border-right: 1px solid var(--color-base-300);
   overflow: hidden;
   transition: width 0.3s ease;
-  .sidebar-inner {
-    width: @sidebarWidth;
-  }
 }
 
 /* --- Main --- */

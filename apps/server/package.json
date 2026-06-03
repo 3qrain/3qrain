@@ -1,7 +1,7 @@
 {
   "name": "server",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot --port 3010 src/index.ts"
   },
   "dependencies": {
     "@3qrain/shared": "workspace:*",

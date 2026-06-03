@@ -9,7 +9,7 @@ const TOKEN_TTL = Number(process.env.TOKEN_TTL) || 86400;
 
 export const authGuard = createMiddleware(async (c, next) => {
   const cookie = c.req.header("cookie") || "";
-  const match = cookie.match(/token=([^;]+)/);
+  const match = cookie.match(/3qrain_token=([^;]+)/);
   const token = match?.[1];
 
   if (!token) {

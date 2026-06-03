@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 apps/admin     — Vite 8 + Vue 3.5 前端 (port 5173)
-apps/server    — Hono 4 后端 (port 3000)
+apps/server    — Hono 4 后端 (port 3010)
 packages/
   shared         — @3qrain/shared，共享常量 (ErrorCode)
   eslint-config  — @repo/eslint-config，共享 ESLint
@@ -149,7 +149,7 @@ apps/admin/src/
 - **主题**: daisyUI 色彩体系 (oklch)，light/dark/system 三模式，`html.dark` class 切换
 - **AppLayout**: 桌面端 fixed 侧边栏 (240px) + main (margin-left)，移动端 slide-up 抽屉
 - **SFC 顺序**: `<script>` → `<template>` → `<style>`
-- **Vite 代理**: `/api` → `http://localhost:3000`
+- **Vite 代理**: `/api` → `http://localhost:3010`
 
 ## 路径别名
 

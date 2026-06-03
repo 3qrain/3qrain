@@ -6,7 +6,7 @@ export const menuRoutes: RouteRecordRaw[] = [
   {
     path: '/dashboard',
     name: 'dashboard',
-    component: () => import('~/views/Dashboard.vue'),
+    component: () => import('~/views/dashboard/Dashboard.vue'),
     meta: {
       title: '仪表盘',
       icon: LayoutDashboard
@@ -15,7 +15,7 @@ export const menuRoutes: RouteRecordRaw[] = [
   {
     path: '/posts',
     name: 'posts',
-    component: () => import('~/views/Posts.vue'),
+    component: () => import('~/views/posts/Posts.vue'),
     meta: {
       title: '文章',
       icon: FileText
@@ -24,7 +24,7 @@ export const menuRoutes: RouteRecordRaw[] = [
   {
     path: '/categories',
     name: 'categories',
-    component: () => import('~/views/Categories.vue'),
+    component: () => import('~/views/categories/Categories.vue'),
     meta: {
       title: '分类',
       icon: FolderTree
@@ -33,7 +33,7 @@ export const menuRoutes: RouteRecordRaw[] = [
   {
     path: '/tags',
     name: 'tags',
-    component: () => import('~/views/Tags.vue'),
+    component: () => import('~/views/tags/Tags.vue'),
     meta: {
       title: '标签',
       icon: Tags
@@ -45,7 +45,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('~/views/Login.vue')
+    component: () => import('~/views/auth/Login.vue')
   },
   {
     path: "/",
@@ -56,12 +56,12 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '/posts/new',
         name: 'postCreate',
-        component: () => import('~/views/PostEdit.vue'),
+        component: () => import('~/views/posts/PostEdit.vue'),
       },
       {
         path: '/posts/:id',
         name: 'postEdit',
-        component: () => import('~/views/PostEdit.vue'),
+        component: () => import('~/views/posts/PostEdit.vue'),
       },
     ],
   },

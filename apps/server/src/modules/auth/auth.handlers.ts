@@ -31,7 +31,7 @@ async function createSession(c: Context) {
 function setCookie(c: Context, token: string) {
   c.header(
     "set-cookie",
-    `token=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${TOKEN_TTL}`,
+    `3qrain_token=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${TOKEN_TTL}`,
   );
 }
 
