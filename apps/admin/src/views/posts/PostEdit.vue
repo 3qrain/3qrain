@@ -69,9 +69,15 @@ function buildForm() {
   };
 }
 
-async function doSave(asStatus?: string) {
-  if (!title.value || !slug.value || !categoryId.value) return;
-  if (saving.value) return;
+async function doSave(asStatus?: string, silent = false): Promise<boolean> {
+  if (saving.value) return false;
+  // 发布/归档时前端先校验
+  if (!silent && asStatus && asStatus !== "draft") {
+    if (!title.value || !slug.value || !categoryId.value) {
+      toast.error("发布/归档时标题、标识和分类为必填");
+      return false;
+    }
+  }
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   saving.value = true;
   try {
@@ -85,8 +91,10 @@ async function doSave(asStatus?: string) {
       router.replace({ name: "postEdit", params: { id: String(created.id) } });
     }
     isDirty.value = false;
+    return true;
   } catch (e: any) {
-    toast.error(e?.response?.data?.message || "保存失败");
+    if (!silent) toast.error(e?.response?.data?.message || "保存失败");
+    return false;
   } finally {
     saving.value = false;
   }
@@ -94,17 +102,22 @@ async function doSave(asStatus?: string) {
 
 function scheduleAutoSave() {
   if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { if (isDirty.value) doSave("draft"); }, 3000);
+  saveTimer = setTimeout(() => { if (isDirty.value) doSave("draft", true); }, 3000);
 }
 
-function onEdit() { isDirty.value = true; scheduleAutoSave(); }
 function onKeydown(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); doSave("draft"); }
 }
-async function publish() { await doSave("published"); toast.success("已发布"); }
+async function publish() {
+  const ok = await doSave("published");
+  if (ok) toast.success("已发布");
+}
 
 watch([title, slug, summary, cover, content, status, isPinned, categoryId, tagIds], () => {
-  if (!skipWatch) isDirty.value = true;
+  if (!skipWatch) {
+    if (!isDirty.value) isDirty.value = true;
+    scheduleAutoSave();
+  }
 }, { deep: true });
 
 onMounted(() => { loadData(); window.addEventListener("keydown", onKeydown); });
@@ -119,11 +132,13 @@ onUnmounted(() => { window.removeEventListener("keydown", onKeydown); if (saveTi
         :settings-open="showSettings"
         :saving="saving"
         :is-dirty="isDirty"
-        :is-draft="postId === 0 || status === 'draft'"
+        :is-new="postId === 0"
+        :is-draft="status === 'draft'"
+        :is-published="status === 'published'"
         @toggle-settings="showSettings = !showSettings"
         @publish="publish"
       />
-      <PostEditorContent v-model:title="title" v-model:content="content" @input="onEdit" />
+      <PostEditorContent v-model:title="title" v-model:content="content" />
     </div>
 
     <!-- 宽屏：内联侧栏 -->
@@ -138,7 +153,7 @@ onUnmounted(() => { window.removeEventListener("keydown", onKeydown); if (saveTi
         v-model:tag-ids="tagIds"
         :categories="categories"
         :tags="tags"
-        @change="onEdit"
+        @change="scheduleAutoSave()"
       />
     </div>
 
@@ -157,7 +172,7 @@ onUnmounted(() => { window.removeEventListener("keydown", onKeydown); if (saveTi
               v-model:tag-ids="tagIds"
               :categories="categories"
               :tags="tags"
-              @change="onEdit"
+              @change="scheduleAutoSave()"
             />
           </aside>
         </div>

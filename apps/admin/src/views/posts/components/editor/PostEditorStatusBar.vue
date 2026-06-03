@@ -6,7 +6,9 @@ const props = defineProps<{
   settingsOpen: boolean;
   saving?: boolean;
   isDirty?: boolean;
+  isNew?: boolean;
   isDraft?: boolean;
+  isPublished?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -16,7 +18,7 @@ const emit = defineEmits<{
 
 const saveStatus = computed(() => {
   if (props.saving) return "saving";
-  if (props.isDirty) return "unsaved";
+  if (props.isNew || props.isDirty) return "unsaved";
   return "saved";
 });
 </script>
@@ -35,10 +37,10 @@ const saveStatus = computed(() => {
 
     <!-- 右侧：操作 -->
     <div class="right">
-      <button v-if="isDraft" class="pub-btn" @click="emit('publish')">
+      <button v-if="isDraft || isNew" class="pub-btn" @click="emit('publish')">
         <Send :size="14" /> 发布
       </button>
-      <span v-else class="pub-badge">
+      <span v-else-if="isPublished" class="pub-badge">
         <Check :size="14" /> 已发布
       </span>
       <button :class="['btn', settingsOpen && 'active']" @click="emit('toggleSettings')">

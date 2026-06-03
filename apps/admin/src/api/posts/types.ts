@@ -8,7 +8,7 @@ export interface Post {
   summary: string;
   cover: string;
   content: string;
-  status: "draft" | "published";
+  status: "draft" | "published" | "archived";
   isPinned: boolean;
   viewCount: number;
   categoryId: number;
@@ -34,14 +34,14 @@ export interface PostListQuery {
 }
 
 export interface CreatePostBody {
-  title: string;
-  slug: string;
+  title?: string;
+  slug?: string;
   summary?: string;
   cover?: string;
   content?: string;
   status?: string;
   isPinned?: boolean;
-  categoryId: number;
+  categoryId?: number;
   tagIds?: number[];
 }
 

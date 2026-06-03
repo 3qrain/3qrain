@@ -4,27 +4,29 @@ import { successResponseSchema, errorResponseSchema } from "~/utils/response";
 
 // --- Request Schemas ---
 
+const POST_STATUS = ["draft", "published", "archived"] as const;
+
 export const createPostSchema = z.object({
-  title: z.string().min(1, "标题不能为空"),
-  slug: z.string().min(1, "标识不能为空"),
+  title: z.string().optional().default(""),
+  slug: z.string().optional().default(""),
   summary: z.string().optional().default(""),
   cover: z.string().optional().default(""),
   content: z.string().optional().default(""),
-  status: z.enum(["draft", "published"]).optional().default("draft"),
+  status: z.enum(POST_STATUS).optional().default("draft"),
   isPinned: z.boolean().optional().default(false),
-  categoryId: z.number().int("分类ID必须为整数"),
+  categoryId: z.number().int().optional().default(0),
   tagIds: z.array(z.number().int()).optional().default([]),
 });
 
 export const updatePostSchema = z.object({
-  title: z.string().min(1, "标题不能为空").optional(),
-  slug: z.string().min(1, "标识不能为空").optional(),
+  title: z.string().optional(),
+  slug: z.string().optional(),
   summary: z.string().optional(),
   cover: z.string().optional(),
   content: z.string().optional(),
-  status: z.enum(["draft", "published"]).optional(),
+  status: z.enum(POST_STATUS).optional(),
   isPinned: z.boolean().optional(),
-  categoryId: z.number().int("分类ID必须为整数").optional(),
+  categoryId: z.number().int().optional(),
   tagIds: z.array(z.number().int()).optional(),
 });
 
@@ -74,7 +76,7 @@ export const listPostsRoute = createRoute({
   request: {
     query: z.object({
       keyword: z.string().optional(),
-      status: z.enum(["draft", "published"]).or(z.literal("")).optional(),
+      status: z.enum(POST_STATUS).or(z.literal("")).optional(),
       categoryId: z.string().optional(),
       deleted: z.string().optional(),
       page: z.string().optional().default("1"),

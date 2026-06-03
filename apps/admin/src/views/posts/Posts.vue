@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 import { Plus, Pencil, Trash2, Search, Eye } from "@lucide/vue";
+import Pagination from "~/components/table/Pagination.vue";
 import { getPosts, deletePost } from "~/api/posts";
 import { getCategories } from "~/api/categories";
 import type { Post } from "~/api/posts/types";
@@ -13,7 +14,7 @@ const router = useRouter();
 const posts = ref<Post[]>([]);
 const categories = ref<Category[]>([]);
 const total = ref(0);
-const loading = ref(false);
+const loading = ref(true);
 
 const query = ref({
   keyword: "",
@@ -24,8 +25,9 @@ const query = ref({
 });
 
 const totalPages = ref(1);
+const paginationMode = ref<"button" | "scroll">("scroll");
 
-async function load() {
+async function load(append = false) {
   loading.value = true;
   try {
     const params: any = { page: query.value.page, pageSize: query.value.pageSize };
@@ -34,7 +36,7 @@ async function load() {
     if (query.value.categoryId) params.categoryId = query.value.categoryId;
 
     const result = await getPosts(params);
-    posts.value = result.list;
+    posts.value = append ? [...posts.value, ...result.list] : result.list;
     total.value = result.total;
     totalPages.value = Math.ceil(result.total / result.pageSize);
   } catch {
@@ -57,7 +59,7 @@ function search() {
 
 function goPage(p: number) {
   query.value.page = p;
-  load();
+  load(paginationMode.value === "scroll");
 }
 
 function create() {
@@ -111,22 +113,24 @@ onMounted(() => {
           <option value="">全部状态</option>
           <option value="draft">草稿</option>
           <option value="published">已发布</option>
+          <option value="archived">已归档</option>
         </select>
         <select v-model="query.categoryId" class="filter-select">
           <option value="">全部分类</option>
           <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
         </select>
+        <div class="mode-toggle">
+          <button :class="['mode-opt', paginationMode === 'scroll' && 'on']" @click="paginationMode = 'scroll'">滚动</button>
+          <button :class="['mode-opt', paginationMode === 'button' && 'on']" @click="paginationMode = 'button'; query.page = 1; load()">分页</button>
+        </div>
         <button class="btn-new" @click="create">
           <Plus :size="17" /> 写文章
         </button>
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="empty">加载中...</div>
-
     <!-- Empty -->
-    <div v-else-if="posts.length === 0" class="empty">
+    <div v-if="!loading && posts.length === 0" class="empty">
       <p class="empty-title">暂无文章</p>
       <p class="empty-desc">点击「写文章」开始创作</p>
     </div>
@@ -135,12 +139,12 @@ onMounted(() => {
     <div v-else class="post-list">
       <article v-for="post in posts" :key="post.id" class="post-row" @click="edit(post)">
         <div class="post-main">
-          <h2 class="post-title">{{ post.title || "无标题" }}</h2>
+          <h2 class="post-title">{{ post.title || "新文章" }}</h2>
           <p v-if="post.summary" class="post-summary">{{ post.summary }}</p>
           <div class="post-meta">
             <span v-if="post.category" class="meta-tag">{{ post.category.name }}</span>
-            <span :class="['status-badge', post.status === 'published' ? 'is-pub' : 'is-draft']">
-              {{ post.status === "published" ? "已发布" : "草稿" }}
+            <span :class="['status-badge', post.status === 'published' ? 'is-pub' : post.status === 'archived' ? 'is-archived' : 'is-draft']">
+              {{ post.status === "published" ? "已发布" : post.status === "archived" ? "已归档" : "草稿" }}
             </span>
             <span class="meta-text"><Eye :size="13" /> {{ post.viewCount }}</span>
             <span class="meta-text">{{ formatDate(post.createdAt) }}</span>
@@ -153,12 +157,13 @@ onMounted(() => {
       </article>
     </div>
 
-    <!-- Pagination -->
-    <div v-if="totalPages > 1" class="pager">
-      <button :disabled="query.page <= 1" @click="goPage(query.page - 1)">上一页</button>
-      <span>{{ query.page }} / {{ totalPages }}</span>
-      <button :disabled="query.page >= totalPages" @click="goPage(query.page + 1)">下一页</button>
-    </div>
+    <Pagination
+      :current-page="query.page"
+      :total-pages="totalPages"
+      :loading="loading"
+      @change="goPage"
+      :mode="paginationMode"
+    />
   </div>
 </template>
 
@@ -236,6 +241,29 @@ onMounted(() => {
   cursor: pointer;
 
   &:focus { border-color: var(--color-base-300); }
+}
+
+.mode-toggle {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-base-300);
+}
+
+.mode-opt {
+  padding: 4px 10px;
+  border: none;
+  background: var(--color-base-100);
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--color-base-content);
+  opacity: 0.45;
+  transition: all 0.12s;
+
+  &.on {
+    opacity: 1;
+    background: var(--color-base-300);
+  }
 }
 
 .btn-new {
@@ -350,9 +378,13 @@ onMounted(() => {
     color: oklch(37% .077 168.94);
   }
   &.is-draft {
+    background: oklch(82% .189 84.429 / 0.2);
+    color: oklch(40% .112 45.904);
+  }
+  &.is-archived {
     background: var(--color-base-300);
     color: var(--color-base-content);
-    opacity: 0.6;
+    opacity: 0.5;
   }
 }
 
@@ -397,32 +429,4 @@ onMounted(() => {
   background: oklch(71% .194 13.428 / 0.1);
 }
 
-/* --- Pagination --- */
-.pager {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin-top: 32px;
-
-  button {
-    padding: 7px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--color-base-300);
-    background: var(--color-base-100);
-    font-size: 13px;
-    cursor: pointer;
-    color: var(--color-base-content);
-    transition: background 0.12s;
-
-    &:hover:not(:disabled) { background: var(--color-base-200); }
-    &:disabled { opacity: 0.3; cursor: default; }
-  }
-
-  span {
-    font-size: 13px;
-    color: var(--color-base-content);
-    opacity: 0.5;
-  }
-}
 </style>
