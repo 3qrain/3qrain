@@ -185,3 +185,10 @@ VITE_API_BASE_URL=/api
 - **Drizzle schema 变更**后跑 `bunx drizzle-kit push`，`casing: "snake_case"` 在 `drizzle.config.ts` 和 `db.ts` 两处维护
 - **时间列**：`timestamp_ms` 毫秒模式 + `default(sql\`(unixepoch() * 1000)\`)`，updatedAt 用 `$onUpdate(() => new Date())`
 - **better-sqlite3** 仅 devDeps，供 drizzle-kit CLI 用，运行时走 `bun:sqlite`
+- **Handler 校验**：用 Zod schema `.strict().safeParse()`，拒绝多余字段，`const { tagIds, ...data } = parsed.data` 再 spread 到 Drizzle
+- **文章 draft**：slug/categoryId 可空，发布/归档时校验必填，status 含 draft/published/archived
+- **前端组件**：views 模块化（`views/posts/` 含 `components/editor/`），通用组件放 `components/table/` 等
+- **分页**：`components/table/Pagination.vue`，mode=button 按钮分页 / scroll 滚动加载，切换mode需 watch 重建 Observer
+- **Cookie**：`3qrain_token`，正则 `/3qrain_token=([^;]+)/`
+- **端口**：后端 3010，前端 Vite 代理指向 3010
+- **example 目录**：参考项目组件库，已 gitignore，CLAUDE EXAMPLE.md 有总结

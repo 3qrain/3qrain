@@ -18,10 +18,13 @@ redis.on("connect", () => {
   console.log("[Redis] connected");
 });
 
-redis.on("error", (err) => {
-  console.error("[Redis] error:", err.message);
+redis.on("error", (err: any) => {
+  if (err?.code === "ECONNREFUSED" || err?.syscall === "connect") {
+    console.error("[Redis] connection refused, disconnecting ");
+    redis.disconnect();
+    redis.removeAllListeners();
+    return;
+  }
+  console.error("[Redis] error:", err);
 });
 
-export async function connectDB() {
-  console.log("[SQLite] connected");
-}
