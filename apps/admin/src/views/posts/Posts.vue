@@ -120,7 +120,7 @@ onMounted(() => {
           <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
         </select>
         <div class="mode-toggle">
-          <button :class="['mode-opt', paginationMode === 'scroll' && 'on']" @click="paginationMode = 'scroll'">滚动</button>
+          <button :class="['mode-opt', paginationMode === 'scroll' && 'on']" @click="paginationMode = 'scroll'; query.page = 1; load()">滚动</button>
           <button :class="['mode-opt', paginationMode === 'button' && 'on']" @click="paginationMode = 'button'; query.page = 1; load()">分页</button>
         </div>
         <button class="btn-new" @click="create">
