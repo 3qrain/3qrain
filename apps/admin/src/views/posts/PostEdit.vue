@@ -144,7 +144,6 @@ onUnmounted(() => { window.removeEventListener("keydown", onKeydown); if (saveTi
     <!-- 宽屏：内联侧栏 -->
     <div class="sidebar-wrap" :style="{ width: showSettings ? '280px' : '0' }">
       <PostEditorSettings
-        v-if="showSettings"
         v-model:slug="slug"
         v-model:summary="summary"
         v-model:cover="cover"
