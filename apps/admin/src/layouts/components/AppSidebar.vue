@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { menuRoutes } from "~/router/routes";
+import ThemeToggle from "~/components/theme/ThemeToggle.vue";
 
 defineProps<{
   mobile?: boolean;
@@ -42,9 +43,8 @@ function handleClick() {
       </router-link>
     </nav>
 
-    <!-- Footer -->
     <div class="sidebar-footer">
-      <span class="text-xs opacity-40">3qrain blog admin</span>
+      <ThemeToggle />
     </div>
   </div>
 </template>

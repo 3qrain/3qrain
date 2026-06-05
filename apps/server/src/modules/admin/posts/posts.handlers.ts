@@ -54,7 +54,19 @@ async function getPostWithRelations(postId: number) {
     .where(eq(postTags.postId, postId))
     .all()
 
-  return { ...post, category, tags: tagRows }
+  return serialize({ ...post, category, tags: tagRows })
+}
+
+// API → DB：空 slug → null
+function normalize(data: Record<string, any>) {
+  if (data.slug === '') data.slug = null
+  return data
+}
+
+// DB → API：slug null → ""
+function serialize(post: Record<string, any>) {
+  if (post.slug === null) post.slug = ''
+  return post
 }
 
 // 同步文章标签关系
@@ -131,7 +143,7 @@ export async function list(c: Context) {
     tagMap.get(pt.postId)!.push({ id: pt.id, name: pt.name, slug: pt.slug })
   }
 
-  const list = rows.map(p => ({
+  const list = rows.map(p => serialize({
     ...p,
     category: (p.categoryId && catMap.get(p.categoryId)) || null,
     tags: tagMap.get(p.id) || []
@@ -189,7 +201,7 @@ export async function create(c: Context) {
   }
 
   // 分类校验
-  if (body.categoryId > 0) {
+  if (body.categoryId && body.categoryId > 0) {
     const category = db
       .select()
       .from(categories)
@@ -218,17 +230,12 @@ export async function create(c: Context) {
     }
   }
 
-  const { tagIds, ...data } = body
-  const result = db
+  const { tagIds, ...data } = normalize(body)
+  const result = serialize(db
     .insert(posts)
-    .values({
-      ...data,
-      slug: data.slug || null,
-      categoryId: data.categoryId || null,
-      viewCount: 0
-    })
+    .values({ ...data, viewCount: 0 })
     .returning()
-    .get()
+    .get())
   await syncPostTags(result.id, tagIds)
 
   const post = await getPostWithRelations(result.id)
@@ -295,7 +302,7 @@ export async function update(c: Context) {
     }
   }
 
-  const { tagIds, ...postData } = body
+  const { tagIds, ...postData } = normalize(body)
 
   if (tagIds !== undefined && tagIds.length > 0) {
     const existingTags = db
@@ -310,7 +317,7 @@ export async function update(c: Context) {
       )
     }
   }
-
+  
   db.update(posts).set(postData).where(eq(posts.id, id)).run()
 
   if (tagIds !== undefined) {

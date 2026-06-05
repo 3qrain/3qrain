@@ -7,14 +7,14 @@ import { successResponseSchema, errorResponseSchema } from "~/utils/response";
 const POST_STATUS = ["draft", "published", "archived"] as const;
 
 export const createPostSchema = z.object({
-  title: z.string().optional().default(""),
-  slug: z.string().optional().default(""),
-  summary: z.string().optional().default(""),
-  cover: z.string().optional().default(""),
-  content: z.string().optional().default(""),
+  title: z.string().optional(),
+  slug: z.string().optional(),
+  summary: z.string().optional(),
+  cover: z.string().optional(),
+  content: z.string().optional(),
   status: z.enum(POST_STATUS).optional().default("draft"),
   isPinned: z.boolean().optional().default(false),
-  categoryId: z.number().int().optional().default(0),
+  categoryId: z.number().int().optional(),
   tagIds: z.array(z.number().int()).optional().default([]),
 });
 

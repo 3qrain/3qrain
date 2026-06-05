@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from "vue";
+import Input from "~/components/base/Input.vue";
+import Select from "~/components/base/Select.vue";
 import type { Category, Tag } from "~/api/tags/types";
 
 const slug = defineModel<string>("slug", { default: "" });
@@ -8,14 +11,16 @@ const isPinned = defineModel<boolean>("isPinned", { default: false });
 const categoryId = defineModel<number>("categoryId", { default: 0 });
 const tagIds = defineModel<number[]>("tagIds", { default: () => [] });
 
-defineProps<{
+const props = defineProps<{
   categories: Category[];
   tags: Tag[];
 }>();
 
-const emit = defineEmits<{
-  (e: "change"): void;
-}>();
+const emit = defineEmits<{ (e: "change"): void }>();
+
+const categoryOptions = computed(() =>
+  props.categories.map(c => ({ label: c.name, value: c.id }))
+);
 </script>
 
 <template>
@@ -24,15 +29,12 @@ const emit = defineEmits<{
     <div class="body">
       <label class="field">
         <span>分类</span>
-        <select :value="categoryId" class="input" @change="categoryId = Number(($event.target as HTMLSelectElement).value); emit('change')">
-          <option :value="0" disabled>选择分类</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-        </select>
+        <Select v-model="categoryId" :options="categoryOptions" placeholder="选择分类" @change="emit('change')" />
       </label>
 
       <label class="field">
         <span>标识</span>
-        <input :value="slug" class="input" placeholder="hello-world" @input="slug = ($event.target as HTMLInputElement).value; emit('change')" />
+        <Input v-model="slug" placeholder="hello-world" @input="emit('change')" />
       </label>
 
       <label class="field">
@@ -42,7 +44,7 @@ const emit = defineEmits<{
 
       <label class="field">
         <span>封面</span>
-        <input :value="cover" class="input" placeholder="https://..." @input="cover = ($event.target as HTMLInputElement).value; emit('change')" />
+        <Input v-model="cover" placeholder="https://..." @input="emit('change')" />
       </label>
 
       <label class="field row">
@@ -156,6 +158,5 @@ const emit = defineEmits<{
 }
 
 .dim { font-size: 12px; opacity: 0.35; }
-
 .checkbox { accent-color: var(--color-primary); }
 </style>

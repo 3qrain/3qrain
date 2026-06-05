@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 import { Plus, Pencil, Trash2, Search, Eye } from "@lucide/vue";
 import Pagination from "~/components/table/Pagination.vue";
+import ToggleGroup from "~/components/base/ToggleGroup.vue";
+import Select from "~/components/base/Select.vue";
+import Button from "~/components/base/Button.vue";
 import { getPosts, deletePost } from "~/api/posts";
 import { getCategories } from "~/api/categories";
 import type { Post } from "~/api/posts/types";
 import type { Category } from "~/api/categories/types";
+import { formatDate } from "~/utils/date";
 
 const router = useRouter();
 
@@ -26,6 +30,10 @@ const query = ref({
 
 const totalPages = ref(1);
 const paginationMode = ref<"button" | "scroll">("scroll");
+
+const categoryOptions = computed(() =>
+  categories.value.map(c => ({ label: c.name, value: String(c.id) }))
+);
 
 async function load(append = false) {
   loading.value = true;
@@ -81,14 +89,9 @@ async function remove(post: Post) {
   }
 }
 
-function formatDate(iso: string) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 watch(() => query.value.status, () => search());
 watch(() => query.value.categoryId, () => search());
+watch(paginationMode, () => { query.value.page = 1; load(); });
 
 onMounted(() => {
   loadCategories();
@@ -109,23 +112,25 @@ onMounted(() => {
           <Search :size="15" />
           <input v-model="query.keyword" placeholder="搜索标题..." @keyup.enter="search" />
         </label>
-        <select v-model="query.status" class="filter-select">
-          <option value="">全部状态</option>
-          <option value="draft">草稿</option>
-          <option value="published">已发布</option>
-          <option value="archived">已归档</option>
-        </select>
-        <select v-model="query.categoryId" class="filter-select">
-          <option value="">全部分类</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-        </select>
-        <div class="mode-toggle">
-          <button :class="['mode-opt', paginationMode === 'scroll' && 'on']" @click="paginationMode = 'scroll'; query.page = 1; load()">滚动</button>
-          <button :class="['mode-opt', paginationMode === 'button' && 'on']" @click="paginationMode = 'button'; query.page = 1; load()">分页</button>
-        </div>
-        <button class="btn-new" @click="create">
+        <Select
+          v-model="query.status"
+          :options="[{ label: '全部状态', value: '' }, { label: '草稿', value: 'draft' }, { label: '已发布', value: 'published' }, { label: '已归档', value: 'archived' }]"
+          class="filter-select"
+        />
+        <Select
+          v-model="query.categoryId"
+          placeholder="全部分类"
+          :options="categoryOptions"
+          class="filter-select"
+        />
+        <ToggleGroup
+          v-model="paginationMode"
+          :options="[{ label: '滚动', value: 'scroll' }, { label: '分页', value: 'button' }]"
+          size="sm"
+        />
+        <Button variant="primary" @click="create">
           <Plus :size="17" /> 写文章
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -142,17 +147,17 @@ onMounted(() => {
           <h2 class="post-title">{{ post.title || "新文章" }}</h2>
           <p v-if="post.summary" class="post-summary">{{ post.summary }}</p>
           <div class="post-meta">
-            <span v-if="post.category" class="meta-tag">{{ post.category.name }}</span>
             <span :class="['status-badge', post.status === 'published' ? 'is-pub' : post.status === 'archived' ? 'is-archived' : 'is-draft']">
               {{ post.status === "published" ? "已发布" : post.status === "archived" ? "已归档" : "草稿" }}
             </span>
+            <span v-if="post.category" class="meta-tag">{{ post.category.name }}</span>
             <span class="meta-text"><Eye :size="13" /> {{ post.viewCount }}</span>
             <span class="meta-text">{{ formatDate(post.createdAt) }}</span>
           </div>
         </div>
         <div class="post-actions" @click.stop>
-          <button class="act-btn" title="编辑" @click="edit(post)"><Pencil :size="15" /></button>
-          <button class="act-btn act-del" title="删除" @click="remove(post)"><Trash2 :size="15" /></button>
+          <Button variant="ghost" size="sm" icon title="编辑" @click="edit(post)"><Pencil :size="16" /></Button>
+          <Button variant="danger" size="sm" icon title="删除" @click="remove(post)"><Trash2 :size="16" /></Button>
         </div>
       </article>
     </div>
@@ -231,56 +236,18 @@ onMounted(() => {
 }
 
 .filter-select {
-  padding: 6px 10px;
-  border-radius: 10px;
   background: var(--color-base-200);
-  border: 1px solid transparent;
-  font-size: 13px;
-  color: var(--color-base-content);
-  outline: none;
-  cursor: pointer;
-
-  &:focus { border-color: var(--color-base-300); }
-}
-
-.mode-toggle {
-  display: flex;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--color-base-300);
-}
-
-.mode-opt {
-  padding: 4px 10px;
-  border: none;
-  background: var(--color-base-100);
-  font-size: 12px;
-  cursor: pointer;
-  color: var(--color-base-content);
-  opacity: 0.45;
-  transition: all 0.12s;
-
-  &.on {
-    opacity: 1;
-    background: var(--color-base-300);
-  }
-}
-
-.btn-new {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 16px;
   border-radius: 10px;
-  background: var(--color-primary);
-  color: var(--color-primary-content);
-  font-size: 13px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.15s;
 
-  &:hover { opacity: 0.88; }
+  :deep(.base-select) {
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 10px;
+    font-size: 13px;
+
+    &:focus { border-color: var(--color-base-300); }
+  }
 }
 
 /* --- Empty --- */
@@ -374,12 +341,14 @@ onMounted(() => {
   font-weight: 500;
 
   &.is-pub {
-    background: oklch(76% .177 163.223 / 0.18);
-    color: oklch(37% .077 168.94);
+    background: var(--color-success);
+    color: var(--color-success-content);
+    opacity: 0.85;
   }
   &.is-draft {
-    background: oklch(82% .189 84.429 / 0.2);
-    color: oklch(40% .112 45.904);
+    background: var(--color-warning);
+    color: var(--color-warning-content);
+    opacity: 0.85;
   }
   &.is-archived {
     background: var(--color-base-300);
@@ -397,36 +366,10 @@ onMounted(() => {
   gap: 3px;
 }
 
-/* --- Actions --- */
 .post-actions {
   display: flex;
   gap: 2px;
   flex-shrink: 0;
-}
-
-.act-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  color: var(--color-base-content);
-  opacity: 0.35;
-  cursor: pointer;
-  transition: all 0.12s;
-
-  &:hover {
-    opacity: 0.8;
-    background: var(--color-base-300);
-  }
-}
-
-.act-del:hover {
-  color: oklch(71% .194 13.428);
-  background: oklch(71% .194 13.428 / 0.1);
 }
 
 </style>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Settings, Send, Loader, Check, Pencil } from "@lucide/vue";
+import Button from "~/components/base/Button.vue";
 
 const props = defineProps<{
   settingsOpen: boolean;
@@ -37,15 +38,15 @@ const saveStatus = computed(() => {
 
     <!-- 右侧：操作 -->
     <div class="right">
-      <button v-if="isDraft || isNew" class="pub-btn" @click="emit('publish')">
+      <Button v-if="isDraft || isNew" variant="success" size="sm" @click="emit('publish')">
         <Send :size="14" /> 发布
-      </button>
+      </Button>
       <span v-else-if="isPublished" class="pub-badge">
         <Check :size="14" /> 已发布
       </span>
-      <button :class="['btn', settingsOpen && 'active']" @click="emit('toggleSettings')">
-        <Settings :size="16" /> 设置
-      </button>
+      <Button variant="ghost" size="sm" icon :active="settingsOpen" @click="emit('toggleSettings')">
+        <Settings :size="20" />
+      </Button>
     </div>
   </div>
 </template>
@@ -74,13 +75,15 @@ const saveStatus = computed(() => {
   font-weight: 500;
 
   &.saved {
-    background: oklch(76% .177 163.223 / 0.15);
-    color: oklch(37% .077 168.94);
+    background: var(--color-success);
+    color: var(--color-success-content);
+    opacity: 0.85;
   }
 
   &.unsaved {
-    background: oklch(82% .189 84.429 / 0.2);
-    color: oklch(40% .112 45.904);
+    background: var(--color-warning);
+    color: var(--color-warning-content);
+    opacity: 0.85;
   }
 
   &.saving {
@@ -94,50 +97,15 @@ const saveStatus = computed(() => {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ---- 按钮 ---- */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--color-base-300);
-  background: var(--color-base-100);
-  font-size: 13px;
-  cursor: pointer;
-  color: var(--color-base-content);
-  opacity: 0.55;
-  transition: all 0.12s;
-
-  &:hover { opacity: 0.85; }
-  &.active { opacity: 1; background: var(--color-base-200); }
-}
-
-.pub-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
-  border-radius: 8px;
-  border: none;
-  background: var(--color-success);
-  color: var(--color-success-content);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.12s;
-
-  &:hover { opacity: 0.88; }
-}
-
 .pub-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 6px 14px;
   border-radius: 8px;
-  background: oklch(76% .177 163.223 / 0.12);
-  color: oklch(37% .077 168.94);
+  background: var(--color-success);
+  color: var(--color-success-content);
+  opacity: 0.7;
   font-size: 13px;
   font-weight: 500;
   opacity: 0.6;

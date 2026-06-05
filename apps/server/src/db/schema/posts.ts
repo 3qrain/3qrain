@@ -4,7 +4,7 @@ import { categories } from "./categories";
 
 export const posts = sqliteTable("posts", {
   id: integer().primaryKey({ autoIncrement: true }),
-  title: text().notNull(),
+  title: text().notNull().default(""),
   slug: text().unique(),
   summary: text().notNull().default(""),
   cover: text().notNull().default(""),

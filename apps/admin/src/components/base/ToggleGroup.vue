@@ -1,0 +1,50 @@
+<script setup lang="ts" generic="T extends string | number">
+defineProps<{
+  options: { label: string; value: T }[];
+  size?: "sm" | "md";
+}>();
+
+const model = defineModel<T>();
+</script>
+
+<template>
+  <div :class="['toggle-group', size === 'sm' && 'sm']">
+    <button
+      v-for="opt in options"
+      :key="String(opt.value)"
+      :class="['opt', model === opt.value && 'on']"
+      @click="model = opt.value"
+    >{{ opt.label }}</button>
+  </div>
+</template>
+
+<style scoped lang="less">
+.toggle-group {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-base-300);
+
+  &.sm { .opt { padding: 4px 10px; font-size: 12px; } }
+}
+
+.opt {
+  flex: 1;
+  padding: 5px 0;
+  border: none;
+  background: var(--color-base-100);
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--color-base-content);
+  opacity: 0.45;
+  transition: all 0.12s;
+  white-space: nowrap;
+
+  &:hover { opacity: 0.7; }
+
+  &.on {
+    opacity: 1;
+    background: var(--color-base-300);
+  }
+}
+</style>
