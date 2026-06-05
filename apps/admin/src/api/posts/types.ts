@@ -7,7 +7,9 @@ export interface Post {
   slug: string;
   summary: string;
   cover: string;
-  content: string;
+  content: object;
+  contentHtml?: string;
+  contentText?: string;
   status: "draft" | "published" | "archived";
   isPinned: boolean;
   viewCount: number;
@@ -38,7 +40,9 @@ export interface CreatePostBody {
   slug?: string;
   summary?: string;
   cover?: string;
-  content?: string;
+  content?: object;
+  contentHtml?: string;
+  contentText?: string;
   status?: string;
   isPinned?: boolean;
   categoryId?: number;
@@ -50,7 +54,9 @@ export interface UpdatePostBody {
   slug?: string;
   summary?: string;
   cover?: string;
-  content?: string;
+  content?: object;
+  contentHtml?: string;
+  contentText?: string;
   status?: string;
   isPinned?: boolean;
   categoryId?: number;

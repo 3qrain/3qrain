@@ -1,6 +1,18 @@
 <script setup lang="ts">
+import { ref } from "vue";
+import TiptapEditor from "../tiptap/TiptapEditor.vue";
+
 const title = defineModel<string>("title", { default: "" });
-const content = defineModel<string>("content", { default: "" });
+defineProps<{ initialContent?: object }>();
+
+const editorRef = ref<InstanceType<typeof TiptapEditor> | null>(null);
+
+function getContent() {
+  return editorRef.value?.getContent() || { json: {}, html: "", text: "" };
+}
+
+defineEmits<{ (e: "dirty"): void }>();
+defineExpose({ getContent });
 </script>
 
 <template>
@@ -13,12 +25,7 @@ const content = defineModel<string>("content", { default: "" });
         @input="title = ($event.target as HTMLInputElement).value"
       />
       <div class="divider" />
-      <textarea
-        :value="content"
-        class="body-input"
-        placeholder="开始写作..."
-        @input="content = ($event.target as HTMLTextAreaElement).value"
-      />
+      <TiptapEditor ref="editorRef" :initial-content="initialContent" @dirty="$emit('dirty')" />
     </div>
   </div>
 </template>
@@ -27,14 +34,18 @@ const content = defineModel<string>("content", { default: "" });
 .root {
   flex: 1;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .wrap {
   max-width: 768px;
+  width: 100%;
   margin: 0 auto;
   padding: 24px 40px 40px;
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .title-input {
@@ -51,22 +62,7 @@ const content = defineModel<string>("content", { default: "" });
 
 .divider {
   border-bottom: 1px solid var(--color-base-300);
-}
-
-.body-input {
-  flex: 1;
-  min-height: 60vh;
-  border: none;
-  outline: none;
-  resize: none;
-  font-size: 15px;
-  line-height: 1.75;
-  padding: 20px 0;
-  color: var(--color-base-content);
-  background: transparent;
-  font-family: inherit;
-
-  &::placeholder { opacity: 0.25; }
+  margin-bottom: 8px;
 }
 
 @media (width <= 768px) {

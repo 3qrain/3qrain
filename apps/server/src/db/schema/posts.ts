@@ -9,6 +9,8 @@ export const posts = sqliteTable("posts", {
   summary: text().notNull().default(""),
   cover: text().notNull().default(""),
   content: text().notNull().default(""),
+  contentHtml: text("content_html").notNull().default(""),
+  contentText: text("content_text").notNull().default(""),
   status: text().notNull().default("draft"),
   isPinned: integer({ mode: "boolean" }).notNull().default(false),
   viewCount: integer().notNull().default(0),

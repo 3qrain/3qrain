@@ -57,15 +57,21 @@ async function getPostWithRelations(postId: number) {
   return serialize({ ...post, category, tags: tagRows })
 }
 
-// API → DB：空 slug → null
+// API → DB：空 slug → null，content 对象 → JSON 字符串
 function normalize(data: Record<string, any>) {
   if (data.slug === '') data.slug = null
+  if (data.content !== undefined && typeof data.content !== 'string') {
+    data.content = JSON.stringify(data.content)
+  }
   return data
 }
 
-// DB → API：slug null → ""
+// DB → API：slug null → ""，content JSON 解析
 function serialize(post: Record<string, any>) {
   if (post.slug === null) post.slug = ''
+  if (typeof post.content === 'string') {
+    try { post.content = JSON.parse(post.content) } catch { /* keep raw */ }
+  }
   return post
 }
 

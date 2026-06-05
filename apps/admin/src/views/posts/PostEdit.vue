@@ -1,182 +1,225 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { toast } from "vue-sonner";
-import { getPost, createPost, updatePost } from "~/api/posts";
-import { getCategories } from "~/api/categories";
-import { getTags } from "~/api/tags";
-import PostEditorStatusBar from "./components/editor/PostEditorStatusBar.vue";
-import PostEditorContent from "./components/editor/PostEditorContent.vue";
-import PostEditorSettings from "./components/editor/PostEditorSettings.vue";
-import type { Category } from "~/api/categories/types";
-import type { Tag } from "~/api/tags/types";
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
+import { getPost, createPost, updatePost } from '~/api/posts'
+import { getCategories } from '~/api/categories'
+import { getTags } from '~/api/tags'
+import PostEditorStatusBar from './components/editor/PostEditorStatusBar.vue'
+import PostEditorContent from './components/editor/PostEditorContent.vue'
+import PostEditorSettings from './components/editor/PostEditorSettings.vue'
+import type { Category } from '~/api/categories/types'
+import type { Tag } from '~/api/tags/types'
 
-const route = useRoute();
-const router = useRouter();
+const route = useRoute()
+const router = useRouter()
 
-const postId = ref(Number(route.params.id) || 0);
-const categories = ref<Category[]>([]);
-const tags = ref<Tag[]>([]);
-const showSettings = ref(true);
-const isDirty = ref(false);
-const saving = ref(false);
-let skipWatch = false;
+const postId = ref(Number(route.params.id) || 0)
+const categories = ref<Category[]>([])
+const tags = ref<Tag[]>([])
+const showSettings = ref(true)
+const isDirty = ref(false)
+const saving = ref(false)
+const ready = ref(false)
 
-const title = ref("");
-const slug = ref("");
-const summary = ref("");
-const cover = ref("");
-const content = ref("");
-const status = ref<"draft" | "published">("draft");
-const isPinned = ref(false);
-const categoryId = ref(0);
-const tagIds = ref<number[]>([]);
+const title = ref('')
+const slug = ref('')
+const summary = ref('')
+const cover = ref('')
+const contentEditorRef = ref<InstanceType<typeof PostEditorContent> | null>(null)
+const initialContent = ref<object>({ type: 'doc', content: [] })
+const status = ref<'draft' | 'published'>('draft')
+const isPinned = ref(false)
+const categoryId = ref(0)
+const tagIds = ref<number[]>([])
 
-let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let saveTimer: ReturnType<typeof setTimeout> | null = null
 
 async function loadData() {
-  const [cats, tagList] = await Promise.all([getCategories(), getTags()]);
-  categories.value = cats;
-  tags.value = tagList;
-
   if (postId.value) {
     try {
-      const post = await getPost(postId.value);
-      skipWatch = true;
-      title.value = post.title;
-      slug.value = post.slug;
-      summary.value = post.summary;
-      cover.value = post.cover;
-      content.value = post.content;
-      status.value = post.status as "draft" | "published";
-      isPinned.value = post.isPinned === true || (post.isPinned as unknown as number) === 1;
-      categoryId.value = post.categoryId;
-      tagIds.value = post.tags?.map((t: Tag) => t.id) || [];
-      await nextTick();
-      skipWatch = false;
+      const post = await getPost(postId.value)
+      
+      const [cats, tagList] = await Promise.all([getCategories(), getTags()])
+      categories.value = cats
+      tags.value = tagList
+
+      initialContent.value = post.content
+      title.value = post.title
+      slug.value = post.slug
+      summary.value = post.summary
+      cover.value = post.cover
+      status.value = post.status as 'draft' | 'published'
+      isPinned.value = post.isPinned === true || (post.isPinned as unknown as number) === 1
+      categoryId.value = post.categoryId
+      tagIds.value = post.tags?.map((t: Tag) => t.id) || []
+
+      ready.value = true
     } catch {
-      toast.error("文章不存在");
-      router.push("/posts");
+      toast.error('文章不存在')
+      router.push('/posts')
     }
   }
 }
 
 function buildForm() {
+  const c = contentEditorRef.value?.getContent() || {
+    json: {},
+    html: '',
+    text: ''
+  }
   return {
-    title: title.value, slug: slug.value, summary: summary.value,
-    cover: cover.value, content: content.value, status: status.value,
-    isPinned: isPinned.value, categoryId: categoryId.value, tagIds: tagIds.value,
-  };
+    title: title.value,
+    slug: slug.value,
+    summary: summary.value,
+    cover: cover.value,
+    content: c.json,
+    contentHtml: c.html,
+    contentText: c.text,
+    status: status.value,
+    isPinned: isPinned.value,
+    categoryId: categoryId.value,
+    tagIds: tagIds.value
+  }
 }
 
 async function doSave(asStatus?: string, silent = false): Promise<boolean> {
-  if (saving.value) return false;
+  if (saving.value) return false
   // 发布/归档时前端先校验
-  if (!silent && asStatus && asStatus !== "draft") {
+  if (!silent && asStatus && asStatus !== 'draft') {
     if (!title.value || !slug.value || !categoryId.value) {
-      toast.error("发布/归档时标题、标识和分类为必填");
-      return false;
+      toast.error('发布/归档时标题、标识和分类为必填')
+      return false
     }
   }
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  saving.value = true;
+  if (saveTimer) {
+    clearTimeout(saveTimer)
+    saveTimer = null
+  }
+  saving.value = true
   try {
     if (postId.value) {
-      if (asStatus) status.value = asStatus as "draft" | "published";
-      await updatePost(postId.value, buildForm());
+      if (asStatus) status.value = asStatus as 'draft' | 'published'
+      await updatePost(postId.value, buildForm())
     } else {
-      status.value = (asStatus || "draft") as "draft" | "published";
-      const created = await createPost(buildForm());
-      postId.value = created.id;
-      router.replace({ name: "postEdit", params: { id: String(created.id) } });
+      status.value = (asStatus || 'draft') as 'draft' | 'published'
+      const created = await createPost(buildForm())
+      postId.value = created.id
+      router.replace({ name: 'postEdit', params: { id: String(created.id) } })
     }
-    isDirty.value = false;
-    return true;
+    isDirty.value = false
+    return true
   } catch (e: any) {
-    if (!silent) toast.error(e?.response?.data?.message || "保存失败");
-    return false;
+    if (!silent) toast.error(e?.response?.data?.message || '保存失败')
+    return false
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 
 function scheduleAutoSave() {
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { if (isDirty.value) doSave("draft", true); }, 3000);
+  if (saveTimer) clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => {
+    if (isDirty.value) doSave('draft', true)
+  }, 2000)
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); doSave("draft"); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    doSave('draft')
+  }
 }
 async function publish() {
-  const ok = await doSave("published");
-  if (ok) toast.success("已发布");
+  const ok = await doSave('published')
+  if (ok) toast.success('已发布')
 }
 
-watch([title, slug, summary, cover, content, status, isPinned, categoryId, tagIds], () => {
-  if (!skipWatch) {
-    if (!isDirty.value) isDirty.value = true;
-    scheduleAutoSave();
-  }
-}, { deep: true });
-
-onMounted(() => { loadData(); window.addEventListener("keydown", onKeydown); });
-onUnmounted(() => { window.removeEventListener("keydown", onKeydown); if (saveTimer) clearTimeout(saveTimer); });
+onMounted(() => {
+  loadData().then(() => {
+    watch(
+      [title, slug, summary, cover, status, isPinned, categoryId, tagIds],
+      () => {
+        if (!isDirty.value) isDirty.value = true
+        scheduleAutoSave()
+      },
+      { deep: true }
+    )
+  })
+  window.addEventListener('keydown', onKeydown)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  if (saveTimer) clearTimeout(saveTimer)
+})
 </script>
 
 <template>
   <div class="editor">
-    <!-- 左侧 -->
-    <div class="main">
-      <PostEditorStatusBar
-        :settings-open="showSettings"
-        :saving="saving"
-        :is-dirty="isDirty"
-        :is-new="postId === 0"
-        :is-draft="status === 'draft'"
-        :is-published="status === 'published'"
-        @toggle-settings="showSettings = !showSettings"
-        @publish="publish"
-      />
-      <PostEditorContent v-model:title="title" v-model:content="content" />
-    </div>
+    <div v-if="!ready" class="loading">加载中...</div>
+    <template v-else>
+      <!-- 左侧 -->
+      <div class="main">
+        <PostEditorStatusBar
+          :settings-open="showSettings"
+          :saving="saving"
+          :is-dirty="isDirty"
+          :is-new="postId === 0"
+          :is-draft="status === 'draft'"
+          :is-published="status === 'published'"
+          @toggle-settings="showSettings = !showSettings"
+          @publish="publish"
+        />
+        <PostEditorContent
+          ref="contentEditorRef"
+          v-model:title="title"
+          :initial-content="initialContent"
+          @dirty="
+            () => {
+              isDirty = true
+              scheduleAutoSave()
+            }
+          "
+        />
+      </div>
 
-    <!-- 宽屏：内联侧栏 -->
-    <div class="sidebar-wrap" :style="{ width: showSettings ? '280px' : '0' }">
-      <PostEditorSettings
-        v-model:slug="slug"
-        v-model:summary="summary"
-        v-model:cover="cover"
-        v-model:is-pinned="isPinned"
-        v-model:category-id="categoryId"
-        v-model:tag-ids="tagIds"
-        :categories="categories"
-        :tags="tags"
-        @change="scheduleAutoSave()"
-      />
-    </div>
+      <!-- 宽屏：内联侧栏 -->
+      <div class="sidebar-wrap" :style="{ width: showSettings ? '280px' : '0' }">
+        <PostEditorSettings
+          v-model:slug="slug"
+          v-model:summary="summary"
+          v-model:cover="cover"
+          v-model:is-pinned="isPinned"
+          v-model:category-id="categoryId"
+          v-model:tag-ids="tagIds"
+          :categories="categories"
+          :tags="tags"
+          @change="scheduleAutoSave()"
+        />
+      </div>
 
-    <!-- 窄屏：浮层 -->
-    <Teleport to="body">
-      <Transition name="overlay">
-        <div v-if="showSettings" class="overlay-bg" @click.self="showSettings = false">
-          <aside class="overlay-panel">
-            <PostEditorSettings
-              v-model:slug="slug"
-              v-model:summary="summary"
-              v-model:cover="cover"
-              v-model:status="status"
-              v-model:is-pinned="isPinned"
-              v-model:category-id="categoryId"
-              v-model:tag-ids="tagIds"
-              :categories="categories"
-              :tags="tags"
-              @change="scheduleAutoSave()"
-            />
-          </aside>
-        </div>
-      </Transition>
-    </Teleport>
+      <!-- 窄屏：浮层 -->
+      <Teleport to="body">
+        <Transition name="overlay">
+          <div v-if="showSettings" class="overlay-bg" @click.self="showSettings = false">
+            <aside class="overlay-panel">
+              <PostEditorSettings
+                v-model:slug="slug"
+                v-model:summary="summary"
+                v-model:cover="cover"
+                v-model:status="status"
+                v-model:is-pinned="isPinned"
+                v-model:category-id="categoryId"
+                v-model:tag-ids="tagIds"
+                :categories="categories"
+                :tags="tags"
+                @change="scheduleAutoSave()"
+              />
+            </aside>
+          </div>
+        </Transition>
+      </Teleport>
+    </template>
   </div>
 </template>
 
@@ -201,7 +244,9 @@ onUnmounted(() => { window.removeEventListener("keydown", onKeydown); if (saveTi
 }
 
 @media (width >= 1100px) {
-  .sidebar-wrap { display: block; }
+  .sidebar-wrap {
+    display: block;
+  }
 }
 
 /* 窄屏浮层（< 1100px 时 sidebar-wrap 不显示，用浮层） */
@@ -228,12 +273,27 @@ onUnmounted(() => { window.removeEventListener("keydown", onKeydown); if (saveTi
 .overlay-leave-active {
   transition: opacity 0.2s ease;
 
-  .overlay-panel { transition: transform 0.22s ease; }
+  .overlay-panel {
+    transition: transform 0.22s ease;
+  }
 }
 .overlay-enter-from,
 .overlay-leave-to {
   opacity: 0;
 
-  .overlay-panel { transform: translateX(100%); }
+  .overlay-panel {
+    transform: translateX(100%);
+  }
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  font-size: 14px;
+  color: var(--color-base-content);
+  opacity: 0.4;
 }
 </style>
