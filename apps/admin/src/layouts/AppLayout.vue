@@ -95,7 +95,6 @@ onUnmounted(() => {
   width: @sidebarWidth;
   flex-shrink: 0;
   background: var(--color-base-200);
-  border-right: 1px solid var(--color-base-300);
   overflow: hidden;
   transition: width 0.3s ease;
 }
@@ -115,7 +114,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 0 16px;
-  border-bottom: 1px solid var(--color-base-300);
+  border-bottom: 1px solid var(--color-border);
   background: var(--color-base-100);
 }
 

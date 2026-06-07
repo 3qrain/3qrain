@@ -39,7 +39,7 @@ async function loadData() {
   if (postId.value) {
     try {
       const post = await getPost(postId.value)
-      
+
       const [cats, tagList] = await Promise.all([getCategories(), getTags()])
       categories.value = cats
       tags.value = tagList
@@ -156,7 +156,7 @@ onUnmounted(() => {
 
 <template>
   <div class="editor">
-    <div v-if="!ready" class="loading">加载中...</div>
+    <div v-if="!ready && postId !== 0" class="loading">加载中...</div>
     <template v-else>
       <!-- 左侧 -->
       <div class="main">

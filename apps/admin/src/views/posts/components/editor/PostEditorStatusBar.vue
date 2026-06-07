@@ -59,7 +59,7 @@ const saveStatus = computed(() => {
   padding: 0 20px;
   height: 48px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--color-base-300);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .left, .right { display: flex; align-items: center; gap: 8px; }

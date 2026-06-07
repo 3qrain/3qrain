@@ -74,7 +74,7 @@ const categoryOptions = computed(() =>
   height: 100%;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--color-base-300);
+  border-left: 1px solid var(--color-border);
 }
 
 .panel-title {
@@ -84,7 +84,7 @@ const categoryOptions = computed(() =>
   height: 48px;
   font-size: 15px;
   font-weight: 700;
-  border-bottom: 1px solid var(--color-base-300);
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   margin: 0;
 }
@@ -122,7 +122,7 @@ const categoryOptions = computed(() =>
 .input {
   padding: 7px 10px;
   border-radius: 8px;
-  border: 1px solid var(--color-base-300);
+  border: 1px solid var(--color-border);
   background: var(--color-base-100);
   font-size: 13px;
   color: var(--color-base-content);
@@ -139,7 +139,7 @@ const categoryOptions = computed(() =>
 .chip {
   padding: 3px 9px;
   border-radius: 6px;
-  border: 1px solid var(--color-base-300);
+  border: 1px solid var(--color-border);
   background: var(--color-base-100);
   font-size: 12px;
   cursor: pointer;

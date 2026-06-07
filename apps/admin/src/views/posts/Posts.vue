@@ -280,7 +280,7 @@ onMounted(() => {
   transition: background 0.12s;
 
   & + & {
-    border-top: 1px solid var(--color-base-300);
+    border-top: 1px solid var(--color-border);
     border-radius: 0;
     &:last-child { border-radius: 0 0 14px 14px; }
   }

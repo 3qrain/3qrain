@@ -23,7 +23,7 @@ const model = defineModel<T>();
   display: flex;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid var(--color-base-300);
+  border: 1px solid var(--color-border);
 
   &.sm { .opt { padding: 4px 10px; font-size: 12px; } }
 }

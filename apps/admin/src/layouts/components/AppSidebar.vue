@@ -128,6 +128,6 @@ function handleClick() {
 .sidebar-footer {
   flex-shrink: 0;
   padding: 16px 12px;
-  border-top: 1px solid var(--color-base-300);
+  border-top: 1px solid var(--color-border);
 }
 </style>

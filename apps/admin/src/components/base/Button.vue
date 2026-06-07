@@ -70,7 +70,7 @@ withDefaults(defineProps<{
 .secondary {
   background: var(--color-base-200);
   color: var(--color-base-content);
-  border-color: var(--color-base-300);
+  border-color: var(--color-border);
 
   &:hover:not(:disabled) { background: var(--color-base-300); }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import TiptapEditor from "../tiptap/TiptapEditor.vue";
+import TiptapEditor from "./tiptap/TiptapEditor.vue";
 
 const title = defineModel<string>("title", { default: "" });
 defineProps<{ initialContent?: object }>();
@@ -61,7 +61,7 @@ defineExpose({ getContent });
 }
 
 .divider {
-  border-bottom: 1px solid var(--color-base-300);
+  border-bottom: 1px solid var(--color-border);
   margin-bottom: 8px;
 }
 

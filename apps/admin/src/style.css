@@ -12,3 +12,15 @@ a {
 ul {
     list-style: none;
 }
+
+/* ── 所有列表标记符：统一主题色；有序列表额外加粗 ── */
+.tiptap ul > li > :first-child::before {
+  color: var(--theme-accent);
+}
+.tiptap ol > li > :first-child::before {
+  color: var(--theme-accent);
+  font-weight: 600;
+}
+.tiptap ul > li > :first-child::before {
+    content: "• ";
+}

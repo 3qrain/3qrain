@@ -27,7 +27,7 @@ const model = defineModel<string>({ default: "" });
   width: 100%;
   padding: 7px 10px;
   border-radius: 8px;
-  border: 1px solid var(--color-base-300);
+  border: 1px solid var(--color-border);
   background: var(--color-base-100);
   font-size: 13px;
   color: var(--color-base-content);
