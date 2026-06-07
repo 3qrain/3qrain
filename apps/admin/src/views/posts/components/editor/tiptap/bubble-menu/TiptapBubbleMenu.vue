@@ -15,7 +15,6 @@ const emit = defineEmits<{ (e: "addLink"): void }>();
 <template>
   <BubbleMenu
     :editor="props.editor"
-    :tippy-options="{ duration: 150, appendTo: () => props.editor.view.dom.closest('.tiptap-content') || document.body }"
     class="menu"
   >
     <MenuButton :active="props.editor.isActive('bold')" @click="props.editor.chain().focus().toggleBold().run()"><Bold :size="15" /></MenuButton>

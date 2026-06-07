@@ -16,7 +16,7 @@ const emit = defineEmits<{ (e: "addImage"): void }>();
 <template>
   <FloatingMenu
     :editor="props.editor"
-    :tippy-options="{ duration: 150, placement: 'left', appendTo: () => props.editor.view.dom.closest('.tiptap-content') || document.body }"
+    :options="{ placement: 'top' }"
     class="menu"
   >
     <MenuButton :active="props.editor.isActive('heading', { level: 1 })" @click="props.editor.chain().focus().toggleHeading({ level: 1 }).run()"><Heading1 :size="16" /></MenuButton>
