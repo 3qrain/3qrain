@@ -63,13 +63,14 @@ defineExpose({ getContent, editor });
 .tiptap-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 0;
+  padding-top: 16px;
   position: relative;
 
   :deep(.ProseMirror) {
     min-height: 50vh;
     outline: none;
-    font-size: 15px;
+    // >=16px 防止手机浏览器，编辑正文时放大网页
+    font-size: 16px;
     line-height: 1.75;
     color: var(--color-base-content);
 

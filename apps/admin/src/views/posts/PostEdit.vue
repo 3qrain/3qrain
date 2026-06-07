@@ -20,7 +20,8 @@ const tags = ref<Tag[]>([])
 const showSettings = ref(true)
 const isDirty = ref(false)
 const saving = ref(false)
-const ready = ref(false)
+// 编辑已有文章时先显示加载中，创建新文章直接显示编辑界面
+const ready = ref(Number(route.params.id) ? false : true)
 
 const title = ref('')
 const slug = ref('')
@@ -226,7 +227,7 @@ onUnmounted(() => {
 <style scoped lang="less">
 .editor {
   display: flex;
-  height: calc(100vh - 48px);
+  /* height: calc(100vh - 48px); */
 }
 
 .main {
