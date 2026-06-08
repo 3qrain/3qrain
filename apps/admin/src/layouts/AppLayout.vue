@@ -121,7 +121,7 @@ onUnmounted(() => {
 .main {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 24px 24px 0px;
 }
 
 /* --- Buttons --- */
@@ -205,7 +205,7 @@ onUnmounted(() => {
   }
 
   .main {
-    padding: 16px;
+    padding: 16px 16px 0px;
   }
 }
 

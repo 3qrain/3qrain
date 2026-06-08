@@ -16,8 +16,8 @@ defineExpose({ getContent });
 </script>
 
 <template>
-  <div class="root">
-    <div class="wrap">
+  <div class="post-editor-content-root">
+    <div class="post-editor-content-wrap">
       <input
         :value="title"
         class="title-input"
@@ -31,18 +31,19 @@ defineExpose({ getContent });
 </template>
 
 <style scoped lang="less">
-.root {
+.post-editor-content-root {
+  height: 100%;
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
 
-.wrap {
+.post-editor-content-wrap {
   max-width: 768px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px 40px 40px;
+  padding: 24px 40px 20px;
   display: flex;
   flex-direction: column;
   flex: 1;

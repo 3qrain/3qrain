@@ -227,7 +227,7 @@ onUnmounted(() => {
 <style scoped lang="less">
 .editor {
   display: flex;
-  /* height: calc(100vh - 48px); */
+  height: 100%;
 }
 
 .main {
