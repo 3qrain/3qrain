@@ -1,20 +1,29 @@
-import { createApp } from "~/lib/core/create-app";
-import { errorHandler } from "~/middleware/error-handler";
-import authRouter from "~/modules/auth/auth.index";
-import adminRouter from "~/modules/admin/admin.index";
-import publicRouter from "~/modules/public/public.index";
+import { createApp } from '~/lib/core/create-app'
+import { serveStatic } from 'hono/bun'
+import { errorHandler } from '~/middleware/error-handler'
+import authRouter from '~/modules/auth/auth.index'
+import adminRouter from '~/modules/admin/admin.index'
+import publicRouter from '~/modules/public/public.index'
 
-const app = createApp();
+const app = createApp()
 
-app.onError(errorHandler);
+app.onError(errorHandler)
 
-app.doc("/openapi.json", {
-  openapi: "3.1.0",
-  info: { title: "3qrain Admin API", version: "1.0.0" },
-});
+app.doc('/openapi.json', {
+  openapi: '3.1.0',
+  info: { title: '3qrain Admin API', version: '1.0.0' }
+})
 
-app.route("/api", publicRouter);
-app.route("/api/auth", authRouter);
-app.route("/api/admin", adminRouter);
+app.use(
+  '/storage/*',
+  serveStatic({
+    root: './data/uploads',
+    rewriteRequestPath: path => path.replace(/^\/storage/, '')
+  })
+)
 
-export default app;
+app.route('/api', publicRouter)
+app.route('/api/auth', authRouter)
+app.route('/api/admin', adminRouter)
+
+export default app

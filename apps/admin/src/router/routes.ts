@@ -1,5 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { LayoutDashboard, FileText, FolderTree, Tags } from '@lucide/vue'
+import { LayoutDashboard, FileText, FolderTree, Tags, Image } from '@lucide/vue'
 import AppLayout from '~/layouts/AppLayout.vue'
 
 export const menuRoutes: RouteRecordRaw[] = [
@@ -37,6 +37,15 @@ export const menuRoutes: RouteRecordRaw[] = [
     meta: {
       title: '标签',
       icon: Tags
+    }
+  },
+  {
+    path: '/media',
+    name: 'media',
+    component: () => import('~/views/media/MediaLibrary.vue'),
+    meta: {
+      title: '媒体库',
+      icon: Image
     }
   },
 ]
