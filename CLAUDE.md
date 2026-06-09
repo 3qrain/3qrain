@@ -190,5 +190,11 @@ VITE_API_BASE_URL=/api
 - **前端组件**：views 模块化（`views/posts/` 含 `components/editor/`），通用组件放 `components/table/` 等
 - **分页**：`components/table/Pagination.vue`，mode=button 按钮分页 / scroll 滚动加载，切换mode需 watch 重建 Observer
 - **Cookie**：`3qrain_token`，正则 `/3qrain_token=([^;]+)/`
-- **端口**：后端 3010，前端 Vite 代理指向 3010
+- **端口**：后端 3010，前端 Vite 代理 `/api` 和 `/public/` → 3010
+- **静态文件**：`/storage/*` → `data/uploads/`，serveStatic rewrite
+- **上传**：`data/uploads/` 目录(images/videos/audios/files/posts)，运行时 mkdir 自动创建
 - **example 目录**：参考项目组件库，已 gitignore，CLAUDE EXAMPLE.md 有总结
+- **Tiptap 编辑器**：`views/posts/components/editor/tiptap/`，含 BubbleMenu + FloatingMenu 组件化，content/contentHtml/contentText 三存，getContent() 仅在保存时调用
+- **base 组件**：`components/base/` — Button(5 variant/loading/active/icon)/Input/Select/ToggleGroup
+- **边框变量**：`--color-border: color-mix(in oklab, var(--color-base-content) 12%, transparent)`，全局 border 统一用此变量
+- **主题**：ThemeToggle 三模式切换(light/dark/system)在侧边栏底部
