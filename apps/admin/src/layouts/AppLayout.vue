@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Menu } from '@lucide/vue'
+import { Menu, CloudUpload, Bell } from '@lucide/vue'
 import AppSidebar from './components/AppSidebar.vue'
 import { apiClient } from '~/lib/axios'
 
@@ -68,9 +68,19 @@ onUnmounted(() => {
     <!-- Main -->
     <div class="main-wrapper">
       <header v-if="isMobile" class="header">
-        <button class="menu-btn" @click="menuOpen = true">
-          <Menu :size="22" />
-        </button>
+        <div class="header-left">
+          <button class="header-btn" @click="menuOpen = true">
+            <Menu :size="22" />
+          </button>
+        </div>
+        <div class="header-right">
+          <button class="header-btn">
+            <Bell :size="22" />
+          </button>
+          <button class="header-btn">
+            <CloudUpload :size="22" />
+          </button>
+        </div>
       </header>
       <main class="main">
         <router-view />
@@ -109,40 +119,39 @@ onUnmounted(() => {
 }
 
 .header {
+  padding: 0 8px;
   height: 60px;
-  flex-shrink: 0;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 0 16px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-base-100);
+  .header-left {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .header-btn {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
 }
 
 .main {
   flex: 1;
   overflow-y: auto;
   padding: 24px 24px 0px;
-}
-
-/* --- Buttons --- */
-.menu-btn,
-.close-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-.menu-btn {
-  padding: 0;
-}
-
-.close-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
 }
 
 /* --- Overlay --- */
@@ -186,11 +195,6 @@ onUnmounted(() => {
   height: 5px;
   border-radius: 999px;
   background: rgb(120 120 120 / 0.35);
-}
-
-.close-btn {
-  position: absolute;
-  right: 12px;
 }
 
 .drawer-content {
