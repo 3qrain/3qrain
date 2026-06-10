@@ -1,32 +1,85 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 withDefaults(
   defineProps<{
-    open?: boolean;
-    height?: string;
-    showHandle?: boolean;
+    open?: boolean
+    height?: string
+    showHandle?: boolean
   }>(),
   {
-    height: "75vh",
-    showHandle: true,
-  },
-);
+    height: '75vh',
+    showHandle: true
+  }
+)
 
 const emit = defineEmits<{
-  "update:open": [value: boolean];
-}>();
+  'update:open': [value: boolean]
+}>()
+
+const drawerRef = ref<HTMLElement>()
 
 function close() {
-  emit("update:open", false);
+  emit('update:open', false)
+}
+
+// --- drag ---
+let startY = 0
+
+function getClientY(e: TouchEvent | MouseEvent) {
+  return 'touches' in e ? e.touches[0].clientY : e.clientY
+}
+
+function onDragStart(e: TouchEvent | MouseEvent) {
+  const target = e.target as HTMLElement | null
+  // 避免a标签等拖动导致drawer的拖动异常
+  if (target && ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return
+
+  startY = getClientY(e)
+  if (drawerRef.value) drawerRef.value.style.transition = 'none'
+  document.addEventListener('touchmove', onDragMove, { passive: false })
+  document.addEventListener('touchend', onDragEnd)
+  document.addEventListener('mousemove', onDragMove)
+  document.addEventListener('mouseup', onDragEnd)
+}
+
+function onDragMove(e: TouchEvent | MouseEvent) {
+  e.preventDefault()
+  const delta = getClientY(e) - startY
+  if (delta <= 0) return
+  if (drawerRef.value) {
+    drawerRef.value.style.transform = `translateY(${delta}px)`
+  }
+}
+
+function onDragEnd(e: TouchEvent | MouseEvent) {
+  document.removeEventListener('touchmove', onDragMove)
+  document.removeEventListener('touchend', onDragEnd)
+  document.removeEventListener('mousemove', onDragMove)
+  document.removeEventListener('mouseup', onDragEnd)
+
+  const el = drawerRef.value
+  if (!el) return
+  const delta = ('changedTouches' in e ? e.changedTouches[0].clientY : e.clientY) - startY
+
+  if (delta > el.offsetHeight * 0.25) {
+    el.style.transition = 'transform 0.3s ease'
+    el.style.transform = 'translateY(100%)'
+    el.addEventListener('transitionend', () => emit('update:open', false), { once: true })
+  } else {
+    el.style.transition = 'transform 0.3s ease'
+    el.style.transform = ''
+  }
 }
 </script>
 
 <template>
   <Transition name="fade">
-    <div v-if="open" class="overlay" @click="close" />
+    <div v-if="open" class="overlay" @click="close" @touchmove.prevent />
   </Transition>
 
   <Transition name="drawer">
-    <aside v-if="open" class="drawer">
+    <aside v-if="open" ref="drawerRef" class="drawer" @touchstart="onDragStart" @mousedown="onDragStart">
       <div class="drawer-header">
         <div v-if="showHandle" class="drawer-handle" />
         <slot name="header" />
@@ -62,6 +115,12 @@ function close() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  * {
+    user-select: none;
+  }
+  a {
+    pointer-events: none;
+  }
 }
 
 .drawer-header {
