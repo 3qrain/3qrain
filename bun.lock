@@ -22,6 +22,7 @@
         "@uppy/core": "^5.2.0",
         "@uppy/dashboard": "^5.1.1",
         "@uppy/image-editor": "^4.2.0",
+        "@uppy/screen-capture": "^5.1.0",
         "@vueuse/core": "^14.3.0",
         "axios": "^1.16.0",
         "less": "^4.6.4",
@@ -358,6 +359,8 @@
     "@uppy/image-editor": ["@uppy/image-editor@4.2.0", "https://registry.npmmirror.com/@uppy/image-editor/-/image-editor-4.2.0.tgz", { "dependencies": { "@uppy/utils": "^7.1.5", "cropperjs": "^1.6.2", "preact": "^10.26.10" }, "peerDependencies": { "@uppy/core": "^5.2.0" } }, "sha512-7Mn40hQMEwy9lufXYfNhSDuY24LUUSSmumXEoivGgUnXsNgcmppyzVjY94/Q6S6yX7Bg3L/sMvayjPXhYwt64A=="],
 
     "@uppy/provider-views": ["@uppy/provider-views@5.2.2", "https://registry.npmmirror.com/@uppy/provider-views/-/provider-views-5.2.2.tgz", { "dependencies": { "@uppy/utils": "^7.1.5", "classnames": "^2.2.6", "lodash": "^4.17.21", "nanoid": "^5.0.9", "p-queue": "^8.0.0", "preact": "^10.5.13" }, "peerDependencies": { "@uppy/core": "^5.2.0" } }, "sha512-NAazIJ5sjrAc6++CeJ/u9dB5gDaaAOLHrYeEmWs/HqLlftlIinRZOybnyzJRXwI8jWI/FK5moluzt2HXu6dPQQ=="],
+
+    "@uppy/screen-capture": ["@uppy/screen-capture@5.1.0", "https://registry.npmmirror.com/@uppy/screen-capture/-/screen-capture-5.1.0.tgz", { "dependencies": { "@uppy/utils": "^7.1.4", "preact": "^10.5.13" }, "peerDependencies": { "@uppy/core": "^5.2.0" } }, "sha512-+/AAU6Uxmup+Pzuy8/8S1ZttDAcMLnQleapxQLVpzSeddFCCeM+t6CfQ5tL/huSolz0o4v5rZWNaoUm+m5+wUw=="],
 
     "@uppy/store-default": ["@uppy/store-default@5.0.0", "https://registry.npmmirror.com/@uppy/store-default/-/store-default-5.0.0.tgz", {}, "sha512-hQtCSQ1yGiaval/wVYUWquYGDJ+bpQ7e4FhUUAsRQz1x1K+o7NBtjfp63O9I4Ks1WRoKunpkarZ+as09l02cPw=="],
 

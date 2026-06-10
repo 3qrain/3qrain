@@ -1,22 +1,46 @@
 <script setup lang="ts">
+import '@uppy/core/css/style.min.css'
+import '@uppy/dashboard/css/style.min.css'
+import '@uppy/image-editor/css/style.min.css'
+import '@uppy/screen-capture/css/style.min.css'
+
+import { onMounted } from 'vue'
+import { useAppStore } from '~/stores/app'
+import { useUppyStore } from '~/stores/uppy'
+
+const appStore = useAppStore()
+const uppyStore = useUppyStore()
+
+onMounted(() => {
+  uppyStore.mountDashboard('#uppy-dashboard', appStore.theme === 'system' ? 'auto' : appStore.theme)
+})
 </script>
 
 <template>
   <div class="uploader">
-    <div class="empty">暂无上传任务</div>
+    <div id="uppy-dashboard"></div>
   </div>
 </template>
 
 <style scoped lang="less">
 .uploader {
-  padding: 16px;
+  padding: 12px 24px 24px;
+  height: 100%;
 }
-
-.empty {
-  text-align: center;
-  color: var(--color-base-content);
-  opacity: 0.4;
-  padding: 48px 0;
-  font-size: 14px;
+#uppy-dashboard {
+  height: 100%;
+  :deep(.uppy-Root) {
+    height: 100%;
+    .uppy-Dashboard {
+      height: 100%;
+      .uppy-Dashboard-inner {
+        height: 100% !important;
+        border-color: rgba(159, 159, 159, 0.3);
+        .uppy-Dashboard-AddFiles {
+          border-color: rgba(159, 159, 159, 0.3);
+        }
+      }
+    }
+  }
 }
 </style>
