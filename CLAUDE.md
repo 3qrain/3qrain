@@ -192,7 +192,7 @@ VITE_API_BASE_URL=/api
 - **Cookie**：`3qrain_token`，正则 `/3qrain_token=([^;]+)/`
 - **端口**：后端 3010，前端 Vite 代理 `/api` 和 `/public/` → 3010
 - **静态文件**：`/storage/*` → `data/uploads/`，serveStatic rewrite
-- **上传**：`data/uploads/` 目录(images/videos/audios/files/posts)，运行时 mkdir 自动创建
+- **上传**：`data/uploads/` 目录(files)，运行时 mkdir 自动创建
 - **example 目录**：参考项目组件库，已 gitignore，CLAUDE EXAMPLE.md 有总结
 - **Tiptap 编辑器**：`views/posts/components/editor/tiptap/`，含 BubbleMenu + FloatingMenu 组件化，content/contentHtml/contentText 三存，getContent() 仅在保存时调用
 - **base 组件**：`components/base/` — Button(5 variant/loading/active/icon)/Input/Select/ToggleGroup
