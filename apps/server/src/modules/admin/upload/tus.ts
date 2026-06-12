@@ -7,11 +7,13 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import { db } from '~/db'
 import { media } from '~/db/schema'
+import { expireTime_tus } from '@3qrain/shared'
 
 const tusServer = new Server({
   path: '/api/admin/upload',
-  // tus上传产生的切片等文件单独放tus，最后合并完放uploads(对外开发文件夹)
-  datastore: new FileStore({ directory: './data/tus' }),
+  // tus上传产生的切片等文件单独放tus，上传完成放uploads(对外开发文件夹)
+  // 设置过期时间 24小时
+  datastore: new FileStore({ directory: './data/tus', expirationPeriodInMilliseconds: expireTime_tus }),
 
   // 返回相对路径 Location（如 /api/admin/upload/:id）
   // 避免 Tus 返回绝对地址 （如 http://localhost:3000/api/admin/upload/:id）
@@ -106,7 +108,7 @@ const tusServer = new Server({
 
         placeholder = await img.placeholder()
       }
-      
+
       // svg 图片
       else if (mimeType === 'image/svg+xml') {
         type = 'svg'
@@ -164,6 +166,27 @@ const tusServer = new Server({
     }
   }
 })
+
+// Bun.cron("0 */6 * * *", async () => {
+//   try {
+//     await tusServer.cleanUpExpiredUploads()
+//     console.log("[tus] cleanup done")
+//   } catch (e) {
+//     console.error("[tus] cleanup error", e)
+//   }
+// })
+
+export function cron_cleanUpExpiredUploads() {
+  // 每3个整点执行一次，最大残留时间是3小时
+  Bun.cron("0 */3 * * *", async () => {
+    try {
+      await tusServer.cleanUpExpiredUploads()
+      console.log("[tus] cleanup done")
+    } catch (e) {
+      console.error("[tus] cleanup error", e)
+    }
+  })
+}
 
 export async function tusHandler(c: Context) {
   // console.log(c.req.method, c.req.path)

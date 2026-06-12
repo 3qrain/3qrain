@@ -4,12 +4,17 @@ import Uppy from '@uppy/core'
 import Dashboard from '@uppy/dashboard'
 import ImageEditor from '@uppy/image-editor'
 import ScreenCapture from '@uppy/screen-capture'
-import Tus from '@uppy/tus';
+import Tus from '@uppy/tus'
+import { expireTime_localstorage } from '@3qrain/shared'
 
 export const useUppyStore = defineStore('uppy', () => {
-  // ScreenCapture 需要安全上下文（HTTPS/localhost）。
-  // 使用局域网 HTTP 地址访问时会报："Screen recorder access not supported"
-  const uppy = new Uppy().use(ImageEditor).use(ScreenCapture).use(Tus, { endpoint: '/api/admin/upload/', removeFingerprintOnSuccess: true });
+  sweepLocalStorage()
+  const uppy = new Uppy()
+    .use(ImageEditor)
+    // ScreenCapture 需要安全上下文（HTTPS/localhost）。
+    // 使用局域网 HTTP 地址访问时会报："Screen recorder access not supported"
+    .use(ScreenCapture)
+    .use(Tus, { endpoint: '/api/admin/upload/', removeFingerprintOnSuccess: true })
   const uploading = ref(false)
 
   function mountDashboard(target: string | HTMLElement, theme: 'light' | 'dark' | 'auto' = 'auto') {
@@ -17,6 +22,7 @@ export const useUppyStore = defineStore('uppy', () => {
     if (existing) uppy.removePlugin(existing)
     uppy.use(Dashboard, { inline: true, target, theme })
   }
+  console.log(uppy.getFiles())
 
   uppy.on('upload', () => {
     uploading.value = true
@@ -25,3 +31,18 @@ export const useUppyStore = defineStore('uppy', () => {
 
   return { uppy, mountDashboard }
 })
+
+function sweepLocalStorage(): void {
+  // 检查localStorage中所有tus上传文件记录是否过期，过期就删，避免日后挤爆localStorage
+  const cutoff = Date.now() - expireTime_localstorage
+  // 获取所有的tus上传文件记录
+  const keys = Object.keys(localStorage).filter(x => x.startsWith('tus::tus-uppy'))
+  for (const key of keys) {
+    const value = localStorage.getItem(key)
+    if (value != null) {
+      if (Date.parse(JSON.parse(value).creationTime) < cutoff) {
+        localStorage.removeItem(key)
+      }
+    }
+  }
+}

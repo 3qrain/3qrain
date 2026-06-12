@@ -4,6 +4,7 @@ import { errorHandler } from '~/middleware/error-handler'
 import authRouter from '~/modules/auth/auth.index'
 import adminRouter from '~/modules/admin/admin.index'
 import publicRouter from '~/modules/public/public.index'
+import { cron_cleanUpExpiredUploads } from '~/modules/admin/upload/tus'
 
 const app = createApp()
 
@@ -25,5 +26,7 @@ app.use(
 app.route('/api', publicRouter)
 app.route('/api/auth', authRouter)
 app.route('/api/admin', adminRouter)
+
+cron_cleanUpExpiredUploads()
 
 export default app
