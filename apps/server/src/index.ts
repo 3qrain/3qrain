@@ -17,6 +17,23 @@ app.doc('/openapi.json', {
 
 app.use(
   '/storage/*',
+  async (c, next) => {
+    if (!process.env.ALLOWED_ORIGINS) {
+      throw new Error('ALLOWED_ORIGINS is not defined')
+    }
+    const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',')
+    const referer = c.req.header('referer')
+    console.log(c.req);
+    
+    if (!referer) return await next()
+    const ok = allowedOrigins.some(origin => referer.startsWith(origin))
+    if (!ok) {
+      console.log(12);
+      
+      return c.text('Forbidden', 403)
+    }
+    await next()
+  },
   serveStatic({
     root: './data/uploads',
     rewriteRequestPath: path => path.replace(/^\/storage/, '')

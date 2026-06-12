@@ -16,6 +16,7 @@ export const authGuard = createMiddleware(async (c, next) => {
   const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',')
   // get请求不带origin，记得排除掉
   if (origin && !allowedOrigins.includes(origin)) {
+    // return c.text('Forbidden', 403)
     return c.json(fail(ErrorCode.INVALID_ORIGIN, '禁止访问'), HttpStatusCodes.FORBIDDEN)
   }
 
