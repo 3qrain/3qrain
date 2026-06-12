@@ -192,9 +192,56 @@ VITE_API_BASE_URL=/api
 - **Cookie**：`3qrain_token`，正则 `/3qrain_token=([^;]+)/`
 - **端口**：后端 3010，前端 Vite 代理 `/api` 和 `/public/` → 3010
 - **静态文件**：`/storage/*` → `data/uploads/`，serveStatic rewrite
-- **上传**：`data/uploads/` 目录(files)，运行时 mkdir 自动创建
+- **上传 (Uppy + TUS)**：前端 `@uppy/core` + `@uppy/dashboard` + `@uppy/tus`，后端 `@tus/server` + `@tus/file-store`，TUS 协议切片续传，详见下方上传章节
 - **example 目录**：参考项目组件库，已 gitignore，CLAUDE EXAMPLE.md 有总结
 - **Tiptap 编辑器**：`views/posts/components/editor/tiptap/`，含 BubbleMenu + FloatingMenu 组件化，content/contentHtml/contentText 三存，getContent() 仅在保存时调用
 - **base 组件**：`components/base/` — Button(5 variant/loading/active/icon)/Input/Select/ToggleGroup
 - **边框变量**：`--color-border: color-mix(in oklab, var(--color-base-content) 12%, transparent)`，全局 border 统一用此变量
 - **主题**：ThemeToggle 三模式切换(light/dark/system)在侧边栏底部
+
+## 上传 (Uppy + TUS)
+
+### 架构
+
+```
+前端 Uppy (@uppy/tus)  ──PATCH /api/upload/:id──→  @tus/server (Hono)
+                                                      │
+                                                      ├── data/tus/ (切片暂存)
+                                                      └── onUploadFinish → data/uploads/ (完成文件)
+                                                              │
+                                                /storage/* 静态服务对外可访问
+```
+
+### 前端
+
+- **全局实例**：`stores/uppy.ts` — `useUppyStore`，Pinia 单例，Uppy 实例全局复用
+  - 插件：`ImageEditor` + `ScreenCapture` + `Tus({ endpoint: '/api/upload/' })`
+  - `mountDashboard(target, theme)` — 挂载 Dashboard UI，已存在则重建（适配 Drawer 开关场景）
+- **UI 组件**：`components/uppy-uploader/UppyUploader.vue` — 挂载时调用 `mountDashboard('#uppy-dashboard', theme)`
+- **使用场景**：移动端 Drawer 内上传面板（AppLayout），桌面端暂无入口
+- **依赖**：`@uppy/core` `@uppy/dashboard` `@uppy/tus` `@uppy/image-editor` `@uppy/screen-capture`（均 v5）
+
+### 后端
+
+- **包**：`@tus/server` v2 + `@tus/file-store` v2
+- **挂载**：`apps/server/src/index.ts`，路径 `/api/upload/*`，`app.all()` 转发到 `tusServer.handleWeb()`
+- **存储**：`FileStore({ directory: './data/tus' })` — 切片暂存 `data/tus/`，完成后需迁移到 `data/uploads/`
+- **静态服务**：`/storage/*` → `data/uploads/`（serveStatic rewrite）
+- **认证**：TUS 端点当前无鉴权
+
+### 功能支持
+
+| 功能 | 支持 | 说明 |
+|------|------|------|
+| 断点续传 | ✅ | 网络中断后 TUS 协议自动恢复 |
+| 刷新继续上传 | ✅ | Uppy + localStorage 缓存上传状态，页面刷新后可恢复 |
+| 跨设备续传 | ❌ | 依赖浏览器 localStorage，不支持 |
+| 切片上传 | ⚠️ | TUS 流式协议，服务端自动处理，前端不手动分片 |
+| 上传进度 | ✅ | 实时 PATCH offset 计算进度 |
+| 上传恢复 | ✅ | 通过 uploadId + offset 定位恢复点 |
+
+### 注意事项
+
+- **ScreenCapture** 需要安全上下文（HTTPS/localhost），局域网 HTTP 访问会报错
+- Vite 代理 `/api/*` → 3010，TUS 请求走此代理
+- `data/uploads/` 运行时自动 mkdir，无需手动创建

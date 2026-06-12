@@ -9,6 +9,10 @@ export const ErrorCode = {
   UNAUTHORIZED: "AUTH_UNAUTHORIZED",
   /** Token 过期 */
   TOKEN_EXPIRED: "AUTH_TOKEN_EXPIRED",
+
+  /** 无效的请求来源 */
+  INVALID_ORIGIN: "SECURITY_INVALID_ORIGIN",
+
   /** 无有效恢复密钥 */
   NO_VALID_RECOVERY_KEY: "AUTH_NO_VALID_RECOVERY_KEY",
   /** 恢复密钥错误 */

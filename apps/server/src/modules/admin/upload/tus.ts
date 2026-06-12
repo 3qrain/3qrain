@@ -1,0 +1,164 @@
+import type { Context } from 'hono'
+import { Server } from '@tus/server'
+import { FileStore } from '@tus/file-store'
+import { Upload } from '@tus/server'
+import { mkdir, rename } from 'node:fs/promises'
+import path from 'node:path'
+import crypto from 'node:crypto'
+import { db } from '~/db'
+import { media } from '~/db/schema'
+
+const tusServer = new Server({
+  path: '/api/admin/upload',
+  // tus上传产生的切片等文件单独放tus，最后合并完放uploads(对外开发文件夹)
+  datastore: new FileStore({ directory: './data/tus' }),
+
+  // 返回相对路径 Location（如 /api/admin/upload/:id）
+  // 避免 Tus 返回绝对地址 （如 http://localhost:3000/api/admin/upload/:id）
+  // 导致后续 PATCH/HEAD 请求绕过前端代理，从而产生跨域问题并丢失 Cookie
+  relativeLocation: true,
+  onUploadFinish: async (req, upload: Upload) => {
+    // Upload {
+    //   id: "e0cdf7cfa87a99ae1f094eca53679acd",
+    //   metadata: {
+    //     relativePath: "null",
+    //     name: "wallhaven-3ld92d.jpg",
+    //     type: "image/jpeg",
+    //     filetype: "image/jpeg",
+    //     filename: "wallhaven-3ld92d.jpg",
+    //   },
+    //   size: 2733519,
+    //   offset: 2733519,
+    //   creation_date: "2026-06-12T15:20:51.867Z",
+    //   storage: {
+    //     type: "file",
+    //     path: "./data/tus/e0cdf7cfa87a99ae1f094eca53679acd",
+    //   },
+    //   sizeIsDeferred: [Getter],
+    // }
+
+    try {
+      if (!upload.metadata) {
+        throw new Error('Missing upload metadata')
+      }
+      if (!upload.storage) {
+        throw new Error('Missing upload storage')
+      }
+
+      const mimeType = upload.metadata.filetype || ''
+      const originalName = upload.metadata.filename || ''
+      const size = upload.size || 0
+      const tmpPath = upload.storage.path
+
+      const id = crypto.randomUUID()
+
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+
+      const dir = `./data/uploads/${year}/${month}`
+      try {
+        await mkdir(dir, { recursive: true })
+      } catch (e) {
+        throw new Error('Failed to create directory')
+      }
+
+      const ext = path.extname(originalName)
+      const originalPath = `${dir}/${id}-original${ext}`
+
+      let width: number | null = null
+      let height: number | null = null
+      let thumbnailPath: string | null = null
+      let placeholder: string | null = null
+
+      let type: 'image' | 'svg' | 'video' | 'audio' | 'file' = 'file'
+
+      //Bun.Image 能处理 JPEG, PNG, WebP, GIF, BMP, TIFF, HEIC or AVIF，要筛选Image子类型，避免出现svg等
+      const bunImageList = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+        'image/bmp',
+        'image/tiff',
+        'image/heic',
+        'image/avif'
+      ]
+      // image 图片
+      if (mimeType.startsWith('image/') && bunImageList.includes(mimeType)) {
+        type = 'image'
+        const img = new Bun.Image(tmpPath)
+        const meta = await img.metadata()
+        width = meta.width
+        height = meta.height
+
+        thumbnailPath = `${dir}/${id}-thumbnail.webp`
+
+        await img
+          .resize(1200, 1200, {
+            fit: 'inside',
+            withoutEnlargement: true
+          })
+          .webp({ quality: 80 })
+          .write(thumbnailPath)
+
+        placeholder = await img.placeholder()
+      }
+
+      // video 视频
+      else if (mimeType.startsWith('video/')) {
+        type = 'video'
+      }
+
+      // audio 音频
+      else if (mimeType.startsWith('audio/')) {
+        type = 'audio'
+      }
+
+      // 其它
+      else {
+        type = 'file'
+      }
+
+      try {
+        await rename(tmpPath, originalPath)
+      } catch (e) {
+        throw new Error('Failed to rename file')
+      }
+
+      try {
+        // 清除tus的json文件
+        await Bun.file(`${tmpPath}.json`).delete()
+      } catch {
+        throw new Error('Failed to delete tus json file')
+      }
+
+      await db.insert(media).values({
+        mimeType,
+        type,
+        size,
+        ext,
+
+        originalPath,
+        thumbnailPath,
+
+        placeholder,
+
+        width,
+        height,
+
+        filename: originalName
+      })
+
+      return {}
+    } catch (e) {
+      console.error(e)
+      return {}
+    }
+  }
+})
+
+export async function tusHandler(c: Context) {
+  // console.log(c.req.method, c.req.path)
+  return tusServer.handleWeb(c.req.raw)
+}
