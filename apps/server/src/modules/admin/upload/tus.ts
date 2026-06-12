@@ -50,7 +50,9 @@ const tusServer = new Server({
       const size = upload.size || 0
       const tmpPath = upload.storage.path
 
-      const id = crypto.randomUUID()
+      // 2026-06-12：3qrain 文件上传功能完成
+      const MEDIA_ID_EPOCH = Date.UTC(2026, 5, 12)
+      const id = (Date.now() - MEDIA_ID_EPOCH).toString(36) + crypto.randomBytes(2).toString('hex')
 
       const now = new Date()
       const year = now.getFullYear()
@@ -103,6 +105,11 @@ const tusServer = new Server({
           .write(thumbnailPath)
 
         placeholder = await img.placeholder()
+      }
+      
+      // svg 图片
+      else if (mimeType === 'image/svg+xml') {
+        type = 'svg'
       }
 
       // video 视频

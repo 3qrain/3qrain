@@ -5,9 +5,4 @@ export { categories } from "./categories";
 export { tags } from "./tags";
 export { posts } from "./posts";
 export { postTags } from "./post-tags";
-export {
-  categoryRelations,
-  tagRelations,
-  postRelations,
-  postTagRelations,
-} from "./relations";
+export { media } from "./media";

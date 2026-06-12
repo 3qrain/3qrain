@@ -16,7 +16,7 @@ export default defineConfig({
           })
         }
       },
-      '/public/': 'http://localhost:3010'
+      '/storage/': 'http://localhost:3010'
     }
   },
   resolve: {
