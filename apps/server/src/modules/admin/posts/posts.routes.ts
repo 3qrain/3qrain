@@ -54,7 +54,7 @@ const postSchema = z.object({
   slug: z.string(),
   summary: z.string(),
   cover: z.string(),
-  content: z.string(),
+  content: z.object(),
   status: z.string(),
   isPinned: z.union([z.boolean(), z.number()]),
   viewCount: z.number(),
@@ -128,6 +128,10 @@ export const createPostRoute = createRoute({
       content: { "application/json": { schema: successResponseSchema(postSchema) } },
       description: "创建成功",
     },
+    [HttpStatusCodes.BAD_REQUEST]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "请求参数zod校验失败||发布/归档时标题、标识和分类为必填",
+    },
     [HttpStatusCodes.CONFLICT]: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "slug 已存在",
@@ -152,6 +156,10 @@ export const updatePostRoute = createRoute({
     [HttpStatusCodes.OK]: {
       content: { "application/json": { schema: successResponseSchema(postSchema) } },
       description: "更新成功",
+    },
+    [HttpStatusCodes.BAD_REQUEST]: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "请求参数zod校验失败||发布/归档时标题、标识和分类为必填",
     },
     [HttpStatusCodes.NOT_FOUND]: {
       content: { "application/json": { schema: errorResponseSchema } },

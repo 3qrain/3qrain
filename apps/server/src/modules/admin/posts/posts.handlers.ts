@@ -1,13 +1,5 @@
 import type { Context } from 'hono'
-import {
-  eq,
-  like,
-  and,
-  desc,
-  count as drizzleCount,
-  inArray,
-  isNull
-} from 'drizzle-orm'
+import { eq, like, and, desc, count as drizzleCount, inArray, isNull } from 'drizzle-orm'
 import { db } from '~/db'
 import { posts, postTags, categories, tags } from '~/db/schema'
 import { ok, fail } from '~/utils/response'
@@ -39,13 +31,7 @@ async function getPostWithRelations(postId: number) {
   const post = db.select().from(posts).where(eq(posts.id, postId)).get()
   if (!post) return null
 
-  const category = post.categoryId
-    ? db
-        .select()
-        .from(categories)
-        .where(eq(categories.id, post.categoryId))
-        .get()
-    : null
+  const category = post.categoryId ? db.select().from(categories).where(eq(categories.id, post.categoryId)).get() : null
 
   const tagRows = db
     .select({ id: tags.id, name: tags.name, slug: tags.slug })
@@ -67,10 +53,14 @@ function normalize(data: Record<string, any>) {
 }
 
 // DB → API：slug null → ""，content JSON 解析
-function serialize(post: Record<string, any>) {
+function serialize<T extends { slug: any; content: any }>(post: T): T {
   if (post.slug === null) post.slug = ''
   if (typeof post.content === 'string') {
-    try { post.content = JSON.parse(post.content) } catch { /* keep raw */ }
+    try {
+      post.content = JSON.parse(post.content)
+    } catch {
+      /* keep raw */
+    }
   }
   return post
 }
@@ -95,11 +85,7 @@ export async function list(c: Context) {
 
   const where = filters.length > 0 ? and(...filters) : undefined
 
-  const total = db
-    .select({ count: drizzleCount() })
-    .from(posts)
-    .where(where)
-    .get()!.count
+  const total = db.select({ count: drizzleCount() }).from(posts).where(where).get()!.count
 
   const rows = db
     .select()
@@ -111,16 +97,11 @@ export async function list(c: Context) {
     .all()
 
   if (rows.length === 0) {
-    return c.json(
-      ok({ list: [], total, page, pageSize }, '获取成功'),
-      HttpStatusCodes.OK
-    )
+    return c.json(ok({ list: [], total, page, pageSize }, '获取成功'), HttpStatusCodes.OK)
   }
 
   const postIds = rows.map(p => p.id)
-  const catIds = [
-    ...new Set(rows.map(p => p.categoryId).filter(Boolean))
-  ] as number[]
+  const catIds = [...new Set(rows.map(p => p.categoryId).filter(Boolean))] as number[]
 
   const catMap = new Map(
     db
@@ -149,37 +130,30 @@ export async function list(c: Context) {
     tagMap.get(pt.postId)!.push({ id: pt.id, name: pt.name, slug: pt.slug })
   }
 
-  const list = rows.map(p => serialize({
-    ...p,
-    category: (p.categoryId && catMap.get(p.categoryId)) || null,
-    tags: tagMap.get(p.id) || []
-  }))
-
-  return c.json(
-    ok({ list, total, page, pageSize }, '获取成功'),
-    HttpStatusCodes.OK
+  const list = rows.map(p =>
+    serialize({
+      ...p,
+      category: (p.categoryId && catMap.get(p.categoryId)) || null,
+      tags: tagMap.get(p.id) || []
+    })
   )
+
+  return c.json(ok({ list: list as any, total, page, pageSize }, '获取成功'), HttpStatusCodes.OK)
 }
 
 export async function detail(c: Context) {
   const id = Number.parseInt(c.req.param('id')!)
   const post = await getPostWithRelations(id)
   if (!post) {
-    return c.json(
-      fail(ErrorCode.POST_NOT_FOUND, '文章不存在'),
-      HttpStatusCodes.NOT_FOUND
-    )
+    return c.json(fail(ErrorCode.POST_NOT_FOUND, '文章不存在'), HttpStatusCodes.NOT_FOUND)
   }
-  return c.json(ok(post, '获取成功'), HttpStatusCodes.OK)
+  return c.json(ok(post as any, '获取成功'), HttpStatusCodes.OK)
 }
 
 export async function create(c: Context) {
   const parsed = createPostSchema.strict().safeParse(await c.req.json())
   if (!parsed.success) {
-    return c.json(
-      fail(ErrorCode.INVALID_PARAMS, parsed.error.issues[0].message),
-      HttpStatusCodes.BAD_REQUEST
-    )
+    return c.json(fail(ErrorCode.INVALID_PARAMS, parsed.error.issues[0].message), HttpStatusCodes.BAD_REQUEST)
   }
   const body = parsed.data
 
@@ -188,10 +162,7 @@ export async function create(c: Context) {
   // 发布/归档时校验必填
   if (!isDraft) {
     if (!body.title || !body.slug || !body.categoryId) {
-      return c.json(
-        fail(ErrorCode.INVALID_PARAMS, '发布/归档时标题、标识和分类为必填'),
-        HttpStatusCodes.BAD_REQUEST
-      )
+      return c.json(fail(ErrorCode.INVALID_PARAMS, '发布/归档时标题、标识和分类为必填'), HttpStatusCodes.BAD_REQUEST)
     }
   }
 
@@ -199,72 +170,51 @@ export async function create(c: Context) {
   if (body.slug) {
     const dup = db.select().from(posts).where(eq(posts.slug, body.slug)).get()
     if (dup) {
-      return c.json(
-        fail(ErrorCode.POST_SLUG_EXISTS, '文章标识已存在'),
-        HttpStatusCodes.CONFLICT
-      )
+      return c.json(fail(ErrorCode.POST_SLUG_EXISTS, '文章标识已存在'), HttpStatusCodes.CONFLICT)
     }
   }
 
   // 分类校验
   if (body.categoryId && body.categoryId > 0) {
-    const category = db
-      .select()
-      .from(categories)
-      .where(eq(categories.id, body.categoryId))
-      .get()
+    const category = db.select().from(categories).where(eq(categories.id, body.categoryId)).get()
     if (!category) {
-      return c.json(
-        fail(ErrorCode.CATEGORY_NOT_FOUND, '分类不存在'),
-        HttpStatusCodes.NOT_FOUND
-      )
+      return c.json(fail(ErrorCode.CATEGORY_NOT_FOUND, '分类不存在'), HttpStatusCodes.NOT_FOUND)
     }
   }
 
   // 标签校验
   if (body.tagIds.length > 0) {
-    const existingTags = db
-      .select({ id: tags.id })
-      .from(tags)
-      .where(inArray(tags.id, body.tagIds))
-      .all()
+    const existingTags = db.select({ id: tags.id }).from(tags).where(inArray(tags.id, body.tagIds)).all()
     if (existingTags.length !== body.tagIds.length) {
-      return c.json(
-        fail(ErrorCode.TAG_NOT_FOUND, '标签不存在'),
-        HttpStatusCodes.NOT_FOUND
-      )
+      return c.json(fail(ErrorCode.TAG_NOT_FOUND, '标签不存在'), HttpStatusCodes.NOT_FOUND)
     }
   }
 
   const { tagIds, ...data } = normalize(body)
-  const result = serialize(db
-    .insert(posts)
-    .values({ ...data, viewCount: 0 })
-    .returning()
-    .get())
+  const result = serialize(
+    db
+      .insert(posts)
+      .values({ ...data, viewCount: 0 })
+      .returning()
+      .get()
+  )
   await syncPostTags(result.id, tagIds)
 
   const post = await getPostWithRelations(result.id)
-  return c.json(ok(post, '创建成功'), HttpStatusCodes.CREATED)
+  return c.json(ok(post as any, '创建成功'), HttpStatusCodes.CREATED)
 }
 
 export async function update(c: Context) {
   const id = Number.parseInt(c.req.param('id')!)
   const parsed = updatePostSchema.strict().safeParse(await c.req.json())
   if (!parsed.success) {
-    return c.json(
-      fail(ErrorCode.INVALID_PARAMS, parsed.error.issues[0].message),
-      HttpStatusCodes.BAD_REQUEST
-    )
+    return c.json(fail(ErrorCode.INVALID_PARAMS, parsed.error.issues[0].message), HttpStatusCodes.BAD_REQUEST)
   }
   const body = parsed.data
 
   const existing = db.select().from(posts).where(eq(posts.id, id)).get()
   if (!existing) {
-    return c.json(
-      fail(ErrorCode.POST_NOT_FOUND, '文章不存在'),
-      HttpStatusCodes.NOT_FOUND
-    )
+    return c.json(fail(ErrorCode.POST_NOT_FOUND, '文章不存在'), HttpStatusCodes.NOT_FOUND)
   }
 
   // 目标状态：优先看 body.status，否则用现有状态
@@ -277,53 +227,33 @@ export async function update(c: Context) {
     const slug = body.slug ?? existing.slug
     const categoryId = body.categoryId ?? existing.categoryId
     if (!title || !slug || !categoryId) {
-      return c.json(
-        fail(ErrorCode.INVALID_PARAMS, '发布/归档时标题、标识和分类为必填'),
-        HttpStatusCodes.BAD_REQUEST
-      )
+      return c.json(fail(ErrorCode.INVALID_PARAMS, '发布/归档时标题、标识和分类为必填'), HttpStatusCodes.BAD_REQUEST)
     }
   }
 
   if (body.slug && body.slug !== existing.slug) {
     const dup = db.select().from(posts).where(eq(posts.slug, body.slug)).get()
     if (dup) {
-      return c.json(
-        fail(ErrorCode.POST_SLUG_EXISTS, '文章标识已存在'),
-        HttpStatusCodes.CONFLICT
-      )
+      return c.json(fail(ErrorCode.POST_SLUG_EXISTS, '文章标识已存在'), HttpStatusCodes.CONFLICT)
     }
   }
 
   if (body.categoryId !== undefined && body.categoryId > 0) {
-    const category = db
-      .select()
-      .from(categories)
-      .where(eq(categories.id, body.categoryId))
-      .get()
+    const category = db.select().from(categories).where(eq(categories.id, body.categoryId)).get()
     if (!category) {
-      return c.json(
-        fail(ErrorCode.CATEGORY_NOT_FOUND, '分类不存在'),
-        HttpStatusCodes.NOT_FOUND
-      )
+      return c.json(fail(ErrorCode.CATEGORY_NOT_FOUND, '分类不存在'), HttpStatusCodes.NOT_FOUND)
     }
   }
 
   const { tagIds, ...postData } = normalize(body)
 
   if (tagIds !== undefined && tagIds.length > 0) {
-    const existingTags = db
-      .select({ id: tags.id })
-      .from(tags)
-      .where(inArray(tags.id, tagIds))
-      .all()
+    const existingTags = db.select({ id: tags.id }).from(tags).where(inArray(tags.id, tagIds)).all()
     if (existingTags.length !== tagIds.length) {
-      return c.json(
-        fail(ErrorCode.TAG_NOT_FOUND, '标签不存在'),
-        HttpStatusCodes.NOT_FOUND
-      )
+      return c.json(fail(ErrorCode.TAG_NOT_FOUND, '标签不存在'), HttpStatusCodes.NOT_FOUND)
     }
   }
-  
+
   db.update(posts).set(postData).where(eq(posts.id, id)).run()
 
   if (tagIds !== undefined) {
@@ -331,7 +261,7 @@ export async function update(c: Context) {
   }
 
   const post = await getPostWithRelations(id)
-  return c.json(ok(post, '更新成功'), HttpStatusCodes.OK)
+  return c.json(ok(post as any, '更新成功'), HttpStatusCodes.OK)
 }
 
 export async function trash(c: Context) {
@@ -343,10 +273,7 @@ export async function trash(c: Context) {
     .where(and(eq(posts.id, id), isNull(posts.deletedAt)))
     .get()
   if (!existing) {
-    return c.json(
-      fail(ErrorCode.POST_NOT_FOUND, '文章不存在'),
-      HttpStatusCodes.NOT_FOUND
-    )
+    return c.json(fail(ErrorCode.POST_NOT_FOUND, '文章不存在'), HttpStatusCodes.NOT_FOUND)
   }
 
   db.update(posts).set({ deletedAt: new Date() }).where(eq(posts.id, id)).run()
@@ -358,10 +285,7 @@ export async function destroy(c: Context) {
 
   const existing = db.select().from(posts).where(eq(posts.id, id)).get()
   if (!existing) {
-    return c.json(
-      fail(ErrorCode.POST_NOT_FOUND, '文章不存在'),
-      HttpStatusCodes.NOT_FOUND
-    )
+    return c.json(fail(ErrorCode.POST_NOT_FOUND, '文章不存在'), HttpStatusCodes.NOT_FOUND)
   }
 
   db.delete(postTags).where(eq(postTags.postId, id)).run()
@@ -374,19 +298,13 @@ export async function restore(c: Context) {
 
   const existing = db.select().from(posts).where(eq(posts.id, id)).get()
   if (!existing) {
-    return c.json(
-      fail(ErrorCode.POST_NOT_FOUND, '文章不存在'),
-      HttpStatusCodes.NOT_FOUND
-    )
+    return c.json(fail(ErrorCode.POST_NOT_FOUND, '文章不存在'), HttpStatusCodes.NOT_FOUND)
   }
   if (!existing.deletedAt) {
-    return c.json(
-      fail(ErrorCode.POST_NOT_FOUND, '文章不在回收站'),
-      HttpStatusCodes.BAD_REQUEST
-    )
+    return c.json(fail(ErrorCode.POST_NOT_FOUND, '文章不在回收站'), HttpStatusCodes.NOT_FOUND)
   }
 
   db.update(posts).set({ deletedAt: null }).where(eq(posts.id, id)).run()
   const post = await getPostWithRelations(id)
-  return c.json(ok(post, '恢复成功'), HttpStatusCodes.OK)
+  return c.json(ok(post as any, '恢复成功'), HttpStatusCodes.OK)
 }
