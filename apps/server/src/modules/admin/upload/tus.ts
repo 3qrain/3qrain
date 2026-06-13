@@ -8,6 +8,7 @@ import crypto from 'node:crypto'
 import { db } from '~/db'
 import { media } from '~/db/schema'
 import { expireTime_tus } from '@3qrain/shared'
+import dayjs from "dayjs";
 
 const tusServer = new Server({
   path: '/api/admin/upload',
@@ -179,11 +180,12 @@ const tusServer = new Server({
 export function cron_cleanUpExpiredUploads() {
   // 每3个整点执行一次，最大残留时间是3小时
   Bun.cron("0 */3 * * *", async () => {
+    const time = dayjs().format("YY-MM-DD HH:mm:ss")
     try {
       await tusServer.cleanUpExpiredUploads()
-      console.log("[tus] cleanup done")
+      console.log(time + " [tus] cleanup done")
     } catch (e) {
-      console.error("[tus] cleanup error", e)
+      console.error(time + " [tus] cleanup error", e)
     }
   })
 }
