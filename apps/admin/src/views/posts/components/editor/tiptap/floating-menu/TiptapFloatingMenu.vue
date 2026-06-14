@@ -11,7 +11,6 @@ import {
   Code,
   Minus,
   Image as ImageIcon,
-  Rocket,
   TextAlignStart,
   TextAlignCenter,
   TextAlignEnd

@@ -40,35 +40,37 @@ const emit = defineEmits<{ (e: 'addLink'): void }>()
     >
       <TextAlignEnd :size="15" />
     </MenuButton>
-    <span class="sep" />
-    <MenuButton :active="props.editor.isActive('bold')" @click="props.editor.chain().focus().toggleBold().run()">
-      <Bold :size="15" />
-    </MenuButton>
-    <MenuButton :active="props.editor.isActive('italic')" @click="props.editor.chain().focus().toggleItalic().run()">
-      <Italic :size="15" />
-    </MenuButton>
-    <MenuButton :active="props.editor.isActive('strike')" @click="props.editor.chain().focus().toggleStrike().run()">
-      <Strikethrough :size="15" />
-    </MenuButton>
-    <MenuButton :active="props.editor.isActive('code')" @click="props.editor.chain().focus().toggleCode().run()"
-      ><Code :size="15"
-    /></MenuButton>
-    <span class="sep" />
-    <MenuButton :active="props.editor.isActive('link')" @click="emit('addLink')">
-      <LinkIcon :size="15" />
-    </MenuButton>
-    <MenuButton
-      :active="props.editor.isActive('heading', { level: 1 })"
-      @click="props.editor.chain().focus().toggleHeading({ level: 1 }).run()"
-    >
-      <Heading1 :size="15" />
-    </MenuButton>
-    <MenuButton
-      :active="props.editor.isActive('heading', { level: 2 })"
-      @click="props.editor.chain().focus().toggleHeading({ level: 2 }).run()"
-    >
-      <Heading2 :size="15" />
-    </MenuButton>
+    <template v-if="!props.editor.isActive('image')">
+      <span class="sep" />
+      <MenuButton :active="props.editor.isActive('bold')" @click="props.editor.chain().focus().toggleBold().run()">
+        <Bold :size="15" />
+      </MenuButton>
+      <MenuButton :active="props.editor.isActive('italic')" @click="props.editor.chain().focus().toggleItalic().run()">
+        <Italic :size="15" />
+      </MenuButton>
+      <MenuButton :active="props.editor.isActive('strike')" @click="props.editor.chain().focus().toggleStrike().run()">
+        <Strikethrough :size="15" />
+      </MenuButton>
+      <MenuButton :active="props.editor.isActive('code')" @click="props.editor.chain().focus().toggleCode().run()"
+        ><Code :size="15"
+      /></MenuButton>
+      <span class="sep" />
+      <MenuButton :active="props.editor.isActive('link')" @click="emit('addLink')">
+        <LinkIcon :size="15" />
+      </MenuButton>
+      <MenuButton
+        :active="props.editor.isActive('heading', { level: 1 })"
+        @click="props.editor.chain().focus().toggleHeading({ level: 1 }).run()"
+      >
+        <Heading1 :size="15" />
+      </MenuButton>
+      <MenuButton
+        :active="props.editor.isActive('heading', { level: 2 })"
+        @click="props.editor.chain().focus().toggleHeading({ level: 2 }).run()"
+      >
+        <Heading2 :size="15" />
+      </MenuButton>
+    </template>
   </BubbleMenu>
 </template>
 

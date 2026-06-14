@@ -1,19 +1,19 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html {
-    /* 移动端保留了用户的滚动和双指缩放能力，禁掉双击放大。 */
-    touch-action: manipulation;
+  /* 移动端保留了用户的滚动和双指缩放能力，禁掉双击放大。 */
+  touch-action: manipulation;
 }
 
 a {
-    text-decoration: none;
-    color: inherit;
+  text-decoration: none;
+  color: inherit;
 }
 
 ul {
-    list-style: none;
+  list-style: none;
 }
