@@ -12,7 +12,7 @@
     "@3qrain/shared": "workspace:*",
     "@lucide/vue": "^1.14.0",
     "@tiptap/extension-image": "^3.25.0",
-    "@tiptap/extension-link": "^3.25.0",
+    "@tiptap/extension-text-align": "^3.26.1",
     "@tiptap/starter-kit": "^3.25.0",
     "@tiptap/vue-3": "^3.25.0",
     "@uppy/core": "^5.2.0",

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Sun, Moon, Monitor } from "@lucide/vue";
-import { getTheme, setTheme } from "~/themes";
-import type { Theme } from "~/themes";
+import { getTheme, setTheme } from "~/css/themes";
+import type { Theme } from "~/css/themes";
 
 const theme = ref<Theme>(getTheme());
 

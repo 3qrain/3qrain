@@ -1,57 +1,98 @@
 <script setup lang="ts">
 import { FloatingMenu } from '@tiptap/vue-3/menus'
 import type { Editor } from '@tiptap/vue-3'
-import { Heading1, Heading2, Heading3, List, ListOrdered, Quote, Code, Minus, Image as ImageIcon } from '@lucide/vue'
+import {
+  Heading1,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  Quote,
+  Code,
+  Minus,
+  Image as ImageIcon,
+  Rocket,
+  TextAlignStart,
+  TextAlignCenter,
+  TextAlignEnd
+} from '@lucide/vue'
 import MenuButton from '../MenuButton.vue'
 
 const props = defineProps<{ editor: Editor }>()
 
 const emit = defineEmits<{ (e: 'addImage'): void }>()
-
-const bodyDom = document.body
 </script>
 
 <template>
-  <FloatingMenu class="menu" :editor="props.editor" :options="{ placement: 'bottom-start' }" :append-to="bodyDom">
+  <FloatingMenu class="menu" :editor="props.editor" :options="{ placement: 'bottom-start' }" >
+    <MenuButton
+      :active="props.editor.isActive({ textAlign: 'left' })"
+      @click="props.editor.chain().focus().setTextAlign('left').run()"
+    >
+      <TextAlignStart :size="15" />
+    </MenuButton>
+    <MenuButton
+      :active="props.editor.isActive({ textAlign: 'center' })"
+      @click="props.editor.chain().focus().setTextAlign('center').run()"
+    >
+      <TextAlignCenter :size="15" />
+    </MenuButton>
+    <MenuButton
+      :active="props.editor.isActive({ textAlign: 'right' })"
+      @click="props.editor.chain().focus().setTextAlign('right').run()"
+    >
+      <TextAlignEnd :size="15" />
+    </MenuButton>
+    <span class="sep" />
     <MenuButton
       :active="props.editor.isActive('heading', { level: 1 })"
       @click="props.editor.chain().focus().toggleHeading({ level: 1 }).run()"
-      ><Heading1 :size="16"
-    /></MenuButton>
+    >
+      <Heading1 :size="16" />
+    </MenuButton>
     <MenuButton
       :active="props.editor.isActive('heading', { level: 2 })"
       @click="props.editor.chain().focus().toggleHeading({ level: 2 }).run()"
-      ><Heading2 :size="16"
-    /></MenuButton>
+    >
+      <Heading2 :size="16" />
+    </MenuButton>
     <MenuButton
       :active="props.editor.isActive('heading', { level: 3 })"
       @click="props.editor.chain().focus().toggleHeading({ level: 3 }).run()"
-      ><Heading3 :size="16"
-    /></MenuButton>
+    >
+      <Heading3 :size="16" />
+    </MenuButton>
     <span class="sep" />
     <MenuButton
       :active="props.editor.isActive('bulletList')"
       @click="props.editor.chain().focus().toggleBulletList().run()"
-      ><List :size="16"
-    /></MenuButton>
+    >
+      <List :size="16" />
+    </MenuButton>
     <MenuButton
       :active="props.editor.isActive('orderedList')"
       @click="props.editor.chain().focus().toggleOrderedList().run()"
-      ><ListOrdered :size="16"
-    /></MenuButton>
+    >
+      <ListOrdered :size="16" />
+    </MenuButton>
     <MenuButton
       :active="props.editor.isActive('blockquote')"
       @click="props.editor.chain().focus().toggleBlockquote().run()"
-      ><Quote :size="16"
-    /></MenuButton>
+    >
+      <Quote :size="16" />
+    </MenuButton>
     <MenuButton
       :active="props.editor.isActive('codeBlock')"
       @click="props.editor.chain().focus().toggleCodeBlock().run()"
       ><Code :size="16"
     /></MenuButton>
     <span class="sep" />
-    <MenuButton @click="props.editor.chain().focus().setHorizontalRule().run()"><Minus :size="16" /></MenuButton>
-    <MenuButton @click="emit('addImage')"><ImageIcon :size="16" /></MenuButton>
+    <MenuButton @click="props.editor.chain().focus().setHorizontalRule().run()">
+      <Minus :size="16" />
+    </MenuButton>
+    <MenuButton @click="emit('addImage')">
+      <ImageIcon :size="16" />
+    </MenuButton>
   </FloatingMenu>
 </template>
 

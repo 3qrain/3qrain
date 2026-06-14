@@ -36,17 +36,19 @@ defineExpose({ getContent });
   flex: 1;
   overflow-y: auto;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
 }
 
 .post-editor-content-wrap {
   max-width: 768px;
   width: 100%;
-  margin: 0 auto;
+  // margin: 0 auto;
+  // margin: 24px auto 20px;
   padding: 24px 40px 20px;
   display: flex;
   flex-direction: column;
   flex: 1;
+  box-sizing: border-box;
 }
 
 .title-input {
