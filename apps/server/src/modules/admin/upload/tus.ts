@@ -149,8 +149,9 @@ const tusServer = new Server({
         size,
         ext,
 
-        originalPath,
-        thumbnailPath,
+        // 去掉dir前缀
+        originalPath: originalPath.replace(dir, ''),
+        thumbnailPath: thumbnailPath?.replace(dir, ''),
 
         placeholder,
 
