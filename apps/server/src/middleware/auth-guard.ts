@@ -8,18 +8,6 @@ import { SESSION_ADMIN_PREFIX, sessionValueSchema } from '~/constants/session'
 const TOKEN_TTL = Number(process.env.TOKEN_TTL) || 86400
 
 export const authGuard = createMiddleware(async (c, next) => {
-  // origin 校验
-  const origin = c.req.header('Origin')
-  if (!process.env.ALLOWED_ORIGINS) {
-    throw new Error('ALLOWED_ORIGINS is not defined')
-  }
-  const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',')
-  // get请求不带origin，记得排除掉
-  if (origin && !allowedOrigins.includes(origin)) {
-    // return c.text('Forbidden', 403)
-    return c.json(fail(ErrorCode.INVALID_ORIGIN, '禁止访问'), HttpStatusCodes.FORBIDDEN)
-  }
-
   // cookie 校验
   const cookie = c.req.header('cookie') || ''
   const match = cookie.match(/3qrain_token=([^;]+)/)

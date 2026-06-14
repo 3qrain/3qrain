@@ -1,4 +1,5 @@
 import { createApp } from '~/lib/core/create-app'
+import { csrf } from 'hono/csrf'
 import { serveStatic } from 'hono/bun'
 import { errorHandler } from '~/middleware/error-handler'
 import authRouter from '~/modules/auth/auth.index'
@@ -8,22 +9,31 @@ import { cron_cleanUpExpiredUploads } from '~/modules/admin/upload/tus'
 
 const app = createApp()
 
-app.onError(errorHandler)
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
+if (allowedOrigins.length === 0) {
+  throw new Error('ALLOWED_ORIGINS is not defined')
+}
+// csrf防护 origin校验
+app.use(
+  '/api/admin/*',
+  csrf({
+    origin: allowedOrigins,
+    secFetchSite: 'same-origin'
+  })
+)
 
 app.doc('/openapi.json', {
   openapi: '3.1.0',
   info: { title: '3qrain Admin API', version: '1.0.0' }
 })
 
+// 对外开放的上传文件
 app.use(
   '/storage/*',
   async (c, next) => {
-    if (!process.env.ALLOWED_ORIGINS) {
-      throw new Error('ALLOWED_ORIGINS is not defined')
-    }
-    const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',')
+    // 防盗链
     const referer = c.req.header('referer')
-    
+
     if (!referer) return await next()
     const ok = allowedOrigins.some(origin => referer.startsWith(origin))
     if (!ok) {
@@ -40,6 +50,8 @@ app.use(
 app.route('/api', publicRouter)
 app.route('/api/auth', authRouter)
 app.route('/api/admin', adminRouter)
+
+app.onError(errorHandler)
 
 cron_cleanUpExpiredUploads()
 
