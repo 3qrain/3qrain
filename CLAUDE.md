@@ -130,10 +130,11 @@ apps/admin/src/
 │   ├── index.ts
 │   └── routes.ts        # menuRoutes (带 meta.icon) + routes
 ├── stores/index.ts
-├── themes/
-│   ├── light.css        # :root (daisyUI oklch)
-│   ├── dark.css         # html.dark
-│   └── index.ts         # getTheme / setTheme / initTheme (含跟随系统)
+├── css/
+│   └── themes/
+│       ├── light.css        # :root (oklch 色彩变量)
+│       ├── dark.css         # html.dark
+│       └── index.ts         # getTheme / setTheme / initTheme (含跟随系统)
 ├── layouts/
 │   ├── AppLayout.vue    # 侧边栏 + main，≤768px 抽屉
 │   └── components/
@@ -146,7 +147,7 @@ apps/admin/src/
 ### 前端架构要点
 
 - **路径别名**: `~/` → `src/`（tsconfig.app.json + vite.config.ts）
-- **主题**: daisyUI 色彩体系 (oklch)，light/dark/system 三模式，`html.dark` class 切换
+- **主题**: oklch 色彩变量（命名参考 daisyUI），light/dark/system 三模式，`html.dark` class 切换
 - **AppLayout**: 桌面端 fixed 侧边栏 (240px) + main (margin-left)，移动端 slide-up 抽屉
 - **SFC 顺序**: `<script>` → `<template>` → `<style>`
 - **Vite 代理**: `/api` → `http://localhost:3010`
