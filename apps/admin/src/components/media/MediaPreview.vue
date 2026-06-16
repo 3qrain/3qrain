@@ -196,12 +196,16 @@ watch(
   justify-content: center;
   background: rgb(0 0 0 / 0.75);
   padding: 32px;
+  overscroll-behavior: contain;
 }
 .panel {
   display: flex;
   flex-direction: column;
   width: 100%;
   max-width: 900px;
+  border-radius: 10px 10px 0 0;
+  background: var(--color-base-100);
+  overflow: hidden;
 }
 
 /* Head */
@@ -210,7 +214,6 @@ watch(
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  border-radius: 10px 10px 0 0;
   background: var(--color-base-100);
   font-size: 13px;
   flex-shrink: 0;
@@ -359,6 +362,8 @@ watch(
   gap: 6px;
   padding: 10px 16px;
   overflow-x: auto;
+  // 避免触控板滚到头时滚动事件向上传递触发页面路由跳转
+  overscroll-behavior-x: contain;
   background: var(--color-base-100);
   border-radius: 0 0 10px 10px;
   flex-shrink: 0;
