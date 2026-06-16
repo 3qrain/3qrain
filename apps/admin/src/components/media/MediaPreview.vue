@@ -114,14 +114,14 @@ watch(
             <!-- Nav arrows -->
             <button
               v-if="hasPrev"
-              :class="{ nav: true, 'nav-left': true, 'nav-video': current.type === 'video' }"
+              :class="{ nav: true, 'nav-left': true, 'nav-video': ['video', 'audio'].includes(current.type) }"
               @click="prev"
             >
               <ChevronLeft :size="24" />
             </button>
             <button
               v-if="hasNext"
-              :class="{ nav: true, 'nav-right': true, 'nav-video': current.type === 'video' }"
+              :class="{ nav: true, 'nav-right': true, 'nav-video': ['video', 'audio'].includes(current.type) }"
               @click="next"
             >
               <ChevronRight :size="24" />
@@ -149,6 +149,9 @@ watch(
               <template v-else-if="current.type === 'video'">
                 <video :src="current.url" controls class="layer" />
               </template>
+              <template v-else-if="current.type === 'audio'">
+                <audio :src="current.url" controls class="layer" />
+              </template>
             </div>
           </div>
 
@@ -172,7 +175,9 @@ watch(
                 loading="lazy"
               />
               <img v-else-if="item.type === 'svg'" :src="item.url" :alt="item.filename" loading="lazy" />
-              <div v-else class="strip-placeholder" />
+              <div v-else class="strip-placeholder">
+                {{ item.type }}
+              </div>
             </div>
           </div>
         </div>
@@ -384,6 +389,12 @@ watch(
   width: 100%;
   height: 100%;
   background: var(--color-base-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.25;
 }
 
 /* Transitions */
