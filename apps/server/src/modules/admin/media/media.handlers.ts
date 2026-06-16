@@ -3,7 +3,8 @@ import { eq, like, and, desc, count as drizzleCount } from "drizzle-orm";
 import { readdir, unlink, stat } from "node:fs/promises";
 import { db } from "~/db";
 import { media } from "~/db/schema";
-import { ok } from "~/utils/response";
+import { ok, fail } from "~/utils/response";
+import { ErrorCode } from "@3qrain/shared";
 import * as HttpStatusCodes from "~/constants/http-status-codes";
 
 const UPLOADS_DIR = "./data/uploads";
@@ -36,7 +37,7 @@ export async function list(c: Context) {
 
   const list = rows.map((r) => ({
     ...r,
-    url: toUrl(r.originalPath),
+    url: toUrl(r.originalPath) as string,
     thumbnailUrl: toUrl(r.thumbnailPath),
     previewUrl: toUrl(r.previewPath),
   }));
@@ -47,7 +48,7 @@ export async function list(c: Context) {
 export async function remove(c: Context) {
   const id = Number.parseInt(c.req.param("id")!);
   const record = db.select().from(media).where(eq(media.id, id)).get();
-  if (!record) return c.json(ok({}, "已删除"), HttpStatusCodes.OK);
+  if (!record) return c.json(fail(ErrorCode.FILE_NOT_FOUND, "文件不存在"), HttpStatusCodes.NOT_FOUND);
 
   for (const p of [record.originalPath, record.thumbnailPath, record.previewPath].filter(Boolean)) {
     try { await unlink(`${UPLOADS_DIR}${p}`); } catch { /* gone */ }

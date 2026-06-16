@@ -21,7 +21,7 @@ export const media = sqliteTable("media", {
   height: integer("height"),
 
   // ===== 业务信息 =====
-  filename: text("filename"),
+  filename: text("filename").notNull(),
 
   // ===== 时间 =====
   ...timestamps,
