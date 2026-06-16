@@ -82,7 +82,7 @@ watch(() => props.mode, async (val) => {
   <!-- 滚动模式 -->
   <div v-else-if="mode === 'scroll'" ref="sentinel" class="scroll-sentinel">
     <Loader v-if="loading" :size="16" class="spin" />
-    <span v-else-if="currentPage >= totalPages" class="ended">没有更多了</span>
+    <span v-else-if="currentPage >= totalPages && totalPages > 1" class="ended">没有更多了</span>
   </div>
 </template>
 
