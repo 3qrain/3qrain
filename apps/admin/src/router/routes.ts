@@ -14,40 +14,70 @@ export const menuRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/posts',
-    name: 'posts',
-    component: () => import('~/views/posts/Posts.vue'),
     meta: {
       title: '文章',
       icon: FileText
-    }
+    },
+    children: [
+      {
+        path: '',
+        name: 'posts',
+        component: () => import('~/views/posts/Posts.vue')
+      },
+      {
+        path: 'new',
+        name: 'postCreate',
+        component: () => import('~/views/posts/PostEdit.vue')
+      },
+      {
+        path: ':id',
+        name: 'postEdit',
+        component: () => import('~/views/posts/PostEdit.vue')
+      }
+    ]
   },
   {
     path: '/categories',
-    name: 'categories',
-    component: () => import('~/views/categories/Categories.vue'),
     meta: {
       title: '分类',
       icon: FolderTree
-    }
+    },
+    children: [
+      {
+        path: '',
+        name: 'categories',
+        component: () => import('~/views/categories/Categories.vue')
+      }
+    ]
   },
   {
     path: '/tags',
-    name: 'tags',
-    component: () => import('~/views/tags/Tags.vue'),
     meta: {
       title: '标签',
       icon: Tags
-    }
+    },
+    children: [
+      {
+        path: '',
+        name: 'tags',
+        component: () => import('~/views/tags/Tags.vue')
+      }
+    ]
   },
   {
     path: '/media',
-    name: 'media',
-    component: () => import('~/views/media/MediaLibrary.vue'),
     meta: {
       title: '媒体库',
       icon: Image
-    }
-  },
+    },
+    children: [
+      {
+        path: '',
+        name: 'media',
+        component: () => import('~/views/media/MediaLibrary.vue')
+      }
+    ]
+  }
 ]
 
 export const routes: RouteRecordRaw[] = [
@@ -57,26 +87,16 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('~/views/auth/Login.vue')
   },
   {
-    path: "/",
+    path: '/',
     component: AppLayout,
-    redirect: "/dashboard",
+    redirect: '/dashboard',
     children: [
-      ...menuRoutes,
-      {
-        path: '/posts/new',
-        name: 'postCreate',
-        component: () => import('~/views/posts/PostEdit.vue'),
-      },
-      {
-        path: '/posts/:id',
-        name: 'postEdit',
-        component: () => import('~/views/posts/PostEdit.vue'),
-      },
-    ],
+      ...menuRoutes
+    ]
   },
   {
-    path: "/:pathMatch(.*)*",
-    name: "404",
-    redirect: "/"
-  },
+    path: '/:pathMatch(.*)*',
+    name: '404',
+    redirect: '/'
+  }
 ]
