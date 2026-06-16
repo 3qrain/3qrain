@@ -1,102 +1,112 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import { useRouter } from "vue-router";
-import { toast } from "vue-sonner";
-import { Plus, Pencil, Trash2, Search, Eye } from "@lucide/vue";
-import Pagination from "~/components/table/Pagination.vue";
-import ToggleGroup from "~/components/base/ToggleGroup.vue";
-import Select from "~/components/base/Select.vue";
-import Button from "~/components/base/Button.vue";
-import { getPosts, deletePost } from "~/api/posts";
-import { getCategories } from "~/api/categories";
-import type { Post } from "~/api/posts/types";
-import type { Category } from "~/api/categories/types";
-import { formatDate } from "~/utils/date";
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
+import { Plus, Pencil, Trash2, Search, Eye } from '@lucide/vue'
+import Pagination from '~/components/table/Pagination.vue'
+import ToggleGroup from '~/components/base/ToggleGroup.vue'
+import Select from '~/components/base/Select.vue'
+import Button from '~/components/base/Button.vue'
+import { getPosts, deletePost } from '~/api/posts'
+import { getCategories } from '~/api/categories'
+import type { Post } from '~/api/posts/types'
+import type { Category } from '~/api/categories/types'
+import { formatDate } from '~/utils/date'
 
-const router = useRouter();
+const router = useRouter()
 
-const posts = ref<Post[]>([]);
-const categories = ref<Category[]>([]);
-const total = ref(0);
-const loading = ref(true);
+const posts = ref<Post[]>([])
+const categories = ref<Category[]>([])
+const total = ref(0)
+const loading = ref(true)
 
 const query = ref({
-  keyword: "",
-  status: "",
-  categoryId: "",
+  keyword: '',
+  status: '',
+  categoryId: 0,
   page: 1,
-  pageSize: 10,
-});
+  pageSize: 10
+})
 
-const totalPages = ref(1);
-const paginationMode = ref<"button" | "scroll">("scroll");
+const totalPages = ref(1)
+const paginationMode = ref<'button' | 'scroll'>('scroll')
 
-const categoryOptions = computed(() =>
-  categories.value.map(c => ({ label: c.name, value: String(c.id) }))
-);
+const categoryOptions = ref([{ label: '全部分类', value: 0 }])
 
 async function load(append = false) {
-  loading.value = true;
+  loading.value = true
   try {
-    const params: any = { page: query.value.page, pageSize: query.value.pageSize };
-    if (query.value.keyword) params.keyword = query.value.keyword;
-    if (query.value.status) params.status = query.value.status;
-    if (query.value.categoryId) params.categoryId = query.value.categoryId;
+    const params: any = { page: query.value.page, pageSize: query.value.pageSize }
+    if (query.value.keyword) params.keyword = query.value.keyword
+    if (query.value.status) params.status = query.value.status
+    if (query.value.categoryId) params.categoryId = query.value.categoryId
 
-    const result = await getPosts(params);
-    posts.value = append ? [...posts.value, ...result.list] : result.list;
-    total.value = result.total;
-    totalPages.value = Math.ceil(result.total / result.pageSize);
+    const result = await getPosts(params)
+    posts.value = append ? [...posts.value, ...result.list] : result.list
+    total.value = result.total
+    totalPages.value = Math.ceil(result.total / result.pageSize)
   } catch {
-    toast.error("加载文章失败");
+    toast.error('加载文章失败')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 async function loadCategories() {
   try {
-    categories.value = await getCategories();
-  } catch { /* ignore */ }
-}
-
-function search() {
-  query.value.page = 1;
-  load();
-}
-
-function goPage(p: number) {
-  query.value.page = p;
-  load(paginationMode.value === "scroll");
-}
-
-function create() {
-  router.push("/posts/new");
-}
-
-function edit(post: Post) {
-  router.push(`/posts/${post.id}`);
-}
-
-async function remove(post: Post) {
-  if (!confirm(`确定删除文章「${post.title}」？`)) return;
-  try {
-    await deletePost(post.id);
-    toast.success("已删除");
-    await load();
+    categories.value = await getCategories()
+    categoryOptions.value.push(...categories.value.map(c => ({ label: c.name, value: c.id })))
   } catch {
-    toast.error("删除失败");
+    /* ignore */
   }
 }
 
-watch(() => query.value.status, () => search());
-watch(() => query.value.categoryId, () => search());
-watch(paginationMode, () => { query.value.page = 1; load(); });
+function search() {
+  query.value.page = 1
+  load()
+}
+
+function goPage(p: number) {
+  query.value.page = p
+  load(paginationMode.value === 'scroll')
+}
+
+function create() {
+  router.push('/posts/new')
+}
+
+function edit(post: Post) {
+  router.push(`/posts/${post.id}`)
+}
+
+async function remove(post: Post) {
+  if (!confirm(`确定删除文章「${post.title}」？`)) return
+  try {
+    await deletePost(post.id)
+    toast.success('已删除')
+    await load()
+  } catch {
+    toast.error('删除失败')
+  }
+}
+
+watch(
+  () => query.value.status,
+  () => search()
+)
+watch(
+  () => query.value.categoryId,
+  () => search()
+)
+watch(paginationMode, () => {
+  query.value.page = 1
+  load()
+})
 
 onMounted(() => {
-  loadCategories();
-  load();
-});
+  loadCategories()
+  load()
+})
 </script>
 
 <template>
@@ -114,26 +124,26 @@ onMounted(() => {
         </label>
         <Select
           v-model="query.status"
-          :options="[{ label: '全部状态', value: '' }, { label: '草稿', value: 'draft' }, { label: '已发布', value: 'published' }, { label: '已归档', value: 'archived' }]"
+          :options="[
+            { label: '全部状态', value: '' },
+            { label: '草稿', value: 'draft' },
+            { label: '已发布', value: 'published' },
+            { label: '已归档', value: 'archived' }
+          ]"
           class="filter-select"
         />
-        <Select
-          v-model="query.categoryId"
-          placeholder="全部分类"
-          :options="categoryOptions"
-          class="filter-select"
-        />
+        <Select v-model="query.categoryId" :options="categoryOptions" class="filter-select" />
         <ToggleGroup
           v-model="paginationMode"
-          :options="[{ label: '滚动', value: 'scroll' }, { label: '分页', value: 'button' }]"
+          :options="[
+            { label: '滚动', value: 'scroll' },
+            { label: '分页', value: 'button' }
+          ]"
           size="sm"
         />
-        <Button variant="primary" @click="create">
-          <Plus :size="17" /> 写文章
-        </Button>
+        <Button variant="primary" @click="create"> <Plus :size="17" /> 写文章 </Button>
       </div>
     </div>
-
     <!-- Empty -->
     <div v-if="!loading && posts.length === 0" class="empty">
       <p class="empty-title">暂无文章</p>
@@ -144,11 +154,16 @@ onMounted(() => {
     <div v-else class="post-list">
       <article v-for="post in posts" :key="post.id" class="post-row" @click="edit(post)">
         <div class="post-main">
-          <h2 class="post-title">{{ post.title || "新文章" }}</h2>
+          <h2 class="post-title">{{ post.title || '新文章' }}</h2>
           <p v-if="post.summary" class="post-summary">{{ post.summary }}</p>
           <div class="post-meta">
-            <span :class="['status-badge', post.status === 'published' ? 'is-pub' : post.status === 'archived' ? 'is-archived' : 'is-draft']">
-              {{ post.status === "published" ? "已发布" : post.status === "archived" ? "已归档" : "草稿" }}
+            <span
+              :class="[
+                'status-badge',
+                post.status === 'published' ? 'is-pub' : post.status === 'archived' ? 'is-archived' : 'is-draft'
+              ]"
+            >
+              {{ post.status === 'published' ? '已发布' : post.status === 'archived' ? '已归档' : '草稿' }}
             </span>
             <span v-if="post.category" class="meta-tag">{{ post.category.name }}</span>
             <span class="meta-text"><Eye :size="13" /> {{ post.viewCount }}</span>
@@ -174,6 +189,7 @@ onMounted(() => {
 
 <style scoped lang="less">
 .posts-page {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
 }
@@ -182,9 +198,10 @@ onMounted(() => {
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  width: 100%;
   flex-wrap: wrap;
-  gap: 16px;
+  // gap: 16px;
   margin-bottom: 28px;
 }
 
@@ -228,7 +245,10 @@ onMounted(() => {
     color: var(--color-base-content);
   }
 
-  svg { opacity: 0.35; flex-shrink: 0; }
+  svg {
+    opacity: 0.35;
+    flex-shrink: 0;
+  }
 
   &:focus-within {
     border-color: var(--color-base-300);
@@ -246,14 +266,15 @@ onMounted(() => {
     border-radius: 10px;
     font-size: 13px;
 
-    &:focus { border-color: var(--color-base-300); }
+    &:focus {
+      border-color: var(--color-base-300);
+    }
   }
 }
 
 /* --- Empty --- */
 .empty {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 80px 0;
@@ -261,8 +282,14 @@ onMounted(() => {
   opacity: 0.4;
   font-size: 14px;
 }
-.empty-title { font-size: 18px; font-weight: 600; margin: 0 0 6px; }
-.empty-desc { margin: 0; }
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.empty-desc {
+  margin: 0;
+}
 
 /* --- Post Row --- */
 .post-list {
@@ -282,11 +309,17 @@ onMounted(() => {
   & + & {
     border-top: 1px solid var(--color-border);
     border-radius: 0;
-    &:last-child { border-radius: 0 0 14px 14px; }
+    &:last-child {
+      border-radius: 0 0 14px 14px;
+    }
   }
 
-  &:first-child { border-radius: 14px 14px 0 0; }
-  &:last-child { border-radius: 0 0 14px 14px; }
+  &:first-child {
+    border-radius: 14px 14px 0 0;
+  }
+  &:last-child {
+    border-radius: 0 0 14px 14px;
+  }
 
   &:hover {
     background: var(--color-base-200);
@@ -371,5 +404,4 @@ onMounted(() => {
   gap: 2px;
   flex-shrink: 0;
 }
-
 </style>

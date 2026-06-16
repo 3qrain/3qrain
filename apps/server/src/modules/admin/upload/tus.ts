@@ -8,7 +8,7 @@ import crypto from 'node:crypto'
 import { db } from '~/db'
 import { media } from '~/db/schema'
 import { expireTime_tus } from '@3qrain/shared'
-import dayjs from "dayjs";
+import dayjs from 'dayjs'
 
 const tusServer = new Server({
   path: '/api/admin/upload',
@@ -61,7 +61,8 @@ const tusServer = new Server({
       const year = now.getFullYear()
       const month = String(now.getMonth() + 1).padStart(2, '0')
 
-      const dir = `./data/uploads/${year}/${month}`
+      const root_dir = './data/uploads'
+      const dir = `${root_dir}/${year}/${month}`
       try {
         await mkdir(dir, { recursive: true })
       } catch (e) {
@@ -74,6 +75,7 @@ const tusServer = new Server({
       let width: number | null = null
       let height: number | null = null
       let thumbnailPath: string | null = null
+      let previewPath: string | null = null
       let placeholder: string | null = null
 
       let type: 'image' | 'svg' | 'video' | 'audio' | 'file' = 'file'
@@ -83,11 +85,11 @@ const tusServer = new Server({
         'image/jpeg',
         'image/png',
         'image/webp',
-        'image/gif',
-        'image/bmp',
-        'image/tiff',
-        'image/heic',
-        'image/avif'
+        'image/gif'
+        // 'image/bmp',
+        // 'image/tiff',
+        // 'image/heic', 需要编码器
+        // 'image/avif'  需要编码器
       ]
       // image 图片
       if (mimeType.startsWith('image/') && bunImageList.includes(mimeType)) {
@@ -98,14 +100,23 @@ const tusServer = new Server({
         height = meta.height
 
         thumbnailPath = `${dir}/${id}-thumbnail.webp`
+        previewPath = `${dir}/${id}-preview.webp`
 
         await img
-          .resize(1200, 1200, {
+          .resize(512, 512, {
+            fit: 'inside',
+            withoutEnlargement: true
+          })
+          .webp({ quality: 75 })
+          .write(thumbnailPath)
+
+        await img
+          .resize(1280, 1280, {
             fit: 'inside',
             withoutEnlargement: true
           })
           .webp({ quality: 80 })
-          .write(thumbnailPath)
+          .write(previewPath)
 
         placeholder = await img.placeholder()
       }
@@ -150,9 +161,9 @@ const tusServer = new Server({
         ext,
 
         // 去掉dir前缀
-        originalPath: originalPath.replace(dir, ''),
-        thumbnailPath: thumbnailPath?.replace(dir, ''),
-
+        originalPath: originalPath.replace(root_dir, ''),
+        thumbnailPath: thumbnailPath?.replace(root_dir, ''),
+        previewPath: previewPath?.replace(root_dir, ''),
         placeholder,
 
         width,
@@ -163,30 +174,22 @@ const tusServer = new Server({
 
       return {}
     } catch (e) {
-      console.error(e)
+      const time = dayjs().format('YY-MM-DD HH:mm:ss')
+      console.error(`${time} [upload] 文件上传失败`, e)
       return {}
     }
   }
 })
 
-// Bun.cron("0 */6 * * *", async () => {
-//   try {
-//     await tusServer.cleanUpExpiredUploads()
-//     console.log("[tus] cleanup done")
-//   } catch (e) {
-//     console.error("[tus] cleanup error", e)
-//   }
-// })
-
 export function cron_cleanUpExpiredUploads() {
   // 每3个整点执行一次，最大残留时间是3小时
-  Bun.cron("0 */3 * * *", async () => {
-    const time = dayjs().format("YY-MM-DD HH:mm:ss")
+  Bun.cron('0 */3 * * *', async () => {
+    const time = dayjs().format('YY-MM-DD HH:mm:ss')
     try {
       await tusServer.cleanUpExpiredUploads()
-      console.log(time + " [tus] cleanup done")
+      console.log(time + ' [tus] cleanup done')
     } catch (e) {
-      console.error(time + " [tus] cleanup error", e)
+      console.error(time + ' [tus] cleanup error', e)
     }
   })
 }

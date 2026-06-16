@@ -6,16 +6,17 @@ import Drawer from '~/components/base/Drawer.vue'
 import Notification from '~/components/notification/Notification.vue'
 import UppyUploader from '~/components/uppy-uploader/UppyUploader.vue'
 import { apiClient } from '~/lib/axios'
+import { useGlobalStore, type DrawerPanel } from '~/stores/global.ts'
+import { storeToRefs } from 'pinia'
 
-type Panel = 'menu' | 'notify' | 'upload'
+const { drawerPanel } = storeToRefs(useGlobalStore())
 
-const activePanel = ref<Panel | null>(null)
 const isMobile = ref(false)
 
 const BREAKPOINT = 768
 
-function openPanel(panel: Panel) {
-  activePanel.value = panel
+function openPanel(panel: DrawerPanel) {
+  drawerPanel.value = panel
 }
 
 let mediaQuery: MediaQueryList
@@ -35,7 +36,7 @@ onMounted(() => {
 
   mediaQuery.addEventListener('change', e => {
     isMobile.value = e.matches
-    if (!e.matches) activePanel.value = null
+    if (!e.matches) drawerPanel.value = null
   })
 })
 
@@ -52,10 +53,10 @@ onUnmounted(() => {
     </aside>
 
     <!-- Mobile Bottom Drawer -->
-    <Drawer :open="activePanel !== null" @update:open="(v) => !v && (activePanel = null)">
-      <AppSidebar v-if="activePanel === 'menu'" mobile @close="activePanel = null" />
-      <Notification v-else-if="activePanel === 'notify'" />
-      <UppyUploader v-else-if="activePanel === 'upload'" />
+    <Drawer :open="drawerPanel !== null" @update:open="(v) => !v && (drawerPanel = null)">
+      <AppSidebar v-if="drawerPanel === 'menu'" mobile @close="drawerPanel = null" />
+      <Notification v-else-if="drawerPanel === 'notify'" />
+      <UppyUploader v-else-if="drawerPanel === 'upload'" />
     </Drawer>
 
     <!-- Main -->

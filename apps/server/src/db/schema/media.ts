@@ -12,7 +12,8 @@ export const media = sqliteTable("media", {
 
   // ===== 存储路径 =====
   originalPath: text("original_path").notNull(),
-  thumbnailPath: text("thumbnail_path"),     // 可为空（非图片/音频）
+  thumbnailPath: text("thumbnail_path"),     // 缩略图 可为空（非图片/音频）
+  previewPath: text("preview_path"),     // 预览图
   placeholder: text("placeholder"),  // base64
 
   // ===== 图片信息 =====

@@ -194,11 +194,57 @@ VITE_API_BASE_URL=/api
 - **端口**：后端 3010，前端 Vite 代理 `/api` 和 `/public/` → 3010
 - **静态文件**：`/storage/*` → `data/uploads/`，serveStatic rewrite
 - **上传 (Uppy + TUS)**：前端 `@uppy/core` + `@uppy/dashboard` + `@uppy/tus`，后端 `@tus/server` + `@tus/file-store`，TUS 协议切片续传，详见下方上传章节
+- **媒体库**：`admin/media/` 模块化，列表/删除/健康检查，onUploadFinish 自动写入 media 表+生成缩略图
 - **example 目录**：参考项目组件库，已 gitignore，CLAUDE EXAMPLE.md 有总结
 - **Tiptap 编辑器**：`views/posts/components/editor/tiptap/`，含 BubbleMenu + FloatingMenu 组件化，content/contentHtml/contentText 三存，getContent() 仅在保存时调用
 - **base 组件**：`components/base/` — Button(5 variant/loading/active/icon)/Input/Select/ToggleGroup
 - **边框变量**：`--color-border: color-mix(in oklab, var(--color-base-content) 12%, transparent)`，全局 border 统一用此变量
 - **主题**：ThemeToggle 三模式切换(light/dark/system)在侧边栏底部
+
+## 上传 (Uppy + TUS)
+
+### 架构
+
+```
+前端 Uppy (@uppy/tus)  ──PATCH /api/admin/upload/:id──→  @tus/server (Hono)
+                                                              │
+                                                              ├── data/tus/ (切片暂存)
+                                                              └── onUploadFinish → data/uploads/ (完成文件)
+                                                                      │
+                                                        /storage/* 静态服务对外可访问
+```
+
+### 前端
+- **全局实例**：`stores/uppy.ts` — `useUppyStore`，Pinia 单例，Uppy 实例全局复用
+  - 插件：`ImageEditor` + `ScreenCapture` + `Tus({ endpoint: '/api/admin/upload/' })`
+  - `mountDashboard(target, theme)` — 挂载 Dashboard UI，已存在则重建（适配 Drawer 开关场景）
+- **UI 组件**：`components/uppy-uploader/UppyUploader.vue` — 挂载时调用 `mountDashboard('#uppy-dashboard', theme)`
+- **使用场景**：移动端 Drawer 内上传面板（AppLayout），桌面端暂无入口
+- **依赖**：`@uppy/core` `@uppy/dashboard` `@uppy/tus` `@uppy/image-editor` `@uppy/screen-capture`（均 v5）
+
+### 后端
+- **包**：`@tus/server` v2 + `@tus/file-store` v2
+- **挂载**：`adminRouter.all('/upload/*', tusHandler)`，在 `admin.index.ts` 中
+- **存储**：`FileStore({ directory: './data/tus' })` — 切片暂存 `data/tus/`，完成后迁移到 `data/uploads/`
+- **静态服务**：`/storage/*` → `data/uploads/`（serveStatic rewrite）
+- **onUploadFinish** `modules/admin/upload/tus.ts`：
+  - 生成唯一 ID → 按年月建目录 `data/uploads/{year}/{month}/`
+  - 重命名 → metadata 提取 → 图片生成 WebP 缩略图(1200px) + placeholder
+  - 写入 `media` 表（mimeType/type/size/ext/originalPath/thumbnailPath/width/height/filename）
+- **认证**：TUS 端点当前无鉴权（`adminRouter.all` 前已挂 `authGuard`，但 `upload/*` 需要确认是否受保护）
+- **清理**：`Bun.cron("0 */3 * * *")` 每 3 小时清理过期 TUS 上传
+
+### 媒体库 API
+- `GET /api/admin/media` — 分页列表（keyword/page/pageSize）
+- `DELETE /api/admin/media/:id` — 删除文件+记录
+- `GET /api/admin/media/health` — 未登记文件/失效记录检查
+- 路径映射：DB 存 `/{year}/{month}/{id}-original{ext}`，直接拼 `/storage` 前缀即 URL
+
+### 注意事项
+- Uppy instance 有两个：Pinia store（全局）+ MediaLibrary.vue（复用 store 的 mountDashboard）
+- `expireTime_tus` 在 shared 中定义为 `1000`（？），实际期望 24h
+- `ScreenCapture` 需要安全上下文（HTTPS/localhost），局域网 HTTP 访问会报错
+- `data/uploads/` 运行时自动 mkdir，无需手动创建
 
 ## 上传 (Uppy + TUS)
 

@@ -22,8 +22,7 @@ export const useUppyStore = defineStore('uppy', () => {
     if (existing) uppy.removePlugin(existing)
     uppy.use(Dashboard, { inline: true, target, theme })
   }
-  console.log(uppy.getFiles())
-
+  
   uppy.on('upload', () => {
     uploading.value = true
   })

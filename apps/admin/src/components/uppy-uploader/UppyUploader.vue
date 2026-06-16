@@ -32,6 +32,8 @@ onMounted(() => {
   :deep(.uppy-Root) {
     height: 100%;
     .uppy-Dashboard {
+      display: flex;
+      justify-content: center;
       height: 100%;
       .uppy-Dashboard-inner {
         height: 100% !important;

@@ -34,12 +34,22 @@ app.use(
     // 防盗链
     const referer = c.req.header('referer')
 
-    if (!referer) return await next()
-    const ok = allowedOrigins.some(origin => referer.startsWith(origin))
+  if (referer) {
+    const ok = allowedOrigins.some(origin =>
+      referer.startsWith(origin)
+    )
+
     if (!ok) {
       return c.text('Forbidden', 403)
     }
+  }
     await next()
+
+    // 图片/媒体缓存 30 天
+    c.header(
+      'Cache-Control',
+      'public, max-age=2592000'
+    )
   },
   serveStatic({
     root: './data/uploads',
