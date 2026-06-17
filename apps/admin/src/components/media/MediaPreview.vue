@@ -29,6 +29,15 @@ function scrollToThumb() {
   el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
 }
 
+function onStripWheel(e: WheelEvent) {
+  if (!stripRef.value) return
+  // 仅截获纵向为主的滚动（鼠标滚轮），触摸板横向滑动放行
+  if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+    e.preventDefault()
+    stripRef.value.scrollLeft += e.deltaY
+  }
+}
+
 const current = computed(() => props.items[index.value] || null)
 const hasPrev = computed(() => index.value > 0)
 const hasNext = computed(() => index.value < props.items.length - 1)
@@ -157,7 +166,7 @@ watch(
           </div>
 
           <!-- Thumbnail strip -->
-          <div ref="stripRef" class="strip" v-if="items.length > 1">
+          <div ref="stripRef" class="strip" v-if="items.length > 1" @wheel="onStripWheel">
             <div
               v-for="(item, i) in items"
               :key="item.id"
