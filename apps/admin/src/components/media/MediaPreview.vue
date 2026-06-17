@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { toast } from 'vue-sonner'
 import { ChevronLeft, ChevronRight, Copy, Loader, X } from '@lucide/vue'
 import Button from '~/components/base/Button.vue'
+import AudioPlayer from './AudioPlayer.vue'
 import type { MediaItem } from '~/api/media'
 
 const props = withDefaults(
@@ -150,7 +151,7 @@ watch(
                 <video :src="current.url" controls class="layer" />
               </template>
               <template v-else-if="current.type === 'audio'">
-                <audio :src="current.url" controls class="layer" />
+                <AudioPlayer :src="current.url" class="layer" />
               </template>
             </div>
           </div>
@@ -342,7 +343,7 @@ watch(
   border-radius: 8px;
   background: var(--color-base-100);
   color: var(--color-base-content);
-  box-shadow: 0 0 6px 4px var(--color-border);
+  box-shadow: 0 0 6px 1px var(--color-border);
   opacity: 0.8;
   transition: opacity 0.2s ease-in-out;
   &:hover {
