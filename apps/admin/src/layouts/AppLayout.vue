@@ -64,15 +64,15 @@ onUnmounted(() => {
       <header v-if="isMobile" class="header">
         <div class="header-left">
           <button class="header-btn" @click="openPanel('menu')">
-            <Menu :size="22" />
+            <Menu style="width: 1.375rem; height: 1.375rem;" />
           </button>
         </div>
         <div class="header-right">
           <button class="header-btn" @click="openPanel('notify')">
-            <Bell :size="22" />
+            <Bell style="width: 1.375rem; height: 1.375rem;" />
           </button>
           <button class="header-btn" @click="openPanel('upload')">
-            <CloudUpload :size="22" />
+            <CloudUpload style="width: 1.375rem; height: 1.375rem;" />
           </button>
         </div>
       </header>
@@ -88,7 +88,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped lang="less">
-@sidebarWidth: 240px;
+@sidebarWidth: 15rem;
 
 .layout {
   display: flex;
@@ -116,12 +116,12 @@ onUnmounted(() => {
 }
 
 .header {
-  padding: 0 8px;
-  height: 60px;
+  padding: 0 .5rem;
+  height: 3.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: .0625rem solid var(--color-border);
   background: var(--color-base-100);
   .header-left {
     display: flex;
@@ -131,11 +131,11 @@ onUnmounted(() => {
   .header-right {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: .3125rem;
   }
   .header-btn {
-    width: 44px;
-    height: 44px;
+    width: 2.75rem;
+    height: 2.75rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -148,17 +148,17 @@ onUnmounted(() => {
 .main {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 24px 0px;
+  padding: 1.5rem 1.5rem 0rem;
 }
 
 /* --- Responsive --- */
-@media (width <= 768px) {
+@media (width <= 48rem) {
   .sidebar {
     width: 0;
   }
 
   .main {
-    padding: 16px 16px 0px;
+    padding: 1rem 1rem 0rem;
   }
 }
 

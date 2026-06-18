@@ -41,7 +41,7 @@ function setupObserver() {
         emit("change", props.currentPage + 1);
       }
     },
-    { rootMargin: "200px" },
+    { rootMargin: "20%" },
   );
   observer.observe(sentinel.value);
 }
@@ -64,7 +64,7 @@ watch(() => props.mode, async (val) => {
   <!-- 按钮模式 -->
   <nav v-if="mode === 'button' && totalPages > 1" class="pager">
     <button class="pg-btn" :disabled="currentPage <= 1" @click="goTo(currentPage - 1)">
-      <ChevronLeft :size="18" />
+      <ChevronLeft style="width: 1.125rem; height: 1.125rem;" />
     </button>
     <template v-for="(p, i) in pages" :key="`${i}-${p}`">
       <button
@@ -75,13 +75,13 @@ watch(() => props.mode, async (val) => {
       <span v-else class="pg-dots">...</span>
     </template>
     <button class="pg-btn" :disabled="currentPage >= totalPages" @click="goTo(currentPage + 1)">
-      <ChevronRight :size="18" />
+      <ChevronRight style="width: 1.125rem; height: 1.125rem;" />
     </button>
   </nav>
 
   <!-- 滚动模式 -->
   <div v-else-if="mode === 'scroll'" ref="sentinel" class="scroll-sentinel">
-    <Loader v-if="loading" :size="16" class="spin" />
+    <Loader v-if="loading" style="width: 1rem; height: 1rem;" class="spin" />
     <span v-else-if="currentPage >= totalPages && totalPages > 1" class="ended">没有更多了</span>
   </div>
 </template>
@@ -92,15 +92,15 @@ watch(() => props.mode, async (val) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: .25rem;
 }
 
 .pg-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 50%;
   border: none;
   background: transparent;
@@ -117,12 +117,12 @@ watch(() => props.mode, async (val) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 50%;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: .8125rem;
   font-weight: 500;
   color: var(--color-base-content);
   opacity: 0.5;
@@ -141,9 +141,9 @@ watch(() => props.mode, async (val) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  font-size: 13px;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: .8125rem;
   opacity: 0.3;
   user-select: none;
 }
@@ -152,8 +152,8 @@ watch(() => props.mode, async (val) => {
 .scroll-sentinel {
   display: flex;
   justify-content: center;
-  padding: 32px 0;
-  font-size: 13px;
+  padding: 2rem 0;
+  font-size: .8125rem;
   color: var(--color-base-content);
   opacity: 0.35;
 }

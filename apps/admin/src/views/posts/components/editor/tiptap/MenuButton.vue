@@ -13,10 +13,10 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
   border: none;
-  border-radius: 6px;
+  border-radius: .375rem;
   background: transparent;
   color: var(--color-base-content);
   opacity: 0.55;

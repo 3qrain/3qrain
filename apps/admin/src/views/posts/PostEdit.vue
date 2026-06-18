@@ -185,7 +185,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 宽屏：内联侧栏 -->
-      <div class="sidebar-wrap" :style="{ width: showSettings ? '280px' : '0' }">
+      <div class="sidebar-wrap" :style="{ width: showSettings ? '17.5rem' : '0' }">
         <PostEditorSettings
           v-model:slug="slug"
           v-model:summary="summary"
@@ -244,23 +244,23 @@ onUnmounted(() => {
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (width >= 1100px) {
+@media (width >= 68.75rem) {
   .sidebar-wrap {
     display: block;
   }
 }
 
-/* 窄屏浮层（< 1100px 时 sidebar-wrap 不显示，用浮层） */
+/* 窄屏浮层（< 68.75rem 时 sidebar-wrap 不显示，用浮层） */
 .overlay-bg {
   display: none;
-  @media (width < 1100px) {
+  @media (width < 68.75rem) {
     display: flex;
     justify-content: flex-end;
     position: fixed;
     inset: 0;
     z-index: 60;
     background: rgb(0 0 0 / 0.25);
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(.125rem);
   }
 }
 
@@ -293,7 +293,7 @@ onUnmounted(() => {
   justify-content: center;
   height: 100%;
   width: 100%;
-  font-size: 14px;
+  font-size: .875rem;
   color: var(--color-base-content);
   opacity: 0.4;
 }

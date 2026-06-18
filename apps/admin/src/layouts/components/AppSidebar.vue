@@ -36,7 +36,7 @@ function handleClick() {
         <component
           :is="route.meta?.icon"
           v-if="route.meta?.icon"
-          :size="18"
+          style="width: 1.125rem; height: 1.125rem;"
           class="nav-icon"
         />
         <span>{{ route.meta?.title }}</span>
@@ -53,31 +53,31 @@ function handleClick() {
 .sidebar-root {
   display: flex;
   flex-direction: column;
-  min-width: 240px;
+  min-width: 15rem;
   height: 100%;
-  padding: 0 12px;
+  padding: 0 .75rem;
 }
 
 /* --- Logo --- */
 .logo {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  padding: 20px 12px 24px;
+  gap: .375rem;
+  padding: 1.25rem .75rem 1.5rem;
   flex-shrink: 0;
 }
 
 .logo-text {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.0313rem;
 }
 
 .logo-badge {
-  font-size: 11px;
+  font-size: .6875rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: .0625rem;
   opacity: 0.4;
 }
 
@@ -86,16 +86,16 @@ function handleClick() {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: .125rem;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-size: 14px;
+  gap: .625rem;
+  padding: .625rem .75rem;
+  border-radius: .625rem;
+  font-size: .875rem;
   font-weight: 500;
   color: var(--color-base-content);
   opacity: 0.6;
@@ -127,7 +127,7 @@ function handleClick() {
 /* --- Footer --- */
 .sidebar-footer {
   flex-shrink: 0;
-  padding: 16px 12px;
-  border-top: 1px solid var(--color-border);
+  padding: 1rem .75rem;
+  border-top: .0625rem solid var(--color-border);
 }
 </style>

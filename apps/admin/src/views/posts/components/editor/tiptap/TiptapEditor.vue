@@ -73,14 +73,14 @@ defineExpose({ getContent, editor })
 
 .tiptap-content {
   flex: 1;
-  padding-top: 16px;
+  padding-top: 1rem;
   position: relative;
 
   :deep(.ProseMirror) {
     min-height: 50vh;
     outline: none;
-    // >=16px 防止手机浏览器，编辑正文时放大网页
-    // font-size: 16px;
+    // >=1rem 防止手机浏览器，编辑正文时放大网页
+    // font-size: 1rem;
     // line-height: 1.75;
     color: var(--color-base-content);
 
@@ -105,7 +105,7 @@ defineExpose({ getContent, editor })
     }
 
     blockquote {
-      border-left: 3px solid var(--color-primary);
+      border-left: .1875rem solid var(--color-primary);
       padding-left: 1em;
       margin: 0.75em 0;
       opacity: 0.85;
@@ -113,9 +113,9 @@ defineExpose({ getContent, editor })
 
     pre {
       background: var(--color-base-200);
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 13px;
+      border-radius: .5rem;
+      padding: .75rem 1rem;
+      font-size: .8125rem;
       overflow-x: auto;
       code {
         background: none;
@@ -126,14 +126,14 @@ defineExpose({ getContent, editor })
 
     code {
       background: var(--color-base-200);
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: .125rem .375rem;
+      border-radius: .25rem;
       font-size: 0.9em;
     }
 
     hr {
       border: none;
-      border-top: 1px solid var(--color-border);
+      border-top: .0625rem solid var(--color-border);
       margin: 1.5em 0;
     }
     a {

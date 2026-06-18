@@ -99,18 +99,18 @@ const emit = defineEmits<{ (e: 'addImage'): void }>()
 .menu {
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 10px;
+  gap: .125rem;
+  padding: .25rem;
+  border-radius: .625rem;
   background: var(--color-base-100);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 12px var(--color-border);
+  border: .0625rem solid var(--color-border);
+  box-shadow: 0 .25rem .75rem var(--color-border);
 }
 
 .sep {
-  width: 1px;
-  height: 18px;
+  width: .0625rem;
+  height: 1.125rem;
   background: var(--color-border);
-  margin: 0 2px;
+  margin: 0 .125rem;
 }
 </style>

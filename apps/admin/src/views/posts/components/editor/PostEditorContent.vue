@@ -40,11 +40,11 @@ defineExpose({ getContent });
 }
 
 .post-editor-content-wrap {
-  max-width: 768px;
+  max-width: 48rem;
   width: 100%;
   // margin: 0 auto;
-  // margin: 24px auto 20px;
-  padding: 24px 40px 20px;
+  // margin: 1.5rem auto 1.25rem;
+  padding: 1.5rem 2.5rem 1.25rem;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -54,9 +54,9 @@ defineExpose({ getContent });
 .title-input {
   border: none;
   outline: none;
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
-  padding: 0 0 16px;
+  padding: 0 0 1rem;
   color: var(--color-base-content);
   background: transparent;
 
@@ -64,11 +64,11 @@ defineExpose({ getContent });
 }
 
 .divider {
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 8px;
+  border-bottom: .0625rem solid var(--color-border);
+  margin-bottom: .5rem;
 }
 
-@media (width <= 768px) {
-  .wrap { padding-left: 16px; padding-right: 16px; }
+@media (width <= 48rem) {
+  .wrap { padding-left: 1rem; padding-right: 1rem; }
 }
 </style>

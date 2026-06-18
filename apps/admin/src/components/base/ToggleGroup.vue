@@ -21,19 +21,19 @@ const model = defineModel<T>();
 <style scoped lang="less">
 .toggle-group {
   display: flex;
-  border-radius: 8px;
+  border-radius: .5rem;
   overflow: hidden;
-  border: 1px solid var(--color-border);
+  border: .0625rem solid var(--color-border);
 
-  &.sm { .opt { padding: 4px 10px; font-size: 12px; } }
+  &.sm { .opt { padding: .25rem .625rem; font-size: .75rem; } }
 }
 
 .opt {
   flex: 1;
-  padding: 5px 0;
+  padding: .3125rem 0;
   border: none;
   background: var(--color-base-100);
-  font-size: 13px;
+  font-size: .8125rem;
   cursor: pointer;
   color: var(--color-base-content);
   opacity: 0.45;

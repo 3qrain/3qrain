@@ -198,8 +198,8 @@ onMounted(() => {
 <style scoped lang="less">
 .page {
   margin: auto;
-  padding: 24px 32px;
-  max-width: 1200px;
+  padding: 1.5rem 2rem;
+  max-width: 75rem;
 }
 
 /* Header */
@@ -208,39 +208,39 @@ onMounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: .75rem;
+  margin-bottom: 1.5rem;
 }
 h1 {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
 }
 .sub {
-  font-size: 13px;
+  font-size: .8125rem;
   opacity: 0.4;
   display: block;
-  margin-top: 2px;
+  margin-top: .125rem;
 }
 .head-act {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: .5rem;
 }
 .search-box {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 8px;
+  gap: .375rem;
+  padding: .3125rem .625rem;
+  border-radius: .5rem;
   background: var(--color-base-200);
-  border: 1px solid transparent;
+  border: .0625rem solid transparent;
   input {
     border: none;
     outline: none;
     background: transparent;
-    font-size: 13px;
-    width: 120px;
+    font-size: .8125rem;
+    width: 7.5rem;
     color: var(--color-base-content);
   }
   svg {
@@ -257,21 +257,21 @@ h1 {
 .health-num {
   background: var(--color-warning);
   color: #fff;
-  font-size: 10px;
-  padding: 1px 5px;
-  border-radius: 8px;
-  margin-left: 2px;
+  font-size: .625rem;
+  padding: .0625rem .3125rem;
+  border-radius: .5rem;
+  margin-left: .125rem;
   font-weight: 600;
 }
 
 /* Upload */
 .upload-area {
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 .uppy-wrap {
-  border-radius: 12px;
+  border-radius: .75rem;
   overflow: hidden;
-  border: 1px solid var(--color-border);
+  border: .0625rem solid var(--color-border);
   :deep(.uppy-Root) {
     font-family: inherit;
   }
@@ -290,18 +290,18 @@ h1 {
 /* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  gap: .75rem;
 }
 .card {
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  border: .0625rem solid var(--color-border);
   overflow: hidden;
   cursor: pointer;
   transition: box-shadow 0.15s;
   background: var(--color-base-100);
   &:hover {
-    box-shadow: 0 2px 12px rgb(0 0 0 / 0.06);
+    box-shadow: 0 .125rem .75rem rgb(0 0 0 / 0.06);
   }
 }
 .thumb {
@@ -319,7 +319,7 @@ h1 {
     background-image: var(--placeholder);
     background-size: cover;
     background-position: center;
-    filter: blur(20px);
+    filter: blur(1.25rem);
     transform: scale(1.1);
     transition: opacity 0.3s;
   }
@@ -334,7 +334,7 @@ h1 {
     z-index: 1;
   }
   .file-type {
-    font-size: 12px;
+    font-size: .75rem;
     font-weight: 600;
     opacity: 0.25;
     position: relative;
@@ -342,10 +342,10 @@ h1 {
   }
 }
 .meta {
-  padding: 10px 12px 6px;
+  padding: .625rem .75rem .375rem;
 }
 .name {
-  font-size: 12px;
+  font-size: .75rem;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -353,15 +353,15 @@ h1 {
 }
 .info-row {
   display: flex;
-  gap: 8px;
-  margin-top: 3px;
-  font-size: 11px;
+  gap: .5rem;
+  margin-top: .1875rem;
+  font-size: .6875rem;
   opacity: 0.35;
 }
 .card-act {
   display: flex;
-  gap: 2px;
-  padding: 4px 10px 10px;
+  gap: .125rem;
+  padding: .25rem .625rem .625rem;
   opacity: 0;
   transition: opacity 0.1s;
   .card:hover & {
@@ -371,10 +371,10 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 1.75rem;
+    height: 1.75rem;
     border: none;
-    border-radius: 6px;
+    border-radius: .375rem;
     background: transparent;
     color: var(--color-base-content);
     opacity: 0.4;
@@ -392,8 +392,8 @@ h1 {
 
 .dim {
   text-align: center;
-  padding: 80px 0;
-  font-size: 14px;
+  padding: 5rem 0;
+  font-size: .875rem;
   opacity: 0.35;
 }
 
@@ -405,6 +405,6 @@ h1 {
 .slide-enter-from,
 .slide-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-0.5rem);
 }
 </style>

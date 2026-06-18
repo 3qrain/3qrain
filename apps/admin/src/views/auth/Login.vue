@@ -105,20 +105,20 @@ async function handleLogin() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: .75rem;
 }
 
 h2 {
-  margin-bottom: 8px;
+  margin-bottom: .5rem;
 }
 
 input {
-  padding: 10px 16px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: .625rem 1rem;
+  font-size: 1rem;
+  border: .0625rem solid #ccc;
+  border-radius: .375rem;
   outline: none;
-  width: 260px;
+  width: 16.25rem;
 }
 
 input:focus {
@@ -126,8 +126,8 @@ input:focus {
 }
 
 button {
-  padding: 8px 24px;
-  font-size: 14px;
+  padding: .5rem 1.5rem;
+  font-size: .875rem;
   cursor: pointer;
 }
 
@@ -137,14 +137,14 @@ button {
 
 .recovery {
   text-align: center;
-  max-width: 320px;
+  max-width: 20rem;
   word-break: break-all;
 }
 
 .recovery code {
-  font-size: 14px;
+  font-size: .875rem;
   background: #f0f0f0;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: .25rem .5rem;
+  border-radius: .25rem;
 }
 </style>

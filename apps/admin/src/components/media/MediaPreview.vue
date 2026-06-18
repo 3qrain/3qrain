@@ -101,7 +101,7 @@ watch(
               <span class="head-dim" v-if="current.width && current.height">
                 {{ current.width }}×{{ current.height }}
               </span>
-              <Button variant="ghost" size="sm" @click="onCopy(current?.url || '')"><Copy :size="14" /> 复制</Button>
+              <Button variant="ghost" size="sm" @click="onCopy(current?.url || '')"><Copy style="width: .875rem; height: .875rem;" /> 复制</Button>
               <Button
                 v-if="current.type === 'image'"
                 variant="ghost"
@@ -115,7 +115,7 @@ watch(
               >
                 {{ showOriginal ? '预览' : '原图' }}
               </Button>
-              <Button variant="ghost" :icon="true" @click="close"><X :size="16" /></Button>
+              <Button variant="ghost" :icon="true" @click="close"><X style="width: 1rem; height: 1rem;" /></Button>
             </div>
           </div>
 
@@ -205,15 +205,15 @@ watch(
   align-items: center;
   justify-content: center;
   background: rgb(0 0 0 / 0.75);
-  padding: 32px;
+  padding: 2rem;
   overscroll-behavior: contain;
 }
 .panel {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 900px;
-  border-radius: 10px 10px 0 0;
+  max-width: 56.25rem;
+  border-radius: .625rem .625rem 0 0;
   background: var(--color-base-100);
   overflow: hidden;
 }
@@ -222,10 +222,10 @@ watch(
 .head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
+  gap: .625rem;
+  padding: .625rem 1rem;
   background: var(--color-base-100);
-  font-size: 13px;
+  font-size: .8125rem;
   flex-shrink: 0;
 }
 .head-name {
@@ -239,23 +239,23 @@ watch(
 .head-right {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: .125rem;
   flex-shrink: 0;
 }
 .head-dim {
-  margin-right: 8px;
+  margin-right: .5rem;
   opacity: 0.4;
-  font-size: 12px;
+  font-size: .75rem;
   white-space: nowrap;
 }
 .close-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   border: none;
-  border-radius: 6px;
+  border-radius: .375rem;
   background: transparent;
   color: var(--color-base-content);
   opacity: 0.4;
@@ -293,7 +293,7 @@ watch(
   object-fit: contain;
   user-select: none;
   &.placeholder {
-    filter: blur(20px) brightness(0.85);
+    filter: blur(1.25rem) brightness(0.85);
     z-index: 0;
   }
   &.thumb {
@@ -335,24 +335,24 @@ watch(
   cursor: pointer;
 }
 .nav-left {
-  left: 0px;
+  left: 0rem;
 }
 .nav-right {
-  right: 0px;
+  right: 0rem;
 }
 .nav-video {
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 56px;
+  width: 2.5rem;
+  height: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 8px;
+  border-radius: .5rem;
   background: var(--color-base-100);
   color: var(--color-base-content);
-  box-shadow: 0 0 6px 1px var(--color-border);
+  box-shadow: 0 0 .375rem .0625rem var(--color-border);
   opacity: 0.8;
   transition: opacity 0.2s ease-in-out;
   &:hover {
@@ -360,31 +360,31 @@ watch(
   }
 }
 .nav-left.nav-video {
-  left: 8px;
+  left: .5rem;
 }
 .nav-right.nav-video {
-  right: 8px;
+  right: .5rem;
 }
 
 /* Thumbnail strip */
 .strip {
   display: flex;
-  gap: 6px;
-  padding: 10px 16px;
+  gap: .375rem;
+  padding: .625rem 1rem;
   overflow-x: auto;
   // 避免触控板滚到头时滚动事件向上传递触发页面路由跳转
   overscroll-behavior-x: contain;
   background: var(--color-base-100);
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 .625rem .625rem;
   flex-shrink: 0;
 }
 .strip-item {
-  width: 48px;
-  height: 36px;
+  width: 3rem;
+  height: 2.25rem;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: .375rem;
   overflow: hidden;
-  border: 2px solid transparent;
+  border: .125rem solid transparent;
   cursor: pointer;
   transition: border-color 0.15s;
   background: var(--color-base-200);
@@ -407,7 +407,7 @@ watch(
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: .75rem;
   font-weight: 600;
   opacity: 0.25;
 }

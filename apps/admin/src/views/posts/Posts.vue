@@ -119,7 +119,7 @@ onMounted(() => {
       </div>
       <div class="header-actions">
         <label class="filter-input">
-          <Search :size="15" />
+          <Search style="width: .9375rem; height: .9375rem;" />
           <input v-model="query.keyword" placeholder="搜索标题..." @keyup.enter="search" />
         </label>
         <Select
@@ -141,7 +141,7 @@ onMounted(() => {
           ]"
           size="sm"
         />
-        <Button variant="primary" @click="create"> <Plus :size="17" /> 写文章 </Button>
+        <Button variant="primary" @click="create"> <Plus style="width: 1rem; height: 1rem;" /> 写文章 </Button>
       </div>
     </div>
     <!-- Empty -->
@@ -166,13 +166,13 @@ onMounted(() => {
               {{ post.status === 'published' ? '已发布' : post.status === 'archived' ? '已归档' : '草稿' }}
             </span>
             <span v-if="post.category" class="meta-tag">{{ post.category.name }}</span>
-            <span class="meta-text"><Eye :size="13" /> {{ post.viewCount }}</span>
+            <span class="meta-text"><Eye style="width: .8125rem; height: .8125rem;" /> {{ post.viewCount }}</span>
             <span class="meta-text">{{ formatDate(post.createdAt) }}</span>
           </div>
         </div>
         <div class="post-actions" @click.stop>
-          <Button variant="ghost" size="sm" icon title="编辑" @click="edit(post)"><Pencil :size="16" /></Button>
-          <Button variant="danger" size="sm" icon title="删除" @click="remove(post)"><Trash2 :size="16" /></Button>
+          <Button variant="ghost" size="sm" icon title="编辑" @click="edit(post)"><Pencil style="width: 1rem; height: 1rem;" /></Button>
+          <Button variant="danger" size="sm" icon title="删除" @click="remove(post)"><Trash2 style="width: 1rem; height: 1rem;" /></Button>
         </div>
       </article>
     </div>
@@ -190,7 +190,7 @@ onMounted(() => {
 <style scoped lang="less">
 .posts-page {
   width: 100%;
-  max-width: 900px;
+  max-width: 56.25rem;
   margin: 0 auto;
 }
 
@@ -201,20 +201,20 @@ onMounted(() => {
   align-items: center;
   width: 100%;
   flex-wrap: wrap;
-  // gap: 16px;
-  margin-bottom: 28px;
+  // gap: 1rem;
+  margin-bottom: 1.75rem;
 }
 
 .page-title {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.0313rem;
   margin: 0;
   line-height: 1.3;
 }
 
 .page-subtitle {
-  font-size: 13px;
+  font-size: .8125rem;
   color: var(--color-base-content);
   opacity: 0.45;
 }
@@ -222,26 +222,26 @@ onMounted(() => {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: .5rem;
   flex-wrap: wrap;
 }
 
 .filter-input {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 10px;
+  gap: .375rem;
+  padding: .375rem .75rem;
+  border-radius: .625rem;
   background: var(--color-base-200);
-  border: 1px solid transparent;
+  border: .0625rem solid transparent;
   transition: border-color 0.15s;
 
   input {
     border: none;
     outline: none;
     background: transparent;
-    font-size: 13px;
-    width: 140px;
+    font-size: .8125rem;
+    width: 8.75rem;
     color: var(--color-base-content);
   }
 
@@ -257,14 +257,14 @@ onMounted(() => {
 
 .filter-select {
   background: var(--color-base-200);
-  border-radius: 10px;
+  border-radius: .625rem;
 
   :deep(.base-select) {
-    padding: 6px 10px;
-    border: 1px solid transparent;
+    padding: .375rem .625rem;
+    border: .0625rem solid transparent;
     background: transparent;
-    border-radius: 10px;
-    font-size: 13px;
+    border-radius: .625rem;
+    font-size: .8125rem;
 
     &:focus {
       border-color: var(--color-base-300);
@@ -277,15 +277,15 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 80px 0;
+  padding: 5rem 0;
   color: var(--color-base-content);
   opacity: 0.4;
-  font-size: 14px;
+  font-size: .875rem;
 }
 .empty-title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
-  margin: 0 0 6px;
+  margin: 0 0 .375rem;
 }
 .empty-desc {
   margin: 0;
@@ -300,25 +300,25 @@ onMounted(() => {
 .post-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 18px 20px;
-  border-radius: 14px;
+  gap: 1rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: .875rem;
   cursor: pointer;
   transition: background 0.12s;
 
   & + & {
-    border-top: 1px solid var(--color-border);
+    border-top: .0625rem solid var(--color-border);
     border-radius: 0;
     &:last-child {
-      border-radius: 0 0 14px 14px;
+      border-radius: 0 0 .875rem .875rem;
     }
   }
 
   &:first-child {
-    border-radius: 14px 14px 0 0;
+    border-radius: .875rem .875rem 0 0;
   }
   &:last-child {
-    border-radius: 0 0 14px 14px;
+    border-radius: 0 0 .875rem .875rem;
   }
 
   &:hover {
@@ -332,9 +332,9 @@ onMounted(() => {
 }
 
 .post-title {
-  font-size: 15px;
+  font-size: .9375rem;
   font-weight: 600;
-  margin: 0 0 4px;
+  margin: 0 0 .25rem;
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -342,10 +342,10 @@ onMounted(() => {
 }
 
 .post-summary {
-  font-size: 13px;
+  font-size: .8125rem;
   color: var(--color-base-content);
   opacity: 0.5;
-  margin: 0 0 10px;
+  margin: 0 0 .625rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -354,23 +354,23 @@ onMounted(() => {
 .post-meta {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: .625rem;
   flex-wrap: wrap;
 }
 
 .meta-tag {
-  font-size: 12px;
-  padding: 2px 9px;
-  border-radius: 6px;
+  font-size: .75rem;
+  padding: .125rem .5625rem;
+  border-radius: .375rem;
   background: var(--color-base-300);
   color: var(--color-base-content);
   opacity: 0.7;
 }
 
 .status-badge {
-  font-size: 12px;
-  padding: 2px 9px;
-  border-radius: 6px;
+  font-size: .75rem;
+  padding: .125rem .5625rem;
+  border-radius: .375rem;
   font-weight: 500;
 
   &.is-pub {
@@ -391,17 +391,17 @@ onMounted(() => {
 }
 
 .meta-text {
-  font-size: 12px;
+  font-size: .75rem;
   color: var(--color-base-content);
   opacity: 0.4;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: .1875rem;
 }
 
 .post-actions {
   display: flex;
-  gap: 2px;
+  gap: .125rem;
   flex-shrink: 0;
 }
 </style>

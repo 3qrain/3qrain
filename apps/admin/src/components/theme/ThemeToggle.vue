@@ -27,7 +27,7 @@ function apply(key: Theme) {
       :title="m.label"
       @click="apply(m.key)"
     >
-      <component :is="m.icon" :size="15" />
+      <component :is="m.icon" style="width: .9375rem; height: .9375rem;" />
     </button>
   </div>
 </template>
@@ -35,9 +35,9 @@ function apply(key: Theme) {
 <style scoped lang="less">
 .theme-toggle {
   display: flex;
-  gap: 2px;
-  padding: 2px;
-  border-radius: 10px;
+  gap: .125rem;
+  padding: .125rem;
+  border-radius: .625rem;
   background: var(--color-base-300);
 }
 
@@ -46,9 +46,9 @@ function apply(key: Theme) {
   align-items: center;
   justify-content: center;
   flex: 1;
-  padding: 6px 0;
+  padding: .375rem 0;
   border: none;
-  border-radius: 8px;
+  border-radius: .5rem;
   background: transparent;
   color: var(--color-base-content);
   opacity: 0.4;
@@ -60,7 +60,7 @@ function apply(key: Theme) {
   &.on {
     opacity: 1;
     background: var(--color-base-100);
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+    box-shadow: 0 .0625rem .1875rem rgb(0 0 0 / 0.08);
   }
 }
 </style>

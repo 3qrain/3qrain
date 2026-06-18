@@ -29,9 +29,9 @@ const saveStatus = computed(() => {
     <!-- 左侧：保存状态 -->
     <div class="left">
       <span :class="['badge', saveStatus]">
-        <Loader v-if="saveStatus === 'saving'" :size="13" class="spin" />
-        <Pencil v-else-if="saveStatus === 'unsaved'" :size="13" />
-        <Check v-else :size="13" />
+        <Loader v-if="saveStatus === 'saving'" style="width: .8125rem; height: .8125rem;" class="spin" />
+        <Pencil v-else-if="saveStatus === 'unsaved'" style="width: .8125rem; height: .8125rem;" />
+        <Check v-else style="width: .8125rem; height: .8125rem;" />
         {{ saveStatus === 'saving' ? '保存中' : saveStatus === 'unsaved' ? '未保存' : '已保存' }}
       </span>
     </div>
@@ -39,13 +39,13 @@ const saveStatus = computed(() => {
     <!-- 右侧：操作 -->
     <div class="right">
       <Button v-if="isDraft || isNew" variant="success" size="sm" @click="emit('publish')">
-        <Send :size="14" /> 发布
+        <Send style="width: .875rem; height: .875rem;" /> 发布
       </Button>
       <span v-else-if="isPublished" class="pub-badge">
-        <Check :size="14" /> 已发布
+        <Check style="width: .875rem; height: .875rem;" /> 已发布
       </span>
       <Button variant="ghost" size="sm" icon :active="settingsOpen" @click="emit('toggleSettings')">
-        <Settings :size="20" />
+        <Settings style="width: 1.25rem; height: 1.25rem;" />
       </Button>
     </div>
   </div>
@@ -56,22 +56,22 @@ const saveStatus = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  height: 48px;
+  padding: 0 1.25rem;
+  height: 3rem;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: .0625rem solid var(--color-border);
 }
 
-.left, .right { display: flex; align-items: center; gap: 8px; }
+.left, .right { display: flex; align-items: center; gap: .5rem; }
 
 /* ---- 保存状态徽章 ---- */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 7px;
-  font-size: 12px;
+  gap: .3125rem;
+  padding: .25rem .625rem;
+  border-radius: .4375rem;
+  font-size: .75rem;
   font-weight: 500;
 
   &.saved {
@@ -100,13 +100,13 @@ const saveStatus = computed(() => {
 .pub-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
-  border-radius: 8px;
+  gap: .3125rem;
+  padding: .375rem .875rem;
+  border-radius: .5rem;
   background: var(--color-success);
   color: var(--color-success-content);
   opacity: 0.7;
-  font-size: 13px;
+  font-size: .8125rem;
   font-weight: 500;
   opacity: 0.6;
   cursor: default;

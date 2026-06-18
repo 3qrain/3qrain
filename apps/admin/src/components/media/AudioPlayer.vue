@@ -124,6 +124,6 @@ onBeforeUnmount(() => {
 
 .audio {
   width: 100%;
-  height: 44px;
+  height: 2.75rem;
 }
 </style>

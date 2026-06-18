@@ -9,14 +9,14 @@
 
 <style scoped lang="less">
 .notification {
-  padding: 16px;
+  padding: 1rem;
 }
 
 .empty {
   text-align: center;
   color: var(--color-base-content);
   opacity: 0.4;
-  padding: 48px 0;
-  font-size: 14px;
+  padding: 3rem 0;
+  font-size: .875rem;
 }
 </style>

@@ -70,21 +70,21 @@ const categoryOptions = computed(() =>
 
 <style scoped lang="less">
 .panel {
-  width: 280px;
+  width: 17.5rem;
   height: 100%;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--color-border);
+  border-left: .0625rem solid var(--color-border);
 }
 
 .panel-title {
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  height: 48px;
-  font-size: 15px;
+  padding: 0 1.25rem;
+  height: 3rem;
+  font-size: .9375rem;
   font-weight: 700;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: .0625rem solid var(--color-border);
   flex-shrink: 0;
   margin: 0;
 }
@@ -92,39 +92,39 @@ const categoryOptions = computed(() =>
 .body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: .875rem;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  font-size: 13px;
+  gap: .3125rem;
+  font-size: .8125rem;
 
   > span:first-child {
-    font-size: 12px;
+    font-size: .75rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: .025rem;
     opacity: 0.4;
   }
 
   &.row {
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    gap: .5rem;
   }
 }
 
 .input {
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
+  padding: .4375rem .625rem;
+  border-radius: .5rem;
+  border: .0625rem solid var(--color-border);
   background: var(--color-base-100);
-  font-size: 13px;
+  font-size: .8125rem;
   color: var(--color-base-content);
   outline: none;
   font-family: inherit;
@@ -134,14 +134,14 @@ const categoryOptions = computed(() =>
 
 .area { resize: vertical; }
 
-.chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-list { display: flex; flex-wrap: wrap; gap: .375rem; }
 
 .chip {
-  padding: 3px 9px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
+  padding: .1875rem .5625rem;
+  border-radius: .375rem;
+  border: .0625rem solid var(--color-border);
   background: var(--color-base-100);
-  font-size: 12px;
+  font-size: .75rem;
   cursor: pointer;
   color: var(--color-base-content);
   opacity: 0.5;
@@ -157,6 +157,6 @@ const categoryOptions = computed(() =>
   }
 }
 
-.dim { font-size: 12px; opacity: 0.35; }
+.dim { font-size: .75rem; opacity: 0.35; }
 .checkbox { accent-color: var(--color-primary); }
 </style>

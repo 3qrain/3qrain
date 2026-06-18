@@ -106,11 +106,11 @@ function onDragEnd(e: TouchEvent | MouseEvent) {
   bottom: 0;
   height: v-bind(height);
   background: var(--color-base-200);
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
+  border-top-left-radius: 1.25rem;
+  border-top-right-radius: 1.25rem;
   box-shadow:
-    0 -10px 30px rgb(0 0 0 / 0.12),
-    0 -2px 10px rgb(0 0 0 / 0.08);
+    0 -0.625rem 1.875rem rgb(0 0 0 / 0.12),
+    0 -0.125rem .625rem rgb(0 0 0 / 0.08);
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -127,14 +127,14 @@ function onDragEnd(e: TouchEvent | MouseEvent) {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 12px 16px 8px;
+  padding: .75rem 1rem .5rem;
   flex-shrink: 0;
 }
 
 .drawer-handle {
-  width: 48px;
-  height: 5px;
-  border-radius: 999px;
+  width: 3rem;
+  height: .3125rem;
+  border-radius: 62.4375rem;
   background: rgb(120 120 120 / 0.35);
 }
 

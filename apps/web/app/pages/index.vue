@@ -7,15 +7,15 @@
 
 <style scoped>
 .home {
-  padding: 80px 0;
+  padding: 5rem 0;
 }
 h1 {
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin: 0 0 8px;
+  margin: 0 0 .5rem;
 }
 .desc {
-  font-size: 15px;
+  font-size: .9375rem;
   opacity: 0.5;
   margin: 0;
 }

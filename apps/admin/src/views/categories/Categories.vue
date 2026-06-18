@@ -57,7 +57,7 @@ onMounted(load);
   <div class="page">
     <div class="head">
       <div><h1>分类</h1><span class="sub">{{ list.length }} 个</span></div>
-      <button class="add-btn" @click="startAdd" v-if="!adding"><Plus :size="17" /> 新建</button>
+      <button class="add-btn" @click="startAdd" v-if="!adding"><Plus style="width: 1rem; height: 1rem;" /> 新建</button>
     </div>
 
     <!-- 新建行 -->
@@ -67,8 +67,8 @@ onMounted(load);
         <input v-model="form.slug" class="field slug" placeholder="标识，如：tech" @keyup.enter="save" />
       </div>
       <div class="form-actions">
-        <button class="act ok" @click="save"><Check :size="16" /></button>
-        <button class="act cancel" @click="cancel"><X :size="16" /></button>
+        <button class="act ok" @click="save"><Check style="width: 1rem; height: 1rem;" /></button>
+        <button class="act cancel" @click="cancel"><X style="width: 1rem; height: 1rem;" /></button>
       </div>
     </div>
 
@@ -89,8 +89,8 @@ onMounted(load);
             <span class="slug">{{ item.slug }}</span>
           </div>
           <div class="actions">
-            <button class="act" @click="startEdit(item)"><Pencil :size="14" /></button>
-            <button class="act del" @click="remove(item)"><Trash2 :size="14" /></button>
+            <button class="act" @click="startEdit(item)"><Pencil style="width: .875rem; height: .875rem;" /></button>
+            <button class="act del" @click="remove(item)"><Trash2 style="width: .875rem; height: .875rem;" /></button>
           </div>
         </template>
         <!-- 编辑态 -->
@@ -99,8 +99,8 @@ onMounted(load);
           <input v-model="form.slug" class="field slug" @keyup.enter="save" />
         </div>
         <div v-if="editing === item.id" class="form-actions">
-          <button class="act ok" @click="save"><Check :size="16" /></button>
-          <button class="act cancel" @click="cancel"><X :size="16" /></button>
+          <button class="act ok" @click="save"><Check style="width: 1rem; height: 1rem;" /></button>
+          <button class="act cancel" @click="cancel"><X style="width: 1rem; height: 1rem;" /></button>
         </div>
       </div>
     </div>
@@ -108,33 +108,33 @@ onMounted(load);
 </template>
 
 <style scoped lang="less">
-.page { max-width: 520px; padding: 28px 32px; }
-.head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-h1 { font-size: 20px; font-weight: 700; margin: 0; }
-.sub { font-size: 13px; opacity: 0.4; display: block; margin-top: 2px; }
+.page { max-width: 32.5rem; padding: 1.75rem 2rem; }
+.head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+h1 { font-size: 1.25rem; font-weight: 700; margin: 0; }
+.sub { font-size: .8125rem; opacity: 0.4; display: block; margin-top: .125rem; }
 
 .add-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border-radius: 8px; border: none;
+  display: inline-flex; align-items: center; gap: .375rem;
+  padding: .375rem .875rem; border-radius: .5rem; border: none;
   background: var(--color-primary); color: var(--color-primary-content);
-  font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .12s;
+  font-size: .8125rem; font-weight: 600; cursor: pointer; transition: opacity .12s;
   &:hover { opacity: .88; }
 }
 
-.inline-form { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
-.fields { display: flex; gap: 8px; flex: 1; }
+.inline-form { display: flex; gap: .5rem; margin-bottom: 1rem; align-items: center; }
+.fields { display: flex; gap: .5rem; flex: 1; }
 .field {
-  padding: 7px 10px; border-radius: 8px; border: 1px solid var(--color-border);
-  background: var(--color-base-100); font-size: 13px; color: var(--color-base-content);
+  padding: .4375rem .625rem; border-radius: .5rem; border: .0625rem solid var(--color-border);
+  background: var(--color-base-100); font-size: .8125rem; color: var(--color-base-content);
   outline: none; flex: 1;
   &:focus { border-color: var(--color-primary); }
   &.slug { flex: .7; }
 }
-.form-actions { display: flex; gap: 4px; }
+.form-actions { display: flex; gap: .25rem; }
 
 .act {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border: none; border-radius: 7px;
+  width: 1.875rem; height: 1.875rem; border: none; border-radius: .4375rem;
   background: transparent; color: var(--color-base-content); opacity: .35;
   cursor: pointer; transition: all .12s;
   &:hover { opacity: .8; background: var(--color-base-200); }
@@ -145,16 +145,16 @@ h1 { font-size: 20px; font-weight: 700; margin: 0; }
 
 .items { display: flex; flex-direction: column; }
 .row {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px 14px; border-radius: 10px; transition: background .1s;
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  padding: .75rem .875rem; border-radius: .625rem; transition: background .1s;
   &:hover { background: var(--color-base-200); }
   &.editing { background: var(--color-base-200); }
 }
 
-.info { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-.name { font-size: 14px; font-weight: 500; }
-.slug { font-size: 12px; opacity: .35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.actions { display: flex; gap: 2px; opacity: 0; transition: opacity .1s; .row:hover & { opacity: 1; } }
+.info { display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+.name { font-size: .875rem; font-weight: 500; }
+.slug { font-size: .75rem; opacity: .35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.actions { display: flex; gap: .125rem; opacity: 0; transition: opacity .1s; .row:hover & { opacity: 1; } }
 
-.dim, .empty { text-align: center; padding: 60px 0; font-size: 14px; opacity: .35; }
+.dim, .empty { text-align: center; padding: 3.75rem 0; font-size: .875rem; opacity: .35; }
 </style>

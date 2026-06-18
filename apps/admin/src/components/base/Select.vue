@@ -26,11 +26,11 @@ const model = defineModel<T>();
 
 <style scoped lang="less">
 .base-select {
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
+  padding: .4375rem .625rem;
+  border-radius: .5rem;
+  border: .0625rem solid var(--color-border);
   background: var(--color-base-100);
-  font-size: 13px;
+  font-size: .8125rem;
   color: var(--color-base-content);
   outline: none;
   cursor: pointer;

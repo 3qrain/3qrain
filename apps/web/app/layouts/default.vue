@@ -33,25 +33,25 @@
   left: 0;
   right: 0;
   z-index: 50;
-  height: 56px;
+  height: 3.5rem;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid var(--color-border, #e5e5e5);
+  border-bottom: .0625rem solid var(--color-border, #e5e5e5);
   background: var(--color-bg, #fff);
 }
 
 .header-inner {
   width: 100%;
-  max-width: 800px;
+  max-width: 50rem;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .logo {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
   color: inherit;
   text-decoration: none;
@@ -59,11 +59,11 @@
 
 .nav {
   display: flex;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .nav-link {
-  font-size: 14px;
+  font-size: .875rem;
   color: inherit;
   opacity: 0.6;
   text-decoration: none;
@@ -76,18 +76,18 @@
 
 .main {
   flex: 1;
-  padding-top: 56px;
-  max-width: 800px;
+  padding-top: 3.5rem;
+  max-width: 50rem;
   width: 100%;
   margin: 0 auto;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
 }
 
 .footer {
-  padding: 32px 20px;
+  padding: 2rem 1.25rem;
   text-align: center;
-  font-size: 13px;
+  font-size: .8125rem;
   opacity: 0.35;
 }
 </style>
