@@ -21,5 +21,7 @@ html.dark {
     --color-error: oklch(71% .194 13.428);
     --color-error-content: oklch(27% .105 12.094);
 
+    --color-menu-active-bg: oklch(0% 0 0);
+    --color-menu-active-fg: oklch(98% 0 0);
     --color-border: color-mix(in oklab, var(--color-base-content) 5%, transparent);
 }

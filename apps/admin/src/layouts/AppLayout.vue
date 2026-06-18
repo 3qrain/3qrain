@@ -102,6 +102,8 @@ onUnmounted(() => {
   width: @sidebarWidth;
   flex-shrink: 0;
   background: var(--color-base-200);
+  background: linear-gradient(to right, var(--color-base-200), var(--color-base-100));
+  // background: linear-gradient(to right, var(--color-base-100), var(--color-base-200));
   overflow: hidden;
   transition: width 0.3s ease;
 }

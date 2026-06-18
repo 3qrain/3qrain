@@ -1,17 +1,17 @@
 <script lang="ts" setup>
-import { menuRoutes } from "~/router/routes";
-import ThemeToggle from "~/components/theme/ThemeToggle.vue";
+import { menuRoutes } from '~/router/routes'
+import ThemeToggle from '~/components/theme/ThemeToggle.vue'
 
 defineProps<{
-  mobile?: boolean;
-}>();
+  mobile?: boolean
+}>()
 
 const emit = defineEmits<{
-  close: [];
-}>();
+  close: []
+}>()
 
 function handleClick() {
-  emit("close");
+  emit('close')
 }
 </script>
 
@@ -30,13 +30,13 @@ function handleClick() {
         :key="route.path"
         :to="route.path"
         class="nav-item"
-        active-class="nav-item--active"
+        active-class="nav-item-active"
         @click="mobile && handleClick()"
       >
         <component
           :is="route.meta?.icon"
           v-if="route.meta?.icon"
-          style="width: 1.125rem; height: 1.125rem;"
+          style="width: 1.125rem; height: 1.125rem"
           class="nav-icon"
         />
         <span>{{ route.meta?.title }}</span>
@@ -55,15 +55,15 @@ function handleClick() {
   flex-direction: column;
   min-width: 15rem;
   height: 100%;
-  padding: 0 .75rem;
+  padding: 0 0.75rem;
 }
 
 /* --- Logo --- */
 .logo {
   display: flex;
   align-items: baseline;
-  gap: .375rem;
-  padding: 1.25rem .75rem 1.5rem;
+  gap: 0.375rem;
+  padding: 1.25rem 0.75rem 1.5rem;
   flex-shrink: 0;
 }
 
@@ -74,10 +74,10 @@ function handleClick() {
 }
 
 .logo-badge {
-  font-size: .6875rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: .0625rem;
+  letter-spacing: 0.0625rem;
   opacity: 0.4;
 }
 
@@ -86,32 +86,33 @@ function handleClick() {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: .125rem;
+  gap: 0.125rem;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: .625rem;
-  padding: .625rem .75rem;
-  border-radius: .625rem;
-  font-size: .875rem;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: .375rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-base-content);
   opacity: 0.6;
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
 
-  &:hover {
-    opacity: 0.85;
-    background: rgb(128 128 128 / 0.1);
+  &:not(&-active):hover {
+    opacity: 0.9;
+    background: color-mix(in oklab, var(--color-base-content) 10%, transparent);
   }
 
-  &--active {
+  &-active {
     opacity: 1;
-    background: rgb(128 128 128 / 0.15);
-    color: var(--color-primary);
+    background: var(--color-menu-active-bg);
+    box-shadow: 0 0.125rem 0.1875rem -0.125rem var(--color-menu-active-bg);
+    color: var(--color-menu-active-fg);
   }
 }
 
@@ -127,7 +128,7 @@ function handleClick() {
 /* --- Footer --- */
 .sidebar-footer {
   flex-shrink: 0;
-  padding: 1rem .75rem;
-  border-top: .0625rem solid var(--color-border);
+  padding: 1rem 0.75rem;
+  border-top: 0.0625rem solid var(--color-border);
 }
 </style>
