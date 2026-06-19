@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { eq } from "drizzle-orm";
+import { eq, count, getTableColumns } from "drizzle-orm";
 import { db } from "~/db";
 import { categories, posts } from "~/db/schema";
 import { ok, fail } from "~/utils/response";
@@ -7,7 +7,15 @@ import { ErrorCode } from "@3qrain/shared";
 import * as HttpStatusCodes from "~/constants/http-status-codes";
 
 export async function list(c: Context) {
-  const result = db.select().from(categories).all();
+  const result = db
+    .select({
+      ...getTableColumns(categories),
+      postCount: count(posts.id),
+    })
+    .from(categories)
+    .leftJoin(posts, eq(posts.categoryId, categories.id))
+    .groupBy(categories.id)
+    .all();
   return c.json(ok(result, "获取成功"), HttpStatusCodes.OK);
 }
 

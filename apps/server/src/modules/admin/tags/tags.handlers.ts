@@ -1,13 +1,21 @@
 import type { Context } from "hono";
-import { eq } from "drizzle-orm";
+import { eq, count, getTableColumns } from "drizzle-orm";
 import { db } from "~/db";
-import { tags } from "~/db/schema";
+import { tags, postTags } from "~/db/schema";
 import { ok, fail } from "~/utils/response";
 import { ErrorCode } from "@3qrain/shared";
 import * as HttpStatusCodes from "~/constants/http-status-codes";
 
 export async function list(c: Context) {
-  const result = db.select().from(tags).all();
+  const result = db
+    .select({
+      ...getTableColumns(tags),
+      postCount: count(postTags.postId),
+    })
+    .from(tags)
+    .leftJoin(postTags, eq(postTags.tagId, tags.id))
+    .groupBy(tags.id)
+    .all();
   return c.json(ok(result, "获取成功"), HttpStatusCodes.OK);
 }
 
