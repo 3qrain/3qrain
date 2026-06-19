@@ -17,7 +17,6 @@ adminRouter.route("/", accountRouter);
 adminRouter.route("/", categoriesRouter);
 adminRouter.route("/", tagsRouter);
 adminRouter.route("/", postsRouter);
-adminRouter.route("/", configRouter);
 
 adminRouter.route("/", mediaRouter);
 adminRouter.all("/upload/*", tusHandler)

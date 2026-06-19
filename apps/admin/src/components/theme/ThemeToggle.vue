@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed } from "vue";
 import { Sun, Moon, Monitor } from "@lucide/vue";
-import { getTheme, setTheme } from "~/css/themes";
-import type { Theme } from "~/css/themes";
+import { setTheme, type Theme } from "~/css/themes";
+import { useAppStore } from "~/stores/app";
 
-const theme = ref<Theme>(getTheme());
+const theme = computed(() => useAppStore().theme);
 
 const modes: { key: Theme; icon: typeof Sun; label: string }[] = [
   { key: "light", icon: Sun, label: "浅色" },
   { key: "dark", icon: Moon, label: "深色" },
   { key: "system", icon: Monitor, label: "跟随系统" },
 ];
-
-function apply(key: Theme) {
-  theme.value = key;
-  setTheme(key);
-}
 </script>
 
 <template>
@@ -25,7 +20,7 @@ function apply(key: Theme) {
       :key="m.key"
       :class="['btn', theme === m.key && 'on']"
       :title="m.label"
-      @click="apply(m.key)"
+      @click="setTheme(m.key)"
     >
       <component :is="m.icon" style="width: .9375rem; height: .9375rem;" />
     </button>

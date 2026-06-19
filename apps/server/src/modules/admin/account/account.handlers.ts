@@ -22,7 +22,7 @@ export async function changePassword(c: Context) {
 
   const valid = await verifyPassword(oldPassword, pw.hash);
   if (!valid) {
-    return c.json(fail(ErrorCode.INVALID_PASSWORD, "旧密码错误"), HttpStatusCodes.UNAUTHORIZED);
+    return c.json(fail(ErrorCode.INVALID_PASSWORD, "旧密码错误"), HttpStatusCodes.BAD_REQUEST);
   }
 
   const newHash = await hashPassword(newPassword);

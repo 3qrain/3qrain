@@ -8,6 +8,7 @@ import UppyUploader from '~/components/uppy-uploader/UppyUploader.vue'
 import { apiClient } from '~/lib/axios'
 import { useGlobalStore, type DrawerPanel } from '~/stores/global.ts'
 import { storeToRefs } from 'pinia'
+import { syncThemeFromServer } from '~/css/themes/index'
 
 const { drawerPanel } = storeToRefs(useGlobalStore())
 
@@ -30,6 +31,7 @@ async function fetchAdminInfo() {
 
 onMounted(() => {
   fetchAdminInfo()
+  syncThemeFromServer()
 
   mediaQuery = window.matchMedia(`(width <= ${BREAKPOINT}px)`)
   isMobile.value = mediaQuery.matches

@@ -21,8 +21,7 @@ export const changePasswordRoute = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: { content: { "application/json": { schema: successResponseSchema(z.object({})) } }, description: "修改成功" },
-    [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: errorResponseSchema } }, description: "尚未初始化" },
-    [HttpStatusCodes.UNAUTHORIZED]: { content: { "application/json": { schema: errorResponseSchema } }, description: "旧密码错误" },
+    [HttpStatusCodes.BAD_REQUEST]: { content: { "application/json": { schema: errorResponseSchema } }, description: "旧密码错误或尚未初始化" },
   },
 });
 

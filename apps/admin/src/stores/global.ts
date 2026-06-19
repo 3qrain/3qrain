@@ -10,7 +10,7 @@ export const useGlobalStore = defineStore('global', {
   }),
   getters: {},
   actions: {},
-  persist: true
+  // persist: true
 })
 
 export type DrawerPanel = GlobalState['drawerPanel']
