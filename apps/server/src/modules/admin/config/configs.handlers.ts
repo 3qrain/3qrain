@@ -1,47 +1,47 @@
-import type { Context } from "hono";
-import { eq } from "drizzle-orm";
-import { db } from "~/db";
-import { configs } from "~/db/schema";
-import { ok, fail } from "~/utils/response";
-import { ErrorCode } from "@3qrain/shared";
-import * as HttpStatusCodes from "~/constants/http-status-codes";
-import { configSchemaMapping, type ConfigKey, type FullConfig } from "./configs.schema";
+import type { Context } from 'hono'
+import { eq } from 'drizzle-orm'
+import { db } from '~/db'
+import { configs } from '~/db/schema'
+import { ok, fail } from '~/utils/response'
+import { ErrorCode } from '@3qrain/shared'
+import * as HttpStatusCodes from '~/constants/http-status-codes'
+import { configSchemaMapping, type ConfigKey, type FullConfig } from './configs.schema'
 
 export async function getAll(c: Context) {
-  const rows = db.select().from(configs).all();
-  const result = {} as Record<string, unknown>;
+  const rows = db.select().from(configs).all()
+  const result = {} as Record<string, unknown>
   for (const row of rows) {
-    try { result[row.key] = JSON.parse(row.value); } catch { /* skip */ }
+    try { result[row.key] = JSON.parse(row.value) } catch { /* skip */ }
   }
-  return c.json(ok(result as FullConfig, "获取成功"), HttpStatusCodes.OK);
+  return c.json(ok(result as FullConfig, '获取成功'), HttpStatusCodes.OK)
 }
 
 export async function getByKey(c: Context) {
-  const key = c.req.param("key")!;
-  const row = db.select().from(configs).where(eq(configs.key, key)).get();
+  const key = c.req.param('key')!
+  const row = db.select().from(configs).where(eq(configs.key, key)).get()
   if (!row) {
-    return c.json(fail(ErrorCode.CONFIG_NOT_FOUND, "配置不存在"), HttpStatusCodes.NOT_FOUND);
+    return c.json(fail(ErrorCode.CONFIG_NOT_FOUND, '配置不存在'), HttpStatusCodes.NOT_FOUND)
   }
-  return c.json(ok({ [key]: JSON.parse(row.value) }, "获取成功"), HttpStatusCodes.OK);
+  return c.json(ok({ [key]: JSON.parse(row.value) }, '获取成功'), HttpStatusCodes.OK)
 }
 
 export async function update(c: Context) {
-  const key = c.req.param("key")!;
-  const raw = await c.req.json();
+  const key = c.req.param('key')!
+  const raw = await c.req.json()
 
-  const schema = configSchemaMapping[key as ConfigKey];
+  const schema = configSchemaMapping[key as ConfigKey]
   if (!schema) {
-    return c.json(fail(ErrorCode.CONFIG_NOT_FOUND, "配置键不存在"), HttpStatusCodes.NOT_FOUND);
+    return c.json(fail(ErrorCode.CONFIG_NOT_FOUND, '配置键不存在'), HttpStatusCodes.NOT_FOUND)
   }
 
-  const parsed = schema.partial().strict().safeParse(raw);
+  const parsed = schema.partial().strict().safeParse(raw)
   if (!parsed.success) {
-    return c.json(fail(ErrorCode.INVALID_PARAMS, parsed.error.issues[0].message), HttpStatusCodes.BAD_REQUEST);
+    return c.json(fail(ErrorCode.INVALID_PARAMS, parsed.error.issues[0].message), HttpStatusCodes.BAD_REQUEST)
   }
 
-  const existing = db.select().from(configs).where(eq(configs.key, key)).get()!;
-  const merged = { ...JSON.parse(existing.value), ...raw };
-  db.update(configs).set({ value: JSON.stringify(merged) }).where(eq(configs.key, key)).run();
+  const existing = db.select().from(configs).where(eq(configs.key, key)).get()!
+  const merged = { ...JSON.parse(existing.value), ...raw }
+  db.update(configs).set({ value: JSON.stringify(merged) }).where(eq(configs.key, key)).run()
 
-  return c.json(ok({ [key]: merged }, "更新成功"), HttpStatusCodes.OK);
+  return c.json(ok({ [key]: merged }, '更新成功'), HttpStatusCodes.OK)
 }

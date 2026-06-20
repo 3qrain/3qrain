@@ -1,150 +1,211 @@
-<template>
-  <div class="login">
-    <!-- 加载中 -->
-    <p v-if="loading">检查中...</p>
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
+import Input from '~/components/base/Input.vue'
+import Button from '~/components/base/Button.vue'
+import { checkStatus, setup, login } from '~/api/auth'
 
-    <!-- 首次设置密码 -->
-    <div v-else-if="!initialized" class="form">
-      <h2>首次设置密码</h2>
-      <input
-        v-model="password"
-        type="password"
-        placeholder="请输入密码（至少6位）"
-        @keyup.enter="handleSetup"
-      />
-      <button :disabled="submitting" @click="handleSetup">
-        {{ submitting ? "设置中..." : "设置密码" }}
-      </button>
-      <p v-if="recoveryKey" class="recovery">
-        恢复密钥（请妥善保存，仅显示一次）：<br />
-        <code>{{ recoveryKey }}</code>
-      </p>
-    </div>
+const router = useRouter()
 
-    <!-- 登录 -->
-    <div v-else class="form">
-      <h2>登录</h2>
-      <input
-        v-model="password"
-        type="password"
-        placeholder="请输入密码"
-        @keyup.enter="handleLogin"
-      />
-      <button :disabled="submitting" @click="handleLogin">
-        {{ submitting ? "登录中..." : "登录" }}
-      </button>
-      <p v-if="error" class="error">{{ error }}</p>
-    </div>
-  </div>
-</template>
+const loading = ref(true)
+const initialized = ref(false)
+const hasAdminUser = ref(false)
+const submitting = ref(false)
+const recoveryKey = ref('')
 
-<script lang="ts" setup>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { checkStatus, setup, login } from "~/api";
+const form = ref({
+  nickname: '3qrain',
+  email: '',
+  password: '',
+  confirmPassword: '',
+})
 
-const router = useRouter();
-
-const loading = ref(true);
-const initialized = ref(false);
-const password = ref("");
-const submitting = ref(false);
-const recoveryKey = ref("");
-const error = ref("");
+const isFreshSetup = () => !initialized.value && !hasAdminUser.value
+const isRecoverySetup = () => !initialized.value && hasAdminUser.value
 
 onMounted(async () => {
-  if (localStorage.getItem("admin")) {
-    router.push("/");
-    return;
+  if (localStorage.getItem('admin')) {
+    router.push('/')
+    return
   }
-
-  const result = await checkStatus();
-  initialized.value = result.initialized;
-  loading.value = false;
-});
+  try {
+    const result = await checkStatus()
+    initialized.value = result.initialized
+    hasAdminUser.value = result.hasAdminUser
+  } catch {
+    toast.error('无法连接服务器')
+  } finally {
+    loading.value = false
+  }
+})
 
 async function handleSetup() {
-  if (password.value.length < 6) return;
-  submitting.value = true;
-  error.value = "";
+  const { password, confirmPassword, email, nickname } = form.value
+
+  if (password.length < 6) { toast.error('密码长度至少 6 位'); return }
+  if (password !== confirmPassword) { toast.error('两次密码不一致'); return }
+  if (isFreshSetup() && !email) { toast.error('邮箱不能为空'); return }
+
+  submitting.value = true
   try {
-    const result = await setup(password.value);
-    recoveryKey.value = result.recoveryKey;
-    initialized.value = true;
+    const result = await setup({
+      password,
+      confirmPassword,
+      ...(isFreshSetup() ? { email, nickname: nickname || '3qrain' } : {}),
+    })
+    recoveryKey.value = result.recoveryKey
   } catch (e: any) {
-    error.value = e.response?.data?.message || "设置失败";
+    toast.error(e.response?.data?.message || '设置失败')
   } finally {
-    submitting.value = false;
+    submitting.value = false
   }
 }
 
 async function handleLogin() {
-  if (!password.value) return;
-  submitting.value = true;
-  error.value = "";
+  if (!form.value.password) { toast.error('请输入密码'); return }
+  submitting.value = true
   try {
-    await login(password.value);
-    router.push("/");
+    await login(form.value.password)
+    router.push('/')
   } catch (e: any) {
-    error.value = e.response?.data?.message || "登录失败";
+    toast.error(e.response?.data?.message || '登录失败')
   } finally {
-    submitting.value = false;
+    submitting.value = false
   }
 }
 </script>
 
-<style scoped>
-.login {
+<template>
+  <div class="page">
+    <div v-if="loading" class="card">
+      <p class="dim">检查中...</p>
+    </div>
+
+    <!-- 设置成功：显示恢复密钥 -->
+    <div v-else-if="recoveryKey" class="card">
+      <h2>设置成功</h2>
+      <p class="hint">请妥善保存恢复密钥，丢失将无法找回。此密钥仅显示一次。</p>
+      <div class="key-box">
+        <code>{{ recoveryKey }}</code>
+      </div>
+      <Button @click="router.push('/')">进入后台</Button>
+    </div>
+
+    <!-- 首次设置 -->
+    <div v-else-if="!initialized" class="card">
+      <h2>{{ isFreshSetup() ? '初始化系统' : '重新设置密码' }}</h2>
+
+      <div class="form">
+        <template v-if="isFreshSetup()">
+          <label class="field">
+            <span>昵称</span>
+            <Input v-model="form.nickname" placeholder="3qrain" />
+          </label>
+          <label class="field">
+            <span>邮箱</span>
+            <Input v-model="form.email" type="email" placeholder="admin@example.com" />
+          </label>
+        </template>
+
+        <label class="field">
+          <span>密码</span>
+          <Input v-model="form.password" type="password" placeholder="至少 6 位" />
+        </label>
+        <label class="field">
+          <span>确认密码</span>
+          <Input v-model="form.confirmPassword" type="password" placeholder="再次输入密码" @keyup.enter="handleSetup" />
+        </label>
+
+        <Button :loading="submitting" @click="handleSetup">
+          {{ isFreshSetup() ? '初始化' : '设置密码' }}
+        </Button>
+      </div>
+    </div>
+
+    <!-- 登录 -->
+    <div v-else class="card">
+      <h2>登录</h2>
+      <div class="form">
+        <label class="field">
+          <span>密码</span>
+          <Input v-model="form.password" type="password" placeholder="请输入密码" @keyup.enter="handleLogin" />
+        </label>
+        <Button :loading="submitting" @click="handleLogin">登录</Button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="less">
+.page {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
+  background: var(--color-base-100);
 }
 
-.form {
+.card {
+  width: 22rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .75rem;
+  gap: 1.25rem;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+  }
 }
 
-h2 {
-  margin-bottom: .5rem;
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-input {
-  padding: .625rem 1rem;
-  font-size: 1rem;
-  border: .0625rem solid #ccc;
-  border-radius: .375rem;
-  outline: none;
-  width: 16.25rem;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  > span {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.025rem;
+    opacity: 0.4;
+  }
 }
 
-input:focus {
-  border-color: #646cff;
-}
-
-button {
-  padding: .5rem 1.5rem;
-  font-size: .875rem;
-  cursor: pointer;
-}
-
-.error {
-  color: #e53e3e;
-}
-
-.recovery {
+.hint {
+  font-size: 0.8125rem;
+  opacity: 0.5;
   text-align: center;
-  max-width: 20rem;
-  word-break: break-all;
+  line-height: 1.5;
+  margin: 0;
 }
 
-.recovery code {
-  font-size: .875rem;
-  background: #f0f0f0;
-  padding: .25rem .5rem;
-  border-radius: .25rem;
+.key-box {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-base-200);
+  text-align: center;
+  word-break: break-all;
+
+  code {
+    font-size: 0.8125rem;
+    font-family: monospace;
+    color: var(--color-error);
+  }
+}
+
+.dim {
+  font-size: 0.875rem;
+  opacity: 0.35;
+  margin: 0;
 }
 </style>

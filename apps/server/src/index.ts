@@ -1,3 +1,4 @@
+import './env'
 import { createApp } from '~/lib/core/create-app'
 import { csrf } from 'hono/csrf'
 import { serveStatic } from 'hono/bun'

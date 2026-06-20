@@ -17,6 +17,9 @@ const envSchema = z.object({
   GITHUB_ID: z.string().min(1, '❌ GITHUB_ID 不能为空'),
   GITHUB_SECRET: z.string().min(1, '❌ GITHUB_SECRET 不能为空'),
 
+	GOOGLE_ID: z.string().min(1, '❌ GOOGLE_ID 不能为空'),
+	GOOGLE_SECRET: z.string().min(1, '❌ GOOGLE_SECRET 不能为空'),
+
   // 网站跳转地址
   WEB_URL: z.url('❌ WEB_URL 必须是合法的网站地址')
 })

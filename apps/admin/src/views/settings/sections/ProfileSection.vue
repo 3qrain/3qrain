@@ -8,7 +8,7 @@ import type { PersonalInfo } from "~/api/config/types";
 
 const loading = ref(true);
 const saving = ref(false);
-const form = ref<PersonalInfo>({ name: "", email: "", avatar: "", bio: "" });
+const form = ref<PersonalInfo>({ name: '', email: '', avatar: '', bio: '' });
 
 async function load() {
   loading.value = true;

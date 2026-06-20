@@ -1,5 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { LayoutDashboard, FileText, FolderTree, Tags, Image, Settings } from '@lucide/vue'
+import { LayoutDashboard, FileText, FolderTree, Tags, Image, Users, Settings } from '@lucide/vue'
 import AppLayout from '~/layouts/AppLayout.vue'
 
 export const menuRoutes: RouteRecordRaw[] = [
@@ -75,6 +75,20 @@ export const menuRoutes: RouteRecordRaw[] = [
         path: '',
         name: 'media',
         component: () => import('~/views/media/MediaLibrary.vue')
+      }
+    ]
+  },
+  {
+    path: '/visitors',
+    meta: {
+      title: '访客',
+      icon: Users
+    },
+    children: [
+      {
+        path: '',
+        name: 'visitors',
+        component: () => import('~/views/visitors/Visitors.vue')
       }
     ]
   },

@@ -1,7 +1,8 @@
 import { createApp } from "~/lib/core/create-app";
+import userRouter from "./user";
 
 const publicRouter = createApp();
 
-// 前台接口在此注册
+publicRouter.route("/", userRouter);
 
 export default publicRouter;
