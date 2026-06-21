@@ -40,7 +40,7 @@ defineExpose({ close })
 </script>
 
 <template>
-  <div ref="wrapperRef" class="popover-wrapper">
+  <div ref="wrapperRef" class="popover-wrapper" :data-popover-open="open || undefined">
     <div class="trigger" @click="toggle">
       <slot />
     </div>
@@ -80,7 +80,7 @@ defineExpose({ close })
       content: '';
       position: absolute;
       bottom: -0.25rem;
-      right: 0.75rem;
+      right: 0.5rem;
       width: 0.5rem;
       height: 0.5rem;
       background: var(--color-base-100);
@@ -98,7 +98,7 @@ defineExpose({ close })
       content: '';
       position: absolute;
       top: -0.25rem;
-      right: 0.75rem;
+      right: 0.5rem;
       width: 0.5rem;
       height: 0.5rem;
       background: var(--color-base-100);

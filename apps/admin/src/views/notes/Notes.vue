@@ -308,6 +308,10 @@ onMounted(() => {
   }
 }
 
+.note:has([data-popover-open]) .note-actions {
+  opacity: 1;
+}
+
 .act {
   display: inline-flex;
   align-items: center;
