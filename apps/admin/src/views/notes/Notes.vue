@@ -1,0 +1,370 @@
+<script setup lang="ts">
+import { ref, watch, onMounted } from 'vue'
+import { toast } from 'vue-sonner'
+import { Pencil, Trash2 } from '@lucide/vue'
+import Button from '~/components/base/Button.vue'
+import Badge from '~/components/base/Badge.vue'
+import Popover from '~/components/base/Popover.vue'
+import Modal from '~/components/base/Modal.vue'
+import Pagination from '~/components/table/Pagination.vue'
+import ToggleGroup from '~/components/base/ToggleGroup.vue'
+import NoteCompose from './components/NoteCompose.vue'
+import { getNotes, deleteNote } from '~/api/notes'
+import { getTags } from '~/api/tags'
+import type { Note } from '~/api/notes/types'
+import type { Tag } from '~/api/tags/types'
+import { withMinDuration } from '~/utils/async'
+
+const notes = ref<Note[]>([])
+const allTags = ref<Tag[]>([])
+const loading = ref(true)
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(10)
+const totalPages = ref(1)
+const paginationMode = ref<'button' | 'scroll'>('scroll')
+
+const editingNote = ref<Note | null>(null)
+const editModalOpen = ref(false)
+
+function relativeTime(ts: any): string {
+  const diff = Date.now() - new Date(ts).getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return '刚刚'
+  if (min < 60) return `${min} 分钟前`
+  const hr = Math.floor(min / 60)
+  if (hr < 24) return `${hr} 小时前`
+  const d = Math.floor(hr / 24)
+  return `${d} 天前`
+}
+
+async function load(append = false) {
+  loading.value = true
+  try {
+    !append && (notes.value = [])
+    const result = await withMinDuration(() => getNotes({ page: page.value, pageSize: pageSize.value }))
+    notes.value = append ? [...notes.value, ...result.list] : result.list
+    total.value = result.total
+    totalPages.value = Math.ceil(result.total / result.pageSize)
+  } catch {
+    toast.error('加载失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+function goPage(p: number) {
+  page.value = p
+  load(paginationMode.value === 'scroll')
+}
+
+function onPublished() {
+  page.value = 1
+  load()
+}
+
+async function loadTags() {
+  try {
+    allTags.value = await getTags()
+  } catch {
+    /* ignore */
+  }
+}
+
+function startEdit(note: Note) {
+  editingNote.value = note
+  editModalOpen.value = true
+}
+
+function onEdited(note?: Note) {
+  editModalOpen.value = false
+  editingNote.value = null
+  if (note) {
+    const idx = notes.value.findIndex(n => n.id === note.id)
+    if (idx >= 0) notes.value[idx] = note
+  }
+}
+
+async function remove(note: Note) {
+  try {
+    await deleteNote(note.id)
+    toast.success('已删除')
+    notes.value = notes.value.filter(n => n.id !== note.id)
+  } catch {
+    toast.error('删除失败')
+  }
+}
+
+watch(paginationMode, () => {
+  page.value = 1
+  load()
+})
+
+onMounted(() => {
+  load()
+  loadTags()
+})
+</script>
+
+<template>
+  <div class="page">
+    <div class="head">
+      <div>
+        <h1>说说</h1>
+        <span class="sub">共 {{ total }} 条</span>
+      </div>
+      <ToggleGroup
+        v-model="paginationMode"
+        :options="[
+          { label: '滚动', value: 'scroll' },
+          { label: '分页', value: 'button' }
+        ]"
+        size="sm"
+      />
+    </div>
+
+    <!-- 编写区 -->
+    <NoteCompose :tags="allTags" @published="onPublished" />
+
+    <!-- 时间线 -->
+    <div v-if="!loading && notes.length === 0" class="empty">还没有说说</div>
+    <div v-else-if="notes.length > 0" class="timeline">
+      <div v-for="note in notes" :key="note.id" class="note">
+        <Badge v-if="!note.isPublished" variant="neutral" class="pin-badge">隐藏</Badge>
+        <div class="note-header">
+          <span class="note-time">{{ relativeTime(note.createdAt) }}</span>
+          <div class="note-actions">
+            <button class="act" @click="startEdit(note)">
+              <Pencil style="width: 0.75rem; height: 0.75rem" />
+            </button>
+            <Popover>
+              <button class="act del">
+                <Trash2 style="width: 0.75rem; height: 0.75rem" />
+              </button>
+              <template #content="{ close }">
+                <p class="confirm-text">确定删除这条说说？</p>
+                <div class="confirm-actions">
+                  <Button variant="ghost" size="sm" @click="close()">取消</Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    @click="
+                      () => {
+                        remove(note)
+                        close()
+                      }
+                    "
+                    >确定</Button
+                  >
+                </div>
+              </template>
+            </Popover>
+          </div>
+        </div>
+
+        <div class="note-content">{{ note.content }}</div>
+
+        <div v-if="note.media.length > 0" class="note-images">
+          <img v-for="m in note.media" :key="m.id" :src="m.thumbnailUrl || m.url" class="note-img" alt="" />
+        </div>
+
+        <div v-if="note.tags.length > 0" class="note-footer">
+          <Badge v-for="tag in note.tags" :key="tag.id" variant="info">{{ tag.name }}</Badge>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-pagination">
+      <Pagination
+        :current-page="page"
+        :total-pages="totalPages"
+        :loading="loading"
+        :mode="paginationMode"
+        @change="goPage"
+      />
+    </div>
+
+    <!-- 编辑弹窗 -->
+    <Modal v-model:open="editModalOpen">
+      <div class="edit-modal">
+        <NoteCompose
+          v-if="editingNote"
+          :note="editingNote"
+          :tags="allTags"
+          @published="onEdited"
+          @cancelled="editModalOpen = false"
+        />
+      </div>
+    </Modal>
+  </div>
+</template>
+
+<style scoped lang="less">
+.page {
+  max-width: 36rem;
+  padding: 1.75rem 2rem;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+
+  h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.sub {
+  font-size: 0.75rem;
+  opacity: 0.35;
+  display: block;
+  margin-top: 0.125rem;
+}
+
+/* ---- Timeline ---- */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.note {
+  position: relative;
+  padding: 0.625rem 0.875rem 0.875rem;
+  border-radius: 0.625rem;
+  border: 0.0625rem solid var(--color-border);
+  transition: background 0.1s;
+
+  &:hover {
+    background: var(--color-base-200);
+  }
+}
+
+.pin-badge {
+  position: absolute;
+  top: -0.5rem;
+  left: -0.375rem;
+  transform: rotate(-8deg);
+  z-index: 1;
+  font-size: 0.625rem;
+  box-shadow: 0 0.0625rem 0.25rem rgb(0 0 0 / 0.1);
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.375rem;
+}
+
+.note-content {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.625rem;
+}
+
+.note-img {
+  width: 6rem;
+  height: 6rem;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.note-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+  margin-top: 0.625rem;
+}
+
+.note-time {
+  font-size: 0.6875rem;
+  opacity: 0.3;
+}
+
+.note-actions {
+  display: flex;
+  gap: 0.125rem;
+  opacity: 0;
+  transition: opacity 0.1s;
+
+  .note:hover & {
+    opacity: 1;
+  }
+}
+
+.act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  border-radius: 0.3125rem;
+  background: transparent;
+  color: var(--color-base-content);
+  opacity: 0.35;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &:hover {
+    opacity: 0.7;
+    background: var(--color-base-200);
+  }
+  &.del:hover {
+    color: var(--color-error);
+  }
+}
+
+.confirm-text {
+  font-size: 0.75rem;
+  margin: 0 0 0.625rem;
+  white-space: nowrap;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.edit-modal {
+  width: 28rem;
+  max-width: calc(100vw - 3rem);
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 0;
+  font-size: 0.875rem;
+  opacity: 0.3;
+}
+
+.note-pagination {
+  margin-top: 1rem;
+}
+
+@media (max-width: 48rem) {
+  .page {
+    padding: 1.25rem 1rem;
+  }
+  .note-actions {
+    opacity: 1;
+  }
+}
+</style>

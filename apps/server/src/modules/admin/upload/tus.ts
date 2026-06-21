@@ -154,25 +154,31 @@ const tusServer = new Server({
         throw new Error('Failed to delete tus json file')
       }
 
-      await db.insert(media).values({
+      const record = db.insert(media).values({
         mimeType,
         type,
         size,
         ext,
-
-        // 去掉dir前缀
         originalPath: originalPath.replace(root_dir, ''),
         thumbnailPath: thumbnailPath?.replace(root_dir, ''),
         previewPath: previewPath?.replace(root_dir, ''),
         placeholder,
-
         width,
         height,
+        filename: originalName,
+      }).returning().get()
 
-        filename: originalName
-      })
-
-      return {}
+      return {
+        headers: {
+          'X-Media-Record': JSON.stringify({
+            id: record.id,
+            url: `/storage${record.originalPath}`,
+            thumbnailUrl: record.thumbnailPath ? `/storage${record.thumbnailPath}` : null,
+            width: record.width,
+            height: record.height,
+          }),
+        },
+      }
     } catch (e) {
       const time = dayjs().format('YY-MM-DD HH:mm:ss')
       console.error(`${time} [upload] 文件上传失败`, e)

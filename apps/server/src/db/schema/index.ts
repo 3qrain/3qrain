@@ -7,3 +7,6 @@ export { posts } from "./posts";
 export { postTags } from "./post-tags";
 export { media } from "./media";
 export { users } from "./users";
+export { notes } from "./notes";
+export { noteTags } from "./note-tags";
+export { noteMedia } from "./note-media";

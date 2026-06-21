@@ -7,6 +7,7 @@ import postsRouter from "./posts/posts.index";
 import configRouter from "./config/configs.index";
 import mediaRouter from "./media/media.index";
 import visitorsRouter from "./visitors/visitors.index";
+import notesRouter from "./notes/notes.index";
 import { tusHandler } from "./upload/tus";
 
 const adminRouter = createApp();
@@ -21,6 +22,7 @@ adminRouter.route("/", postsRouter);
 
 adminRouter.route("/", mediaRouter);
 adminRouter.route("/", visitorsRouter);
+adminRouter.route("/", notesRouter);
 adminRouter.all("/upload/*", tusHandler)
 
 export default adminRouter;

@@ -1,5 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { LayoutDashboard, FileText, FolderTree, Tags, Image, Users, Settings } from '@lucide/vue'
+import { LayoutDashboard, FileText, MessageCircle, FolderTree, Tags, Image, Users, Settings } from '@lucide/vue'
 import AppLayout from '~/layouts/AppLayout.vue'
 
 export const menuRoutes: RouteRecordRaw[] = [
@@ -33,6 +33,20 @@ export const menuRoutes: RouteRecordRaw[] = [
         path: ':id',
         name: 'postEdit',
         component: () => import('~/views/posts/PostEdit.vue')
+      }
+    ]
+  },
+  {
+    path: '/notes',
+    meta: {
+      title: '说说',
+      icon: MessageCircle
+    },
+    children: [
+      {
+        path: '',
+        name: 'notes',
+        component: () => import('~/views/notes/Notes.vue')
       }
     ]
   },

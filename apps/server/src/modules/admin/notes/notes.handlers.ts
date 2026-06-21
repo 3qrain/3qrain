@@ -1,0 +1,138 @@
+import type { Context } from 'hono'
+import { eq, desc, count, inArray } from 'drizzle-orm'
+import { db } from '~/db'
+import { notes, noteTags, noteMedia, tags, media } from '~/db/schema'
+import { ok, fail } from '~/utils/response'
+import { ErrorCode } from '@3qrain/shared'
+import * as HttpStatusCodes from '~/constants/http-status-codes'
+
+function toUrl(p: string | null) {
+  return p ? `/storage${p}` : null
+}
+
+export async function list(c: Context) {
+  const page = Number(c.req.query('page') || 1)
+  const pageSize = Number(c.req.query('pageSize') || 20)
+
+  const total = db.select({ count: count() }).from(notes).get()!.count
+  const rows = db.select().from(notes)
+    .orderBy(desc(notes.createdAt))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize)
+    .all()
+
+  if (rows.length === 0) {
+    return c.json(ok({ list: [], total, page, pageSize }, '获取成功'), HttpStatusCodes.OK)
+  }
+
+  const noteIds = rows.map(r => r.id)
+
+  const tagRows = db.select({
+    noteId: noteTags.noteId,
+    id: tags.id,
+    name: tags.name,
+    slug: tags.slug,
+  }).from(noteTags)
+    .innerJoin(tags, eq(noteTags.tagId, tags.id))
+    .where(inArray(noteTags.noteId, noteIds))
+    .all()
+
+  const mediaRows = db.select({
+    noteId: noteMedia.noteId,
+    sort: noteMedia.sort,
+    id: media.id,
+    originalPath: media.originalPath,
+    thumbnailPath: media.thumbnailPath,
+    mimeType: media.mimeType,
+    width: media.width,
+    height: media.height,
+  }).from(noteMedia)
+    .innerJoin(media, eq(noteMedia.mediaId, media.id))
+    .where(inArray(noteMedia.noteId, noteIds))
+    .orderBy(noteMedia.sort)
+    .all()
+
+  const result = rows.map(note => ({
+    ...note,
+    tags: tagRows.filter(t => t.noteId === note.id).map(({ noteId, ...tag }) => tag),
+    media: mediaRows.filter(m => m.noteId === note.id).map(({ noteId, ...m }) => ({
+      id: m.id,
+      url: toUrl(m.originalPath),
+      thumbnailUrl: toUrl(m.thumbnailPath),
+      mimeType: m.mimeType,
+      width: m.width,
+      height: m.height,
+      sort: m.sort,
+    })),
+  }))
+
+  return c.json(ok({ list: result, total, page, pageSize }, '获取成功'), HttpStatusCodes.OK)
+}
+
+export async function create(c: Context) {
+  const body = await c.req.json<{ content: string; isPublished?: boolean; tagIds?: number[]; mediaIds?: number[] }>()
+
+  const note = db.insert(notes).values({
+    content: body.content,
+    ...(body.isPublished !== undefined && { isPublished: body.isPublished }),
+  }).returning().get()
+
+  if (body.tagIds?.length) {
+    for (const tagId of body.tagIds) {
+      db.insert(noteTags).values({ noteId: note.id, tagId }).run()
+    }
+  }
+
+  if (body.mediaIds?.length) {
+    for (let i = 0; i < body.mediaIds.length; i++) {
+      db.insert(noteMedia).values({ noteId: note.id, mediaId: body.mediaIds[i], sort: i }).run()
+    }
+  }
+
+  return c.json(ok(note, '发布成功'), HttpStatusCodes.CREATED)
+}
+
+export async function update(c: Context) {
+  const id = Number.parseInt(c.req.param('id')!)
+  const existing = db.select().from(notes).where(eq(notes.id, id)).get()
+  if (!existing) {
+    return c.json(fail(ErrorCode.INVALID_PARAMS, '说说不存在'), HttpStatusCodes.NOT_FOUND)
+  }
+
+  const body = await c.req.json<{ content?: string; isPublished?: boolean; tagIds?: number[]; mediaIds?: number[] }>()
+
+  const updates: Record<string, any> = {}
+  if (body.content !== undefined) updates.content = body.content
+  if (body.isPublished !== undefined) updates.isPublished = body.isPublished
+  if (Object.keys(updates).length > 0) {
+    db.update(notes).set(updates).where(eq(notes.id, id)).run()
+  }
+
+  if (body.tagIds !== undefined) {
+    db.delete(noteTags).where(eq(noteTags.noteId, id)).run()
+    for (const tagId of body.tagIds) {
+      db.insert(noteTags).values({ noteId: id, tagId }).run()
+    }
+  }
+
+  if (body.mediaIds !== undefined) {
+    db.delete(noteMedia).where(eq(noteMedia.noteId, id)).run()
+    for (let i = 0; i < body.mediaIds.length; i++) {
+      db.insert(noteMedia).values({ noteId: id, mediaId: body.mediaIds[i], sort: i }).run()
+    }
+  }
+
+  const updated = db.select().from(notes).where(eq(notes.id, id)).get()!
+  return c.json(ok(updated, '更新成功'), HttpStatusCodes.OK)
+}
+
+export async function remove(c: Context) {
+  const id = Number.parseInt(c.req.param('id')!)
+  const existing = db.select().from(notes).where(eq(notes.id, id)).get()
+  if (!existing) {
+    return c.json(fail(ErrorCode.INVALID_PARAMS, '说说不存在'), HttpStatusCodes.NOT_FOUND)
+  }
+
+  db.delete(notes).where(eq(notes.id, id)).run()
+  return c.json(ok({}, '删除成功'), HttpStatusCodes.OK)
+}

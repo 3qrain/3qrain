@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, watch, nextTick } from "vue";
-import { ChevronLeft, ChevronRight, Loader } from "@lucide/vue";
+import { ChevronLeft, ChevronRight } from "@lucide/vue";
+import Loading from "~/components/base/Loading.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -62,26 +63,29 @@ watch(() => props.mode, async (val) => {
 
 <template>
   <!-- 按钮模式 -->
-  <nav v-if="mode === 'button' && totalPages > 1" class="pager">
-    <button class="pg-btn" :disabled="currentPage <= 1" @click="goTo(currentPage - 1)">
-      <ChevronLeft style="width: 1.125rem; height: 1.125rem;" />
-    </button>
-    <template v-for="(p, i) in pages" :key="`${i}-${p}`">
-      <button
-        v-if="typeof p === 'number'"
-        :class="['pg-num', p === currentPage && 'on']"
-        @click="goTo(p)"
-      >{{ p }}</button>
-      <span v-else class="pg-dots">...</span>
-    </template>
-    <button class="pg-btn" :disabled="currentPage >= totalPages" @click="goTo(currentPage + 1)">
-      <ChevronRight style="width: 1.125rem; height: 1.125rem;" />
-    </button>
-  </nav>
+  <template v-if="mode === 'button'">
+    <Loading v-if="loading" />
+    <nav v-if="totalPages > 1" class="pager">
+      <button class="pg-btn" :disabled="currentPage <= 1" @click="goTo(currentPage - 1)">
+        <ChevronLeft style="width: 1.125rem; height: 1.125rem;" />
+      </button>
+      <template v-for="(p, i) in pages" :key="`${i}-${p}`">
+        <button
+          v-if="typeof p === 'number'"
+          :class="['pg-num', p === currentPage && 'on']"
+          @click="goTo(p)"
+        >{{ p }}</button>
+        <span v-else class="pg-dots">...</span>
+      </template>
+      <button class="pg-btn" :disabled="currentPage >= totalPages" @click="goTo(currentPage + 1)">
+        <ChevronRight style="width: 1.125rem; height: 1.125rem;" />
+      </button>
+    </nav>
+  </template>
 
   <!-- 滚动模式 -->
   <div v-else-if="mode === 'scroll'" ref="sentinel" class="scroll-sentinel">
-    <Loader v-if="loading" style="width: 1rem; height: 1rem;" class="spin" />
+    <Loading v-if="loading" />
     <span v-else-if="currentPage >= totalPages && totalPages > 1" class="ended">没有更多了</span>
   </div>
 </template>
@@ -152,13 +156,9 @@ watch(() => props.mode, async (val) => {
 .scroll-sentinel {
   display: flex;
   justify-content: center;
-  padding: 2rem 0;
   font-size: .8125rem;
   color: var(--color-base-content);
-  opacity: 0.35;
 }
 
-.ended { opacity: 0.35; }
-.spin { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.ended { padding: 2rem 0; opacity: 0.35; }
 </style>
