@@ -5,5 +5,6 @@ export const notes = sqliteTable('notes', {
   id: integer().primaryKey({ autoIncrement: true }),
   content: text().notNull(),
   isPublished: integer('is_published', { mode: 'boolean' }).notNull().default(true),
+  deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
   ...timestamps,
 })

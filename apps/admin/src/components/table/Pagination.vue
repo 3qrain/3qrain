@@ -65,7 +65,7 @@ watch(() => props.mode, async (val) => {
   <!-- 按钮模式 -->
   <template v-if="mode === 'button'">
     <Loading v-if="loading" />
-    <nav v-if="totalPages > 1" class="pager">
+    <nav v-if="totalPages > 1 && loading === false" class="pager">
       <button class="pg-btn" :disabled="currentPage <= 1" @click="goTo(currentPage - 1)">
         <ChevronLeft style="width: 1.125rem; height: 1.125rem;" />
       </button>

@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { eq, desc, count, inArray } from 'drizzle-orm'
+import { eq, desc, count, inArray, isNull, isNotNull, and } from 'drizzle-orm'
 import { db } from '~/db'
 import { notes, noteTags, noteMedia, tags, media } from '~/db/schema'
 import { ok, fail } from '~/utils/response'
@@ -13,9 +13,13 @@ function toUrl(p: string | null) {
 export async function list(c: Context) {
   const page = Number(c.req.query('page') || 1)
   const pageSize = Number(c.req.query('pageSize') || 20)
+  const deleted = c.req.query('deleted') === 'true'
 
-  const total = db.select({ count: count() }).from(notes).get()!.count
+  const filter = deleted ? isNotNull(notes.deletedAt) : isNull(notes.deletedAt)
+
+  const total = db.select({ count: count() }).from(notes).where(filter).get()!.count
   const rows = db.select().from(notes)
+    .where(filter)
     .orderBy(desc(notes.createdAt))
     .limit(pageSize)
     .offset((page - 1) * pageSize)
@@ -128,11 +132,33 @@ export async function update(c: Context) {
 
 export async function remove(c: Context) {
   const id = Number.parseInt(c.req.param('id')!)
+  const existing = db.select().from(notes).where(and(eq(notes.id, id), isNull(notes.deletedAt))).get()
+  if (!existing) {
+    return c.json(fail(ErrorCode.INVALID_PARAMS, '说说不存在'), HttpStatusCodes.NOT_FOUND)
+  }
+
+  db.update(notes).set({ deletedAt: new Date() }).where(eq(notes.id, id)).run()
+  return c.json(ok({}, '已移至回收站'), HttpStatusCodes.OK)
+}
+
+export async function restore(c: Context) {
+  const id = Number.parseInt(c.req.param('id')!)
+  const existing = db.select().from(notes).where(and(eq(notes.id, id), isNotNull(notes.deletedAt))).get()
+  if (!existing) {
+    return c.json(fail(ErrorCode.INVALID_PARAMS, '说说不存在'), HttpStatusCodes.NOT_FOUND)
+  }
+
+  db.update(notes).set({ deletedAt: null }).where(eq(notes.id, id)).run()
+  return c.json(ok({}, '已恢复'), HttpStatusCodes.OK)
+}
+
+export async function destroy(c: Context) {
+  const id = Number.parseInt(c.req.param('id')!)
   const existing = db.select().from(notes).where(eq(notes.id, id)).get()
   if (!existing) {
     return c.json(fail(ErrorCode.INVALID_PARAMS, '说说不存在'), HttpStatusCodes.NOT_FOUND)
   }
 
   db.delete(notes).where(eq(notes.id, id)).run()
-  return c.json(ok({}, '删除成功'), HttpStatusCodes.OK)
+  return c.json(ok({}, '已永久删除'), HttpStatusCodes.OK)
 }

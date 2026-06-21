@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
-import { Pencil, Trash2 } from '@lucide/vue'
+import { Pencil, Trash2, RotateCcw, Trash } from '@lucide/vue'
 import Button from '~/components/base/Button.vue'
 import Badge from '~/components/base/Badge.vue'
 import Popover from '~/components/base/Popover.vue'
@@ -9,11 +10,13 @@ import Modal from '~/components/base/Modal.vue'
 import Pagination from '~/components/table/Pagination.vue'
 import ToggleGroup from '~/components/base/ToggleGroup.vue'
 import NoteCompose from './components/NoteCompose.vue'
-import { getNotes, deleteNote } from '~/api/notes'
+import { getNotes, deleteNote, restoreNote, destroyNote } from '~/api/notes'
 import { getTags } from '~/api/tags'
 import type { Note } from '~/api/notes/types'
 import type { Tag } from '~/api/tags/types'
 import { withMinDuration } from '~/utils/async'
+import { useAppStore } from '~/stores/app'
+import { storeToRefs } from 'pinia'
 
 const notes = ref<Note[]>([])
 const allTags = ref<Tag[]>([])
@@ -22,7 +25,11 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
 const totalPages = ref(1)
-const paginationMode = ref<'button' | 'scroll'>('scroll')
+const { notesPaginationMode: paginationMode } = storeToRefs(useAppStore())
+const showDeleted = ref(false)
+
+const route = useRoute()
+const router = useRouter()
 
 const editingNote = ref<Note | null>(null)
 const editModalOpen = ref(false)
@@ -42,7 +49,7 @@ async function load(append = false) {
   loading.value = true
   try {
     !append && (notes.value = [])
-    const result = await withMinDuration(() => getNotes({ page: page.value, pageSize: pageSize.value }))
+    const result = await withMinDuration(() => getNotes({ page: page.value, pageSize: pageSize.value, deleted: showDeleted.value || undefined }))
     notes.value = append ? [...notes.value, ...result.list] : result.list
     total.value = result.total
     totalPages.value = Math.ceil(result.total / result.pageSize)
@@ -55,6 +62,9 @@ async function load(append = false) {
 
 function goPage(p: number) {
   page.value = p
+  if (paginationMode.value === 'button') {
+    router.replace({ query: { ...route.query, page: String(p) } })
+  }
   load(paginationMode.value === 'scroll')
 }
 
@@ -88,19 +98,52 @@ function onEdited(note?: Note) {
 async function remove(note: Note) {
   try {
     await deleteNote(note.id)
-    toast.success('已删除')
+    toast.success('已移至回收站')
     notes.value = notes.value.filter(n => n.id !== note.id)
   } catch {
     toast.error('删除失败')
   }
 }
 
-watch(paginationMode, () => {
+async function handleRestore(note: Note) {
+  try {
+    await restoreNote(note.id)
+    toast.success('已恢复')
+    notes.value = notes.value.filter(n => n.id !== note.id)
+  } catch {
+    toast.error('恢复失败')
+  }
+}
+
+async function handleDestroy(note: Note) {
+  try {
+    await destroyNote(note.id)
+    toast.success('已永久删除')
+    notes.value = notes.value.filter(n => n.id !== note.id)
+  } catch {
+    toast.error('删除失败')
+  }
+}
+
+function toggleDeleted() {
+  showDeleted.value = !showDeleted.value
   page.value = 1
+  load()
+}
+
+watch(paginationMode, (val) => {
+  page.value = 1
+  if (val === 'scroll') {
+    router.replace({ query: {} })
+  }
   load()
 })
 
 onMounted(() => {
+  if (paginationMode.value === 'button') {
+    const urlPage = Number(route.query.page)
+    if (urlPage > 0) page.value = urlPage
+  }
   load()
   loadTags()
 })
@@ -110,55 +153,69 @@ onMounted(() => {
   <div class="page">
     <div class="head">
       <div>
-        <h1>说说</h1>
+        <h1>{{ showDeleted ? '回收站' : '说说' }}</h1>
         <span class="sub">共 {{ total }} 条</span>
       </div>
-      <ToggleGroup
-        v-model="paginationMode"
-        :options="[
-          { label: '滚动', value: 'scroll' },
-          { label: '分页', value: 'button' }
-        ]"
-        size="sm"
-      />
+      <div class="head-right">
+        <button :class="['trash-toggle', showDeleted && 'active']" :title="showDeleted ? '返回说说' : '回收站'" @click="toggleDeleted">
+          <Trash style="width: 1rem; height: 1rem;" />
+        </button>
+        <ToggleGroup
+          v-model="paginationMode"
+          :options="[
+            { label: '滚动', value: 'scroll' },
+            { label: '分页', value: 'button' }
+          ]"
+          size="sm"
+        />
+      </div>
     </div>
 
     <!-- 编写区 -->
-    <NoteCompose :tags="allTags" @published="onPublished" />
+    <NoteCompose v-if="!showDeleted" :tags="allTags" @published="onPublished" />
 
     <!-- 时间线 -->
-    <div v-if="!loading && notes.length === 0" class="empty">还没有说说</div>
+    <div v-if="!loading && notes.length === 0" class="empty">{{ showDeleted ? '回收站为空' : '还没有说说' }}</div>
     <div v-else-if="notes.length > 0" class="timeline">
       <div v-for="note in notes" :key="note.id" class="note">
         <Badge v-if="!note.isPublished" variant="neutral" class="pin-badge">隐藏</Badge>
         <div class="note-header">
           <span class="note-time">{{ relativeTime(note.createdAt) }}</span>
           <div class="note-actions">
-            <button class="act" @click="startEdit(note)">
-              <Pencil style="width: 0.75rem; height: 0.75rem" />
-            </button>
-            <Popover>
-              <button class="act del">
-                <Trash2 style="width: 0.75rem; height: 0.75rem" />
+            <template v-if="showDeleted">
+              <button class="act" title="恢复" @click="handleRestore(note)">
+                <RotateCcw style="width: 0.75rem; height: 0.75rem" />
               </button>
-              <template #content="{ close }">
-                <p class="confirm-text">确定删除这条说说？</p>
-                <div class="confirm-actions">
-                  <Button variant="ghost" size="sm" @click="close()">取消</Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    @click="
-                      () => {
-                        remove(note)
-                        close()
-                      }
-                    "
-                    >确定</Button
-                  >
-                </div>
-              </template>
-            </Popover>
+              <Popover>
+                <button class="act del">
+                  <Trash2 style="width: 0.75rem; height: 0.75rem" />
+                </button>
+                <template #content="{ close }">
+                  <p class="confirm-text">永久删除？此操作不可恢复</p>
+                  <div class="confirm-actions">
+                    <Button variant="ghost" size="sm" @click="close()">取消</Button>
+                    <Button variant="danger" size="sm" @click="() => { handleDestroy(note); close() }">确定</Button>
+                  </div>
+                </template>
+              </Popover>
+            </template>
+            <template v-else>
+              <button class="act" @click="startEdit(note)">
+                <Pencil style="width: 0.75rem; height: 0.75rem" />
+              </button>
+              <Popover>
+                <button class="act del">
+                  <Trash2 style="width: 0.75rem; height: 0.75rem" />
+                </button>
+                <template #content="{ close }">
+                  <p class="confirm-text">确定删除这条说说？</p>
+                  <div class="confirm-actions">
+                    <Button variant="ghost" size="sm" @click="close()">取消</Button>
+                    <Button variant="danger" size="sm" @click="() => { remove(note); close() }">确定</Button>
+                  </div>
+                </template>
+              </Popover>
+            </template>
           </div>
         </div>
 
@@ -216,6 +273,30 @@ onMounted(() => {
     font-weight: 700;
     margin: 0;
   }
+}
+
+.head-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trash-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--color-base-content);
+  opacity: 0.3;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &:hover { opacity: 0.6; }
+  &.active { opacity: 1; color: var(--color-error); }
 }
 
 .sub {

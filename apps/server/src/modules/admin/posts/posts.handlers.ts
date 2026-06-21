@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { eq, like, and, desc, count as drizzleCount, inArray, isNull } from 'drizzle-orm'
+import { eq, like, and, desc, count as drizzleCount, inArray, isNull, isNotNull } from 'drizzle-orm'
 import { db } from '~/db'
 import { posts, postTags, categories, tags } from '~/db/schema'
 import { ok, fail } from '~/utils/response'
@@ -10,7 +10,9 @@ import { createPostSchema, updatePostSchema } from './posts.routes'
 function buildPostFilters(query: Record<string, string | undefined>) {
   const conditions = []
 
-  if (!query.deleted) {
+  if (query.deleted) {
+    conditions.push(isNotNull(posts.deletedAt))
+  } else {
     conditions.push(isNull(posts.deletedAt))
   }
 

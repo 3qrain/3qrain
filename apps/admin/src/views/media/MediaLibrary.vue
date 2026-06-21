@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { Plus, Trash2, Copy, Search, ShieldAlert } from '@lucide/vue'
 import Button from '~/components/base/Button.vue'
+import ToggleGroup from '~/components/base/ToggleGroup.vue'
 import Pagination from '~/components/table/Pagination.vue'
 import MediaPreview from '~/components/media/MediaPreview.vue'
 import { getMedia, deleteMedia, getMediaHealth, type MediaItem } from '~/api/media'
 import { useAppStore } from '~/stores/app'
 import { useGlobalStore } from '~/stores/global'
 import { storeToRefs } from 'pinia'
+import { withMinDuration } from '~/utils/async'
 
+const route = useRoute()
+const router = useRouter()
 const appStore = useAppStore()
 
 const globalStore = useGlobalStore()
@@ -27,6 +32,7 @@ const keyword = ref('')
 const loading = ref(true)
 const previewOpen = ref(false)
 const previewIndex = ref(0)
+const { mediaPaginationMode: paginationMode } = storeToRefs(appStore)
 
 function openPreview(item: fileItem) {
   previewIndex.value = files.value.indexOf(item)
@@ -36,13 +42,14 @@ function openPreview(item: fileItem) {
 const showUpload = ref(false)
 const health = ref({ unregistered: 0, missing: 0 })
 
-async function load() {
+async function load(append = false) {
   loading.value = true
   try {
+    !append && (files.value = [])
     const params: any = { page: page.value, pageSize: pageSize.value }
     if (keyword.value) params.keyword = keyword.value
-    const result = await getMedia(params)
-    files.value = result.list as any
+    const result = await withMinDuration(() => getMedia(params))
+    files.value = append ? [...files.value, ...(result.list as any)] : (result.list as any)
     total.value = result.total
     totalPages.value = Math.ceil(result.total / result.pageSize)
   } catch (e: any) {
@@ -51,6 +58,14 @@ async function load() {
   } finally {
     loading.value = false
   }
+}
+
+function goPage(p: number) {
+  page.value = p
+  if (paginationMode.value === 'button') {
+    router.replace({ query: { ...route.query, page: String(p) } })
+  }
+  load(paginationMode.value === 'scroll')
 }
 
 async function checkHealth() {
@@ -94,7 +109,19 @@ function search() {
   load()
 }
 
+watch(paginationMode, (val) => {
+  page.value = 1
+  if (val === 'scroll') {
+    router.replace({ query: {} })
+  }
+  load()
+})
+
 onMounted(() => {
+  if (paginationMode.value === 'button') {
+    const urlPage = Number(route.query.page)
+    if (urlPage > 0) page.value = urlPage
+  }
   load()
   checkHealth()
 })
@@ -125,6 +152,14 @@ onMounted(() => {
             health.unregistered + health.missing
           }}</span>
         </Button>
+        <ToggleGroup
+          v-model="paginationMode"
+          :options="[
+            { label: '滚动', value: 'scroll' },
+            { label: '分页', value: 'button' },
+          ]"
+          size="sm"
+        />
         <Button variant="primary" size="sm" @click="drawerPanel = 'upload'">
           <Plus :size="15" /> {{ '上传' }}
         </Button>
@@ -139,9 +174,8 @@ onMounted(() => {
     </Transition>
 
     <!-- Grid -->
-    <div v-if="loading" class="dim">加载中...</div>
-    <div v-else-if="files.length === 0" class="dim">暂无文件</div>
-    <div v-else class="grid">
+    <div v-if="!loading && files.length === 0" class="dim">暂无文件</div>
+    <div v-else-if="files.length > 0" class="grid">
       <div v-for="item in files" :key="item.id" class="card" @click="openPreview(item)">
         <div
           class="thumb"
@@ -179,15 +213,11 @@ onMounted(() => {
     </div>
 
     <Pagination
-      v-if="totalPages > 1"
       :current-page="page"
       :total-pages="totalPages"
-      @change="
-        p => {
-          page = p
-          load()
-        }
-      "
+      :loading="loading"
+      :mode="paginationMode"
+      @change="goPage"
     />
 
     <!-- Preview -->

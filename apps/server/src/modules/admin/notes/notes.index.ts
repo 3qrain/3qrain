@@ -7,6 +7,8 @@ const notesRouter = createApp()
 notesRouter.openapi(routes.listNotesRoute, handlers.list)
 notesRouter.openapi(routes.createNoteRoute, handlers.create)
 notesRouter.openapi(routes.updateNoteRoute, handlers.update)
+notesRouter.openapi(routes.restoreNoteRoute, handlers.restore)
+notesRouter.openapi(routes.destroyNoteRoute, handlers.destroy)
 notesRouter.openapi(routes.deleteNoteRoute, handlers.remove)
 
 export default notesRouter
