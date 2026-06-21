@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { toast } from "vue-sonner";
-import Input from "~/components/base/Input.vue";
-import Button from "~/components/base/Button.vue";
-import { changePassword } from "~/api/account";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
+import Input from '~/components/base/Input.vue'
+import Button from '~/components/base/Button.vue'
+import { changePassword } from '~/api/account'
+
+const router = useRouter()
 
 const saving = ref(false);
 const form = ref({ oldPassword: "", newPassword: "", confirmPassword: "" });
@@ -26,9 +29,10 @@ async function submit() {
 
   saving.value = true;
   try {
-    await changePassword({ oldPassword, newPassword });
-    toast.success("密码已修改，即将重新登录");
-    reset();
+    await changePassword({ oldPassword, newPassword })
+    toast.success('密码已修改，即将重新登录')
+    localStorage.removeItem('admin')
+    setTimeout(() => router.push('/login'), 1500)
   } catch (e: any) {
     toast.error(e?.response?.data?.message || "修改失败");
   } finally {

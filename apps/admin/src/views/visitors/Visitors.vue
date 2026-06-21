@@ -16,10 +16,11 @@ async function load() {
 }
 
 async function toggleAdmin(v: Visitor) {
+  const newRole = v.role === 'admin' ? 'visitor' : 'admin'
   try {
-    const updated = await updateVisitor(v.id, { isAdmin: !v.isAdmin })
+    const updated = await updateVisitor(v.id, { role: newRole })
     Object.assign(v, updated)
-    toast.success(updated.isAdmin ? '已设为管理员' : '已取消管理员')
+    toast.success(newRole === 'admin' ? '已设为管理员' : '已取消管理员')
   } catch (e: any) {
     toast.error(e?.response?.data?.message || '操作失败')
   }
@@ -59,8 +60,8 @@ onMounted(load)
         <span class="badge" :class="v.provider">{{ v.provider }}</span>
         <div class="actions">
           <button
-            :class="['toggle', v.isAdmin && 'on']"
-            :title="v.isAdmin ? '取消管理员' : '设为管理员'"
+            :class="['toggle', v.role === 'admin' && 'on']"
+            :title="v.role === 'admin' ? '取消管理员' : '设为管理员'"
             @click="toggleAdmin(v)"
           >
             <ShieldCheck style="width: 0.875rem; height: 0.875rem;" />

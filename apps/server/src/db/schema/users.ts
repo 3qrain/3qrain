@@ -8,7 +8,7 @@ export const users = sqliteTable('users', {
   username: text().notNull(),
   email: text().notNull().default(''),
   avatarUrl: text('avatar_url').notNull().default(''),
-  isAdmin: integer('is_admin', { mode: 'boolean' }).notNull().default(false),
+  role: text({ enum: ['system', 'admin', 'visitor'] }).notNull().default('visitor'),
   isBanned: integer('is_banned', { mode: 'boolean' }).notNull().default(false),
   ...timestamps,
 })

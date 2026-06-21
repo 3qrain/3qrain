@@ -42,7 +42,7 @@ userRouter.get('/user/me', async (c) => {
   }
   const { user } = session
   return c.json(
-    ok({ id: user.id, username: user.username, email: user.email, avatarUrl: user.avatarUrl, isAdmin: user.isAdmin }, '获取成功'),
+    ok({ id: user.id, username: user.username, email: user.email, avatarUrl: user.avatarUrl, role: user.role }, '获取成功'),
     HttpStatusCodes.OK,
   )
 })

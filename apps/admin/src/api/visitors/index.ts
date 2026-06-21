@@ -6,7 +6,7 @@ export async function getVisitors() {
   return data.data
 }
 
-export async function updateVisitor(id: number, body: { isAdmin?: boolean; isBanned?: boolean }) {
+export async function updateVisitor(id: number, body: { role?: 'admin' | 'visitor'; isBanned?: boolean }) {
   const { data } = await apiClient.patch<{ data: Visitor }>(`/admin/visitors/${id}`, body)
   return data.data
 }

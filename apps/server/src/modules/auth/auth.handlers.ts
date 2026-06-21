@@ -37,7 +37,7 @@ function setCookie(c: Context, token: string) {
 
 export async function status(c: Context) {
   const pwCount = db.select({ count: count() }).from(passwords).get()
-  const adminUser = db.select().from(users).where(eq(users.isAdmin, true)).get()
+  const adminUser = db.select().from(users).where(eq(users.role, 'system')).get()
   return c.json(
     ok({ initialized: pwCount!.count > 0, hasAdminUser: !!adminUser }, '状态检查成功'),
     HttpStatusCodes.OK,
@@ -61,7 +61,7 @@ export async function setup(c: Context) {
     return c.json(fail(ErrorCode.INVALID_PARAMS, '两次密码不一致'), HttpStatusCodes.BAD_REQUEST)
   }
 
-  const adminUser = db.select().from(users).where(eq(users.isAdmin, true)).get()
+  const adminUser = db.select().from(users).where(eq(users.role, 'system')).get()
   if (!adminUser) {
     if (!email) {
       return c.json(fail(ErrorCode.INVALID_PARAMS, '邮箱不能为空'), HttpStatusCodes.BAD_REQUEST)
@@ -69,7 +69,7 @@ export async function setup(c: Context) {
     db.insert(users).values({
       username: nickname || '3qrain',
       email,
-      isAdmin: true,
+      role: 'system',
     }).run()
   }
 

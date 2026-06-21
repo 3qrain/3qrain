@@ -7,14 +7,14 @@ const userSchema = z.object({
   username: z.string(),
   email: z.string(),
   avatarUrl: z.string(),
-  isAdmin: z.boolean(),
+  role: z.enum(['system', 'admin', 'visitor']),
   isBanned: z.boolean(),
   provider: z.string(),
   createdAt: z.number(),
 })
 
 const updateVisitorSchema = z.object({
-  isAdmin: z.boolean().optional(),
+  role: z.enum(['admin', 'visitor']).optional(),
   isBanned: z.boolean().optional(),
 }).strict()
 

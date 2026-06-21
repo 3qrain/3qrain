@@ -6,6 +6,6 @@ export default defineConfig({
   dialect: "sqlite",
   casing: "snake_case",
   dbCredentials: {
-    url: "data/3qrain.db",
+    url: "data/db/3qrain.db",
   },
 });

@@ -3,9 +3,12 @@ import { Database } from "bun:sqlite";
 import Redis from "ioredis";
 import * as schema from "~/db/schema";
 
+import { mkdirSync } from 'fs'
+
 // --- SQLite ---
 
-const sqlite = new Database("data/3qrain.db");
+mkdirSync('data/db', { recursive: true })
+const sqlite = new Database("data/db/3qrain.db");
 sqlite.run("PRAGMA journal_mode=WAL");
 
 export const db = drizzle(sqlite, { schema, casing: "snake_case" });

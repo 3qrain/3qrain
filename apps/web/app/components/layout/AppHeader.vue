@@ -10,7 +10,7 @@ interface UserInfo {
   username: string
   email: string
   avatarUrl: string
-  isAdmin: boolean
+  role: 'system' | 'admin' | 'visitor'
 }
 
 const user = ref<UserInfo | null>(null)

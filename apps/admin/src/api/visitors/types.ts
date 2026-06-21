@@ -3,7 +3,7 @@ export interface Visitor {
   username: string
   email: string
   avatarUrl: string
-  isAdmin: boolean
+  role: 'system' | 'admin' | 'visitor'
   isBanned: boolean
   provider: string
   createdAt: number
