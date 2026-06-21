@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { Plus, Pencil, Trash2, Search, Eye } from '@lucide/vue'
@@ -7,6 +7,8 @@ import Pagination from '~/components/table/Pagination.vue'
 import ToggleGroup from '~/components/base/ToggleGroup.vue'
 import Select from '~/components/base/Select.vue'
 import Button from '~/components/base/Button.vue'
+import Badge from '~/components/base/Badge.vue'
+import Input from '~/components/base/Input.vue'
 import { getPosts, deletePost } from '~/api/posts'
 import { getCategories } from '~/api/categories'
 import type { Post } from '~/api/posts/types'
@@ -25,12 +27,11 @@ const query = ref({
   status: '',
   categoryId: 0,
   page: 1,
-  pageSize: 10
+  pageSize: 10,
 })
 
 const totalPages = ref(1)
 const paginationMode = ref<'button' | 'scroll'>('scroll')
-
 const categoryOptions = ref([{ label: '全部分类', value: 0 }])
 
 async function load(append = false) {
@@ -56,9 +57,7 @@ async function loadCategories() {
   try {
     categories.value = await getCategories()
     categoryOptions.value.push(...categories.value.map(c => ({ label: c.name, value: c.id })))
-  } catch {
-    /* ignore */
-  }
+  } catch { /* ignore */ }
 }
 
 function search() {
@@ -90,18 +89,9 @@ async function remove(post: Post) {
   }
 }
 
-watch(
-  () => query.value.status,
-  () => search()
-)
-watch(
-  () => query.value.categoryId,
-  () => search()
-)
-watch(paginationMode, () => {
-  query.value.page = 1
-  load()
-})
+watch(() => query.value.status, () => search())
+watch(() => query.value.categoryId, () => search())
+watch(paginationMode, () => { query.value.page = 1; load() })
 
 onMounted(() => {
   loadCategories()
@@ -110,69 +100,65 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="posts-page">
-    <!-- Header -->
-    <div class="page-header">
+  <div class="page">
+    <div class="head">
       <div>
-        <h1 class="page-title">文章</h1>
-        <span class="page-subtitle">共 {{ total }} 篇</span>
+        <h1>文章</h1>
+        <span class="sub">共 {{ total }} 篇</span>
       </div>
-      <div class="header-actions">
-        <label class="filter-input">
-          <Search style="width: .9375rem; height: .9375rem;" />
-          <input v-model="query.keyword" placeholder="搜索标题..." @keyup.enter="search" />
-        </label>
-        <Select
-          v-model="query.status"
-          :options="[
-            { label: '全部状态', value: '' },
-            { label: '草稿', value: 'draft' },
-            { label: '已发布', value: 'published' },
-            { label: '已归档', value: 'archived' }
-          ]"
-          class="filter-select"
-        />
-        <Select v-model="query.categoryId" :options="categoryOptions" class="filter-select" />
-        <ToggleGroup
-          v-model="paginationMode"
-          :options="[
-            { label: '滚动', value: 'scroll' },
-            { label: '分页', value: 'button' }
-          ]"
-          size="sm"
-        />
-        <Button variant="primary" @click="create"> <Plus style="width: 1rem; height: 1rem;" /> 写文章 </Button>
-      </div>
-    </div>
-    <!-- Empty -->
-    <div v-if="!loading && posts.length === 0" class="empty">
-      <p class="empty-title">暂无文章</p>
-      <p class="empty-desc">点击「写文章」开始创作</p>
+      <Button size="sm" @click="create">
+        <Plus style="width: 0.875rem; height: 0.875rem;" /> 写文章
+      </Button>
     </div>
 
-    <!-- List -->
-    <div v-else class="post-list">
-      <article v-for="post in posts" :key="post.id" class="post-row" @click="edit(post)">
-        <div class="post-main">
-          <h2 class="post-title">{{ post.title || '新文章' }}</h2>
-          <p v-if="post.summary" class="post-summary">{{ post.summary }}</p>
-          <div class="post-meta">
-            <span
-              :class="[
-                'status-badge',
-                post.status === 'published' ? 'is-pub' : post.status === 'archived' ? 'is-archived' : 'is-draft'
-              ]"
-            >
+    <div class="toolbar">
+      <div class="search">
+        <Search style="width: 0.875rem; height: 0.875rem;" />
+        <input v-model="query.keyword" placeholder="搜索标题..." @keyup.enter="search" />
+      </div>
+      <Select
+        v-model="query.status"
+        :options="[
+          { label: '全部状态', value: '' },
+          { label: '草稿', value: 'draft' },
+          { label: '已发布', value: 'published' },
+          { label: '已归档', value: 'archived' },
+        ]"
+      />
+      <Select v-model="query.categoryId" :options="categoryOptions" />
+      <ToggleGroup
+        v-model="paginationMode"
+        :options="[
+          { label: '滚动', value: 'scroll' },
+          { label: '分页', value: 'button' },
+        ]"
+        size="sm"
+      />
+    </div>
+
+    <div v-if="!loading && posts.length === 0" class="empty">暂无文章，点击「写文章」开始创作</div>
+
+    <div v-else class="list">
+      <article v-for="post in posts" :key="post.id" class="row" @click="edit(post)">
+        <div class="row-main">
+          <h2 class="row-title">{{ post.title || '新文章' }}</h2>
+          <p v-if="post.summary" class="row-summary">{{ post.summary }}</p>
+          <div class="row-meta">
+            <Badge :variant="post.status === 'published' ? 'success' : post.status === 'archived' ? 'neutral' : 'warning'">
               {{ post.status === 'published' ? '已发布' : post.status === 'archived' ? '已归档' : '草稿' }}
-            </span>
-            <span v-if="post.category" class="meta-tag">{{ post.category.name }}</span>
-            <span class="meta-text"><Eye style="width: .8125rem; height: .8125rem;" /> {{ post.viewCount }}</span>
+            </Badge>
+            <Badge v-if="post.category" variant="info">{{ post.category.name }}</Badge>
+            <span class="meta-text"><Eye style="width: 0.75rem; height: 0.75rem;" /> {{ post.viewCount }}</span>
             <span class="meta-text">{{ formatDate(post.createdAt) }}</span>
           </div>
         </div>
-        <div class="post-actions" @click.stop>
-          <Button variant="ghost" size="sm" icon title="编辑" @click="edit(post)"><Pencil style="width: 1rem; height: 1rem;" /></Button>
-          <Button variant="danger" size="sm" icon title="删除" @click="remove(post)"><Trash2 style="width: 1rem; height: 1rem;" /></Button>
+        <div class="row-actions" @click.stop>
+          <Button variant="ghost" size="sm" icon title="编辑" @click="edit(post)">
+            <Pencil style="width: 0.875rem; height: 0.875rem;" />
+          </Button>
+          <Button variant="danger" size="sm" icon title="删除" @click="remove(post)">
+            <Trash2 style="width: 0.875rem; height: 0.875rem;" />
+          </Button>
         </div>
       </article>
     </div>
@@ -181,227 +167,153 @@ onMounted(() => {
       :current-page="query.page"
       :total-pages="totalPages"
       :loading="loading"
-      @change="goPage"
       :mode="paginationMode"
+      @change="goPage"
     />
   </div>
 </template>
 
 <style scoped lang="less">
-.posts-page {
-  width: 100%;
-  max-width: 56.25rem;
-  margin: 0 auto;
+.page {
+  max-width: 50rem;
+  padding: 1.75rem 2rem;
 }
 
-/* --- Header --- */
-.page-header {
+.head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  flex-wrap: wrap;
-  // gap: 1rem;
-  margin-bottom: 1.75rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+
+  h1 { font-size: 1.25rem; font-weight: 700; margin: 0; }
 }
 
-.page-title {
-  font-size: 1.375rem;
-  font-weight: 700;
-  letter-spacing: -0.0313rem;
-  margin: 0;
-  line-height: 1.3;
+.sub {
+  font-size: 0.75rem;
+  opacity: 0.35;
+  display: block;
+  margin-top: 0.125rem;
 }
 
-.page-subtitle {
-  font-size: .8125rem;
-  color: var(--color-base-content);
-  opacity: 0.45;
-}
-
-.header-actions {
+/* ---- Toolbar ---- */
+.toolbar {
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
   flex-wrap: wrap;
 }
 
-.filter-input {
+.search {
   display: flex;
   align-items: center;
-  gap: .375rem;
-  padding: .375rem .75rem;
-  border-radius: .625rem;
-  background: var(--color-base-200);
-  border: .0625rem solid transparent;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.375rem;
+  border: 0.0625rem solid var(--color-border);
+  background: var(--color-base-100);
   transition: border-color 0.15s;
+  flex: 1;
+  min-width: 8rem;
+  max-width: 14rem;
+
+  svg { opacity: 0.3; flex-shrink: 0; }
 
   input {
     border: none;
     outline: none;
     background: transparent;
-    font-size: .8125rem;
-    width: 8.75rem;
+    font-size: 0.8125rem;
     color: var(--color-base-content);
+    width: 100%;
+    font-family: inherit;
   }
 
-  svg {
-    opacity: 0.35;
-    flex-shrink: 0;
-  }
-
-  &:focus-within {
-    border-color: var(--color-base-300);
-  }
+  &:focus-within { border-color: var(--color-primary); }
 }
 
-.filter-select {
-  background: var(--color-base-200);
-  border-radius: .625rem;
-
-  :deep(.base-select) {
-    padding: .375rem .625rem;
-    border: .0625rem solid transparent;
-    background: transparent;
-    border-radius: .625rem;
-    font-size: .8125rem;
-
-    &:focus {
-      border-color: var(--color-base-300);
-    }
-  }
-}
-
-/* --- Empty --- */
-.empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5rem 0;
-  color: var(--color-base-content);
-  opacity: 0.4;
-  font-size: .875rem;
-}
-.empty-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0 0 .375rem;
-}
-.empty-desc {
-  margin: 0;
-}
-
-/* --- Post Row --- */
-.post-list {
+/* ---- List ---- */
+.list {
   display: flex;
   flex-direction: column;
 }
 
-.post-row {
+.row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.125rem 1.25rem;
-  border-radius: .875rem;
+  gap: 0.75rem;
+  padding: 0.875rem 0.75rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  transition: background 0.12s;
+  transition: background 0.1s;
 
-  & + & {
-    border-top: .0625rem solid var(--color-border);
-    border-radius: 0;
-    &:last-child {
-      border-radius: 0 0 .875rem .875rem;
-    }
-  }
-
-  &:first-child {
-    border-radius: .875rem .875rem 0 0;
-  }
-  &:last-child {
-    border-radius: 0 0 .875rem .875rem;
-  }
-
-  &:hover {
-    background: var(--color-base-200);
-  }
+  &:hover { background: var(--color-base-200); }
 }
 
-.post-main {
+.row-main {
   flex: 1;
   min-width: 0;
 }
 
-.post-title {
-  font-size: .9375rem;
+.row-title {
+  font-size: 0.875rem;
   font-weight: 600;
-  margin: 0 0 .25rem;
+  margin: 0 0 0.1875rem;
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.post-summary {
-  font-size: .8125rem;
-  color: var(--color-base-content);
-  opacity: 0.5;
-  margin: 0 0 .625rem;
+.row-summary {
+  font-size: 0.75rem;
+  opacity: 0.45;
+  margin: 0 0 0.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.post-meta {
+.row-meta {
   display: flex;
   align-items: center;
-  gap: .625rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.meta-tag {
-  font-size: .75rem;
-  padding: .125rem .5625rem;
-  border-radius: .375rem;
-  background: var(--color-base-300);
-  color: var(--color-base-content);
-  opacity: 0.7;
-}
-
-.status-badge {
-  font-size: .75rem;
-  padding: .125rem .5625rem;
-  border-radius: .375rem;
-  font-weight: 500;
-
-  &.is-pub {
-    background: var(--color-success);
-    color: var(--color-success-content);
-    opacity: 0.85;
-  }
-  &.is-draft {
-    background: var(--color-warning);
-    color: var(--color-warning-content);
-    opacity: 0.85;
-  }
-  &.is-archived {
-    background: var(--color-base-300);
-    color: var(--color-base-content);
-    opacity: 0.5;
-  }
-}
-
 .meta-text {
-  font-size: .75rem;
-  color: var(--color-base-content);
-  opacity: 0.4;
+  font-size: 0.6875rem;
+  opacity: 0.35;
   display: inline-flex;
   align-items: center;
-  gap: .1875rem;
+  gap: 0.125rem;
 }
 
-.post-actions {
+.row-actions {
   display: flex;
-  gap: .125rem;
+  gap: 0.125rem;
   flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.1s;
+  .row:hover & { opacity: 1; }
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 0;
+  font-size: 0.875rem;
+  opacity: 0.3;
+}
+
+@media (max-width: 48rem) {
+  .page { padding: 1.25rem 1rem; }
+
+  .toolbar { gap: 0.375rem; }
+
+  .search { max-width: none; }
+
+  .row-summary { display: none; }
+
+  .row-actions { opacity: 1; }
 }
 </style>

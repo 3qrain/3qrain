@@ -5,6 +5,7 @@ import { Pencil, Trash2, Plus, Check, X, Loader } from "@lucide/vue";
 import Button from "~/components/base/Button.vue";
 import { getTags, createTag, updateTag, deleteTag } from "~/api/tags";
 import type { Tag } from "~/api/tags/types";
+import { withMinDuration } from '~/utils/async'
 
 const list = ref<Tag[]>([]);
 const loading = ref(true);
@@ -40,8 +41,8 @@ async function save() {
   if (!form.value.name || !form.value.slug) { toast.error("名称和标识不能为空"); return; }
   saving.value = true;
   try {
-    if (editing.value) { await updateTag(editing.value, form.value); toast.success("已更新"); }
-    else { await createTag(form.value); toast.success("已创建"); }
+    if (editing.value) { await withMinDuration(() => updateTag(editing.value!, form.value)); toast.success("已更新"); }
+    else { await withMinDuration(() => createTag(form.value)); toast.success("已创建"); }
     cancel();
     await load();
   } catch (e: any) {

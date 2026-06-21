@@ -16,31 +16,33 @@ withDefaults(
     icon: false,
     loading: false,
     disabled: false,
-    active: false
-  }
+    active: false,
+  },
 )
 </script>
 
 <template>
-  <button :disabled="disabled || loading" :class="['btn', variant, size, { active, icon }]">
+  <button :disabled="disabled || loading" :class="['btn', variant, size, { active, icon, loading }]">
+    <span class="content" :class="{ invisible: loading }">
+      <slot />
+    </span>
     <Loader
       v-if="loading"
       :style="size === 'sm' ? { height: '.8125rem', width: '.8125rem' } : { height: '.9375rem', width: '.9375rem' }"
-      class="spin"
+      class="spin loader"
     />
-    <slot v-else />
   </button>
 </template>
 
 <style scoped lang="less">
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.375rem;
   cursor: pointer;
   font-weight: 500;
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   white-space: nowrap;
   font-family: inherit;
   outline: none;
@@ -53,15 +55,33 @@ withDefaults(
     box-shadow 0.15s;
 
   &:disabled {
-    opacity: 0.35;
+    opacity: 0.4;
     cursor: not-allowed;
   }
+  &.loading:disabled {
+    opacity: 0.75;
+    cursor: wait;
+  }
   &:active:not(:disabled) {
-    scale: 0.96;
+    scale: 0.97;
   }
   &:focus-visible {
-    box-shadow: 0 0 0 0.125rem var(--color-primary);
+    box-shadow: 0 0 0 0.125rem color-mix(in oklab, var(--color-primary) 40%, transparent);
   }
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  &.invisible {
+    visibility: hidden;
+  }
+}
+
+.loader {
+  position: absolute;
 }
 
 /* sizes */
@@ -75,12 +95,8 @@ withDefaults(
 }
 
 .icon {
-  &.sm {
-    padding: 0.3125rem;
-  }
-  &.md {
-    padding: 0.4375rem;
-  }
+  &.sm { padding: 0.3125rem; }
+  &.md { padding: 0.4375rem; }
 }
 
 /* variants */
@@ -90,7 +106,7 @@ withDefaults(
   border-color: var(--color-primary);
 
   &:hover:not(:disabled) {
-    opacity: 0.9;
+    opacity: 0.88;
   }
 }
 
@@ -111,7 +127,7 @@ withDefaults(
 
   &:hover:not(:disabled) {
     opacity: 0.8;
-    background: var(--color-base-300);
+    background: var(--color-base-200);
   }
 
   &.active {
@@ -121,13 +137,13 @@ withDefaults(
 }
 
 .danger {
-  background: transparent;
+  background: color-mix(in oklab, var(--color-error) 10%, transparent);
   color: var(--color-error);
-  border-color: var(--color-error);
+  border-color: color-mix(in oklab, var(--color-error) 20%, transparent);
 
   &:hover:not(:disabled) {
-    background: var(--color-error);
-    color: var(--color-error-content);
+    background: color-mix(in oklab, var(--color-error) 18%, transparent);
+    border-color: color-mix(in oklab, var(--color-error) 35%, transparent);
   }
 }
 
@@ -137,7 +153,7 @@ withDefaults(
   border-color: var(--color-success);
 
   &:hover:not(:disabled) {
-    opacity: 0.9;
+    opacity: 0.88;
   }
 }
 
@@ -145,8 +161,6 @@ withDefaults(
   animation: spin 1s linear infinite;
 }
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 </style>

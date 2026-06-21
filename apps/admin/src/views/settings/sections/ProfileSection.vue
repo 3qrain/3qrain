@@ -3,8 +3,10 @@ import { ref, onMounted } from 'vue'
 import { toast } from 'vue-sonner'
 import Input from '~/components/base/Input.vue'
 import Button from '~/components/base/Button.vue'
+import Loading from '~/components/base/Loading.vue'
 import { getProfile, updateProfile } from '~/api/account'
 import { getConfig, updateConfig } from '~/api/config'
+import { withMinDuration } from '~/utils/async'
 
 const loading = ref(true)
 const saving = ref(false)
@@ -14,7 +16,7 @@ const bio = ref('')
 async function load() {
   loading.value = true
   try {
-    const [p, config] = await Promise.all([getProfile(), getConfig()])
+    const [p, config] = await withMinDuration(() => Promise.all([getProfile(), getConfig()]))
     profile.value = { username: p.username, email: p.email, avatarUrl: p.avatarUrl }
     bio.value = config.siteInfo?.bio ?? ''
   } catch {
@@ -27,10 +29,10 @@ async function load() {
 async function save() {
   saving.value = true
   try {
-    await Promise.all([
+    await withMinDuration(() => Promise.all([
       updateProfile(profile.value),
       updateConfig('siteInfo', { bio: bio.value }),
-    ])
+    ]))
     toast.success('已保存')
   } catch (e: any) {
     toast.error(e?.response?.data?.message || '保存失败')
@@ -47,7 +49,7 @@ onMounted(load)
     <h2 class="section-title">个人信息</h2>
     <p class="section-desc">管理你的资料和站点信息。</p>
 
-    <div v-if="loading" class="dim">加载中...</div>
+    <Loading v-if="loading" />
     <div v-else class="form">
       <div class="avatar-row">
         <img

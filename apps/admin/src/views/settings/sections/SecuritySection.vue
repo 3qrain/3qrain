@@ -5,8 +5,11 @@ import { toast } from 'vue-sonner'
 import { LogOut, X, Globe } from '@lucide/vue'
 import Input from '~/components/base/Input.vue'
 import Button from '~/components/base/Button.vue'
+import Loading from '~/components/base/Loading.vue'
+import Popover from '~/components/base/Popover.vue'
 import { changePassword, getSessions, kickSession, kickAllSessions, logout } from '~/api/account'
 import type { AdminSession } from '~/api/account/types'
+import { withMinDuration } from '~/utils/async'
 
 const router = useRouter()
 const saving = ref(false)
@@ -27,7 +30,7 @@ function relativeTime(ts: number): string {
 
 async function loadSessions() {
   loadingSessions.value = true
-  try { sessions.value = await getSessions() }
+  try { sessions.value = await withMinDuration(() => getSessions()) }
   catch { toast.error('加载会话失败') }
   finally { loadingSessions.value = false }
 }
@@ -69,7 +72,7 @@ async function handleChangePassword() {
 
   saving.value = true
   try {
-    await changePassword({ oldPassword, newPassword })
+    await withMinDuration(() => changePassword({ oldPassword, newPassword }))
     toast.success('密码已修改，即将重新登录')
     localStorage.removeItem('admin')
     setTimeout(() => router.push('/login'), 1500)
@@ -89,17 +92,19 @@ onMounted(loadSessions)
     <h2 class="section-title">登录设备</h2>
     <p class="section-desc">管理你的登录会话，保护账户安全。</p>
 
-    <div v-if="loadingSessions" class="dim">加载中...</div>
+    <Loading v-if="loadingSessions" />
     <div v-else-if="sessions.length > 0" class="sessions">
       <div class="sessions-head">
-        <Button
-          v-if="sessions.length > 1"
-          variant="ghost"
-          size="sm"
-          @click="handleKickAll"
-        >
-          踢掉全部其他设备
-        </Button>
+        <Popover v-if="sessions.length > 1">
+          <Button variant="ghost" size="sm">踢掉全部其他设备</Button>
+          <template #content="{ close }">
+            <p class="confirm-text">确定踢掉全部其他设备？</p>
+            <div class="confirm-actions">
+              <Button variant="ghost" size="sm" @click="close()">取消</Button>
+              <Button variant="danger" size="sm" @click="handleKickAll(); close()">确定</Button>
+            </div>
+          </template>
+        </Popover>
       </div>
 
       <div v-for="s in sessions" :key="s.token" :class="['session', s.isCurrent && 'current']">
@@ -115,12 +120,30 @@ onMounted(loadSessions)
             <span>登录: {{ relativeTime(s.createdAt) }}</span>
           </div>
         </div>
-        <button v-if="s.isCurrent" class="session-action logout" @click="handleLogout">
-          <LogOut style="width: 0.75rem; height: 0.75rem;" /> 注销
-        </button>
-        <button v-else class="session-action kick" @click="handleKick(s.token)">
-          <X style="width: 0.75rem; height: 0.75rem;" /> 踢出
-        </button>
+        <Popover v-if="s.isCurrent">
+          <button class="session-action logout">
+            <LogOut style="width: 0.75rem; height: 0.75rem;" /> 注销
+          </button>
+          <template #content="{ close }">
+            <p class="confirm-text">确定注销当前设备？</p>
+            <div class="confirm-actions">
+              <Button variant="ghost" size="sm" @click="close()">取消</Button>
+              <Button size="sm" @click="handleLogout()">确定</Button>
+            </div>
+          </template>
+        </Popover>
+        <Popover v-else>
+          <button class="session-action kick">
+            <X style="width: 0.75rem; height: 0.75rem;" /> 踢出
+          </button>
+          <template #content="{ close }">
+            <p class="confirm-text">确定踢出此设备？</p>
+            <div class="confirm-actions">
+              <Button variant="ghost" size="sm" @click="close()">取消</Button>
+              <Button variant="danger" size="sm" @click="handleKick(s.token); close()">确定</Button>
+            </div>
+          </template>
+        </Popover>
       </div>
     </div>
 
@@ -262,6 +285,18 @@ onMounted(loadSessions)
 
     &:hover { opacity: 0.7; }
   }
+}
+
+.confirm-text {
+  font-size: 0.75rem;
+  margin: 0 0 0.625rem;
+  white-space: nowrap;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
 }
 
 /* ---- Form ---- */
