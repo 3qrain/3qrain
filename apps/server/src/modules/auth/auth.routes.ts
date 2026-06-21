@@ -7,7 +7,7 @@ import { successResponseSchema, errorResponseSchema } from '~/utils/response'
 export const setupSchema = z.object({
   password: z.string().min(6, '密码长度至少6位'),
   confirmPassword: z.string().min(6, '确认密码长度至少6位'),
-  email: z.string().email('邮箱格式不正确').optional(),
+  email: z.email('邮箱格式不正确').optional(),
   nickname: z.string().min(1, '昵称不能为空').optional(),
 })
 

@@ -24,8 +24,8 @@ let mediaQuery: MediaQueryList
 
 async function fetchAdminInfo() {
   try {
-    const { data } = await apiClient.get('/admin/config/personalInfo')
-    localStorage.setItem('admin', JSON.stringify(data.data.personalInfo))
+    const { data } = await apiClient.get('/admin/profile')
+    localStorage.setItem('admin', JSON.stringify(data.data))
   } catch { /* 401 拦截器会处理 */ }
 }
 

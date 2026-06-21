@@ -1,28 +1,25 @@
-import { z } from "@hono/zod-openapi";
+import { z } from '@hono/zod-openapi'
 
-// ==================== PersonalInfo ====================
-export const PersonalInfoSchema = z.object({
-  name: z.string(),
-  email: z.string(),
-  avatar: z.string(),
+// ==================== SiteInfo ====================
+export const SiteInfoSchema = z.object({
   bio: z.string(),
-});
-export type PersonalInfo = z.infer<typeof PersonalInfoSchema>;
+})
+export type SiteInfo = z.infer<typeof SiteInfoSchema>
 
 // ==================== Appearance ====================
 export const AppearanceSchema = z.object({
-  theme: z.enum(["system", "light", "dark"]),
-});
-export type Appearance = z.infer<typeof AppearanceSchema>;
+  theme: z.enum(['system', 'light', 'dark']),
+})
+export type Appearance = z.infer<typeof AppearanceSchema>
 
 // ==================== Schema Mapping ====================
 export const configSchemaMapping = {
-  personalInfo: PersonalInfoSchema,
+  siteInfo: SiteInfoSchema,
   appearance: AppearanceSchema,
-} as const;
+} as const
 
-export type ConfigKey = keyof typeof configSchemaMapping;
+export type ConfigKey = keyof typeof configSchemaMapping
 
 // ==================== Full Config ====================
-export const FullConfigSchema = z.object(configSchemaMapping);
-export type FullConfig = z.infer<typeof FullConfigSchema>;
+export const FullConfigSchema = z.object(configSchemaMapping)
+export type FullConfig = z.infer<typeof FullConfigSchema>

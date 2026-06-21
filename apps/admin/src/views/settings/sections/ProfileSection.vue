@@ -1,79 +1,84 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { toast } from "vue-sonner";
-import Input from "~/components/base/Input.vue";
-import Button from "~/components/base/Button.vue";
-import { getConfig, updateConfig } from "~/api/config";
-import type { PersonalInfo } from "~/api/config/types";
+import { ref, onMounted } from 'vue'
+import { toast } from 'vue-sonner'
+import Input from '~/components/base/Input.vue'
+import Button from '~/components/base/Button.vue'
+import { getProfile, updateProfile } from '~/api/account'
+import { getConfig, updateConfig } from '~/api/config'
 
-const loading = ref(true);
-const saving = ref(false);
-const form = ref<PersonalInfo>({ name: '', email: '', avatar: '', bio: '' });
+const loading = ref(true)
+const saving = ref(false)
+const profile = ref({ username: '', email: '', avatarUrl: '' })
+const bio = ref('')
 
 async function load() {
-  loading.value = true;
+  loading.value = true
   try {
-    const config = await getConfig();
-    form.value = { ...config.personalInfo };
+    const [p, config] = await Promise.all([getProfile(), getConfig()])
+    profile.value = { username: p.username, email: p.email, avatarUrl: p.avatarUrl }
+    bio.value = config.siteInfo?.bio ?? ''
   } catch {
-    toast.error("加载失败");
+    toast.error('加载失败')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 async function save() {
-  saving.value = true;
+  saving.value = true
   try {
-    await updateConfig("personalInfo", form.value);
-    toast.success("已保存");
+    await Promise.all([
+      updateProfile(profile.value),
+      updateConfig('siteInfo', { bio: bio.value }),
+    ])
+    toast.success('已保存')
   } catch (e: any) {
-    toast.error(e?.response?.data?.message || "保存失败");
+    toast.error(e?.response?.data?.message || '保存失败')
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 
-onMounted(load);
+onMounted(load)
 </script>
 
 <template>
   <div class="section">
     <h2 class="section-title">个人信息</h2>
-    <p class="section-desc">管理你的个人资料，这些信息会展示在博客前台。</p>
+    <p class="section-desc">管理你的资料和站点信息。</p>
 
     <div v-if="loading" class="dim">加载中...</div>
     <div v-else class="form">
       <div class="avatar-row">
         <img
-          v-if="form.avatar"
-          :src="form.avatar"
+          v-if="profile.avatarUrl"
+          :src="profile.avatarUrl"
           alt="avatar"
           class="avatar-preview"
         />
-        <div v-else class="avatar-placeholder">{{ form.name?.[0] || "?" }}</div>
+        <div v-else class="avatar-placeholder">{{ profile.username?.[0] || '?' }}</div>
         <div class="avatar-field">
           <label class="field">
             <span>头像 URL</span>
-            <Input v-model="form.avatar" placeholder="https://..." />
+            <Input v-model="profile.avatarUrl" placeholder="https://..." />
           </label>
         </div>
       </div>
 
       <label class="field">
-        <span>名称</span>
-        <Input v-model="form.name" placeholder="你的名字" />
+        <span>昵称</span>
+        <Input v-model="profile.username" placeholder="你的名字" />
       </label>
 
       <label class="field">
         <span>邮箱</span>
-        <Input v-model="form.email" type="email" placeholder="email@example.com" />
+        <Input v-model="profile.email" type="email" placeholder="email@example.com" />
       </label>
 
       <label class="field">
         <span>简介</span>
         <textarea
-          v-model="form.bio"
+          v-model="bio"
           class="textarea"
           rows="3"
           placeholder="一句话介绍自己"

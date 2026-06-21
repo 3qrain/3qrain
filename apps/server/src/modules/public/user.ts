@@ -49,7 +49,7 @@ userRouter.get('/user/me', async (c) => {
 
 const updateProfileSchema = z.object({
   username: z.string().min(1, '昵称不能为空').optional(),
-  email: z.string().email('邮箱格式不正确').optional(),
+  email: z.email('邮箱格式不正确').optional(),
 }).strict()
 
 userRouter.patch('/user/me', async (c) => {
