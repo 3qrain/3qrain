@@ -22,6 +22,15 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(6, '新密码长度至少6位'),
 })
 
+const sessionSchema = z.object({
+  token: z.string(),
+  loginIp: z.string(),
+  userAgent: z.string(),
+  createdAt: z.number(),
+  lastActiveAt: z.number(),
+  isCurrent: z.boolean(),
+})
+
 // --- Routes ---
 
 export const getProfileRoute = createRoute({
@@ -49,6 +58,52 @@ export const updateProfileRoute = createRoute({
     [HttpStatusCodes.OK]: {
       content: { 'application/json': { schema: successResponseSchema(profileSchema) } },
       description: '更新成功',
+    },
+  },
+})
+
+export const listSessionsRoute = createRoute({
+  tags: ['Admin/Account'],
+  summary: '登录会话列表',
+  method: 'get',
+  path: '/sessions',
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(z.array(sessionSchema)) } },
+      description: '获取成功',
+    },
+  },
+})
+
+export const kickSessionRoute = createRoute({
+  tags: ['Admin/Account'],
+  summary: '踢出指定会话',
+  method: 'delete',
+  path: '/sessions/{token}',
+  request: {
+    params: z.object({ token: z.string() }),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
+      description: '已踢出',
+    },
+    [HttpStatusCodes.BAD_REQUEST]: {
+      content: { 'application/json': { schema: errorResponseSchema } },
+      description: '不能踢掉当前会话',
+    },
+  },
+})
+
+export const kickAllSessionsRoute = createRoute({
+  tags: ['Admin/Account'],
+  summary: '踢出全部其他会话',
+  method: 'delete',
+  path: '/sessions',
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
+      description: '已踢出',
     },
   },
 })

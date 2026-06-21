@@ -9,3 +9,12 @@ export interface AdminProfile {
   email: string
   avatarUrl: string
 }
+
+export interface AdminSession {
+  token: string
+  loginIp: string
+  userAgent: string
+  createdAt: number
+  lastActiveAt: number
+  isCurrent: boolean
+}

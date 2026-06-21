@@ -1,25 +1,36 @@
 <script setup lang="ts">
-import { ref, computed, markRaw, type Component } from "vue";
-import { User, Palette, Lock } from "@lucide/vue";
-import ProfileSection from "./sections/ProfileSection.vue";
-import AppearanceSection from "./sections/AppearanceSection.vue";
-import SecuritySection from "./sections/SecuritySection.vue";
+import { computed, markRaw, type Component } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { User, Palette, Lock } from '@lucide/vue'
+import ProfileSection from './sections/ProfileSection.vue'
+import AppearanceSection from './sections/AppearanceSection.vue'
+import SecuritySection from './sections/SecuritySection.vue'
 
 interface Section {
-  key: string;
-  title: string;
-  icon: Component;
-  component: Component;
+  key: string
+  title: string
+  icon: Component
+  component: Component
 }
 
 const sections: Section[] = [
-  { key: "profile", title: "个人信息", icon: markRaw(User), component: markRaw(ProfileSection) },
-  { key: "appearance", title: "外观", icon: markRaw(Palette), component: markRaw(AppearanceSection) },
-  { key: "security", title: "安全", icon: markRaw(Lock), component: markRaw(SecuritySection) },
-];
+  { key: 'profile', title: '个人信息', icon: markRaw(User), component: markRaw(ProfileSection) },
+  { key: 'appearance', title: '外观', icon: markRaw(Palette), component: markRaw(AppearanceSection) },
+  { key: 'security', title: '安全', icon: markRaw(Lock), component: markRaw(SecuritySection) },
+]
 
-const activeKey = ref("profile");
-const activeSection = computed(() => sections.find(s => s.key === activeKey.value)!);
+const route = useRoute()
+const router = useRouter()
+
+const activeKey = computed(() => {
+  const tab = route.query.tab as string
+  return sections.some(s => s.key === tab) ? tab : 'profile'
+})
+const activeSection = computed(() => sections.find(s => s.key === activeKey.value)!)
+
+function switchTab(key: string) {
+  router.replace({ query: { tab: key } })
+}
 </script>
 
 <template>
@@ -34,7 +45,7 @@ const activeSection = computed(() => sections.find(s => s.key === activeKey.valu
           v-for="s in sections"
           :key="s.key"
           :class="['nav-item', { active: activeKey === s.key }]"
-          @click="activeKey = s.key"
+          @click="switchTab(s.key)"
         >
           <component :is="s.icon" style="width: 1rem; height: 1rem;" />
           {{ s.title }}
@@ -108,7 +119,7 @@ const activeSection = computed(() => sections.find(s => s.key === activeKey.valu
   min-width: 0;
 }
 
-@media (max-width: 48rem) {
+@media (max-width: 64rem) {
   .page {
     padding: 1.25rem 1rem;
   }

@@ -6,6 +6,9 @@ const accountRouter = createApp()
 
 accountRouter.openapi(routes.getProfileRoute, handlers.getProfile)
 accountRouter.openapi(routes.updateProfileRoute, handlers.updateProfile)
+accountRouter.openapi(routes.listSessionsRoute, handlers.listSessions)
+accountRouter.openapi(routes.kickSessionRoute, handlers.kickSession)
+accountRouter.openapi(routes.kickAllSessionsRoute, handlers.kickAllSessions)
 accountRouter.openapi(routes.changePasswordRoute, handlers.changePassword)
 accountRouter.openapi(routes.logoutRoute, handlers.logout)
 

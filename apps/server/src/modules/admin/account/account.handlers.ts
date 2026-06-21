@@ -8,6 +8,12 @@ import { ErrorCode } from '@3qrain/shared'
 import * as HttpStatusCodes from '~/constants/http-status-codes'
 import { SESSION_ADMIN_PREFIX } from '~/constants/session'
 
+function getCurrentToken(c: Context) {
+  const cookie = c.req.header('cookie') || ''
+  const match = cookie.match(/3qrain_token=([^;]+)/)
+  return match?.[1] ?? null
+}
+
 export async function getProfile(c: Context) {
   const user = db.select().from(users).where(eq(users.role, 'system')).get()
   if (!user) {
@@ -32,6 +38,54 @@ export async function updateProfile(c: Context) {
     ok({ id: result.id, username: result.username, email: result.email, avatarUrl: result.avatarUrl }, '更新成功'),
     HttpStatusCodes.OK,
   )
+}
+
+export async function listSessions(c: Context) {
+  const currentToken = getCurrentToken(c)
+  const keys = await redis.keys(`${SESSION_ADMIN_PREFIX}*`)
+  if (keys.length === 0) {
+    return c.json(ok([], '获取成功'), HttpStatusCodes.OK)
+  }
+
+  const values = await redis.mget(keys)
+  const sessions = keys.map((key, i) => {
+    const token = key.replace(SESSION_ADMIN_PREFIX, '')
+    const data = values[i] ? JSON.parse(values[i]!) : {}
+    return {
+      token,
+      loginIp: data.loginIp ?? '',
+      userAgent: data.userAgent ?? '',
+      createdAt: data.createdAt ?? 0,
+      lastActiveAt: data.lastActiveAt ?? 0,
+      isCurrent: token === currentToken,
+    }
+  }).sort((a, b) => b.lastActiveAt - a.lastActiveAt)
+
+  return c.json(ok(sessions, '获取成功'), HttpStatusCodes.OK)
+}
+
+export async function kickSession(c: Context) {
+  const token = c.req.param('token')!
+  const currentToken = getCurrentToken(c)
+
+  if (token === currentToken) {
+    return c.json(fail(ErrorCode.INVALID_PARAMS, '不能踢掉当前会话'), HttpStatusCodes.BAD_REQUEST)
+  }
+
+  await redis.del(`${SESSION_ADMIN_PREFIX}${token}`)
+  return c.json(ok({}, '已踢出'), HttpStatusCodes.OK)
+}
+
+export async function kickAllSessions(c: Context) {
+  const currentToken = getCurrentToken(c)
+  const keys = await redis.keys(`${SESSION_ADMIN_PREFIX}*`)
+  const toDelete = keys.filter(key => key.replace(SESSION_ADMIN_PREFIX, '') !== currentToken)
+
+  if (toDelete.length > 0) {
+    await redis.del(toDelete)
+  }
+
+  return c.json(ok({}, `已踢出 ${toDelete.length} 个会话`), HttpStatusCodes.OK)
 }
 
 export async function changePassword(c: Context) {
@@ -62,10 +116,9 @@ export async function changePassword(c: Context) {
 }
 
 export async function logout(c: Context) {
-  const cookie = c.req.header('cookie') || ''
-  const match = cookie.match(/3qrain_token=([^;]+)/)
-  if (match) {
-    await redis.del(`${SESSION_ADMIN_PREFIX}${match[1]}`)
+  const token = getCurrentToken(c)
+  if (token) {
+    await redis.del(`${SESSION_ADMIN_PREFIX}${token}`)
     c.header('set-cookie', '3qrain_token=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0')
   }
   return c.json(ok({}, '已退出'), HttpStatusCodes.OK)
