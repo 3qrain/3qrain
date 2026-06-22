@@ -278,6 +278,7 @@ h1 {
 .head-act {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 .search-box {

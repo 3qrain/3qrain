@@ -78,7 +78,7 @@ onUnmounted(() => {
           </button>
         </div>
       </header>
-      <main class="main">
+      <main id="app-main" class="main">
         <router-view v-slot="{ Component }">
           <Transition name="page-fade" mode="out-in">
             <component :is="Component" />
