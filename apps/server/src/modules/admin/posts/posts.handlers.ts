@@ -83,6 +83,7 @@ export async function list(c: Context) {
   const query = c.req.query()
   const page = Number.parseInt(query.page || '1')
   const pageSize = Number.parseInt(query.pageSize || '10')
+  const actualOffset = query.offset !== undefined ? Number(query.offset) : (page - 1) * pageSize
   const filters = buildPostFilters(query)
 
   const where = filters.length > 0 ? and(...filters) : undefined
@@ -95,7 +96,7 @@ export async function list(c: Context) {
     .where(where)
     .orderBy(desc(posts.createdAt))
     .limit(pageSize)
-    .offset((page - 1) * pageSize)
+    .offset(actualOffset)
     .all()
 
   if (rows.length === 0) {

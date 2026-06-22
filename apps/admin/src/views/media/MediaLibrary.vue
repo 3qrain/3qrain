@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, toRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { Plus, Trash2, Copy, Search, ShieldAlert } from '@lucide/vue'
@@ -10,12 +10,14 @@ import MediaPreview from '~/components/media/MediaPreview.vue'
 import { getMedia, deleteMedia, getMediaHealth, type MediaItem } from '~/api/media'
 import { useAppStore } from '~/stores/app'
 import { useGlobalStore } from '~/stores/global'
+import { useUppyStore } from '~/stores/uppy'
 import { storeToRefs } from 'pinia'
 import { withMinDuration } from '~/utils/async'
 
 const route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
+const uppyStore = useUppyStore()
 
 const globalStore = useGlobalStore()
 const { drawerPanel } = storeToRefs(globalStore)
@@ -46,7 +48,12 @@ async function load(append = false) {
   loading.value = true
   try {
     !append && (files.value = [])
-    const params: any = { page: page.value, pageSize: pageSize.value }
+    const params: any = { pageSize: pageSize.value }
+    if (paginationMode.value === 'scroll') {
+      params.offset = append ? files.value.length : 0
+    } else {
+      params.page = page.value
+    }
     if (keyword.value) params.keyword = keyword.value
     const result = await withMinDuration(() => getMedia(params), 100)
     files.value = append ? [...files.value, ...(result.list as any)] : (result.list as any)
@@ -81,7 +88,12 @@ async function onDelete(item: MediaItem) {
   try {
     await deleteMedia(item.id)
     toast.success('已删除')
-    await load()
+    if (paginationMode.value === 'scroll') {
+      files.value = files.value.filter(f => f.id !== item.id)
+      total.value--
+    } else {
+      await load()
+    }
     await checkHealth()
   } catch {
     toast.error('删除失败')
@@ -109,6 +121,12 @@ function search() {
   load()
 }
 
+function onUploadsComplete() {
+  page.value = 1
+  load()
+  checkHealth()
+}
+
 watch(paginationMode, val => {
   page.value = 1
   if (val === 'scroll') {
@@ -124,6 +142,11 @@ onMounted(() => {
   }
   load()
   checkHealth()
+  toRaw(uppyStore.uppy).on('complete', onUploadsComplete)
+})
+
+onUnmounted(() => {
+  toRaw(uppyStore.uppy).off('complete', onUploadsComplete)
 })
 </script>
 

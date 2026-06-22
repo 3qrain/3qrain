@@ -44,7 +44,12 @@ async function load(append = false) {
   loading.value = true
   try {
     !append && (posts.value = [])
-    const params: any = { page: query.value.page, pageSize: query.value.pageSize }
+    const params: any = { pageSize: query.value.pageSize }
+    if (paginationMode.value === 'scroll') {
+      params.offset = append ? posts.value.length : 0
+    } else {
+      params.page = query.value.page
+    }
     if (query.value.keyword) params.keyword = query.value.keyword
     if (query.value.status) params.status = query.value.status
     if (query.value.categoryId) params.categoryId = query.value.categoryId
@@ -93,7 +98,12 @@ async function remove(post: Post) {
   try {
     await deletePost(post.id)
     toast.success('已移至回收站')
-    await load()
+    if (paginationMode.value === 'scroll') {
+      posts.value = posts.value.filter(p => p.id !== post.id)
+      total.value--
+    } else {
+      load()
+    }
   } catch {
     toast.error('删除失败')
   }
@@ -103,7 +113,12 @@ async function handleRestore(post: Post) {
   try {
     await restorePost(post.id)
     toast.success('已恢复')
-    posts.value = posts.value.filter(p => p.id !== post.id)
+    if (paginationMode.value === 'scroll') {
+      posts.value = posts.value.filter(p => p.id !== post.id)
+      total.value--
+    } else {
+      load()
+    }
   } catch {
     toast.error('恢复失败')
   }
@@ -113,7 +128,12 @@ async function handleDestroy(post: Post) {
   try {
     await destroyPost(post.id)
     toast.success('已永久删除')
-    posts.value = posts.value.filter(p => p.id !== post.id)
+    if (paginationMode.value === 'scroll') {
+      posts.value = posts.value.filter(p => p.id !== post.id)
+      total.value--
+    } else {
+      load()
+    }
   } catch {
     toast.error('删除失败')
   }

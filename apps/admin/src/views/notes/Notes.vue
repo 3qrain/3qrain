@@ -53,7 +53,13 @@ async function load(append = false) {
   loading.value = true
   try {
     !append && (notes.value = [])
-    const result = await withMinDuration(() => getNotes({ page: page.value, pageSize: pageSize.value, deleted: showDeleted.value || undefined }))
+    const params: any = { pageSize: pageSize.value, deleted: showDeleted.value || undefined }
+    if (paginationMode.value === 'scroll') {
+      params.offset = append ? notes.value.length : 0
+    } else {
+      params.page = page.value
+    }
+    const result = await withMinDuration(() => getNotes(params))
     notes.value = append ? [...notes.value, ...result.list] : result.list
     total.value = result.total
     totalPages.value = Math.ceil(result.total / result.pageSize)
@@ -109,7 +115,12 @@ async function remove(note: Note) {
   try {
     await deleteNote(note.id)
     toast.success('已移至回收站')
-    notes.value = notes.value.filter(n => n.id !== note.id)
+    if (paginationMode.value === 'scroll') {
+      notes.value = notes.value.filter(n => n.id !== note.id)
+      total.value--
+    } else {
+      load()
+    }
   } catch {
     toast.error('删除失败')
   }
@@ -119,7 +130,12 @@ async function handleRestore(note: Note) {
   try {
     await restoreNote(note.id)
     toast.success('已恢复')
-    notes.value = notes.value.filter(n => n.id !== note.id)
+    if (paginationMode.value === 'scroll') {
+      notes.value = notes.value.filter(n => n.id !== note.id)
+      total.value--
+    } else {
+      load()
+    }
   } catch {
     toast.error('恢复失败')
   }
@@ -129,7 +145,12 @@ async function handleDestroy(note: Note) {
   try {
     await destroyNote(note.id)
     toast.success('已永久删除')
-    notes.value = notes.value.filter(n => n.id !== note.id)
+    if (paginationMode.value === 'scroll') {
+      notes.value = notes.value.filter(n => n.id !== note.id)
+      total.value--
+    } else {
+      load()
+    }
   } catch {
     toast.error('删除失败')
   }

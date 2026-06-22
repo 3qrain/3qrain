@@ -13,6 +13,7 @@ function toUrl(p: string | null) {
 export async function list(c: Context) {
   const page = Number(c.req.query('page') || 1)
   const pageSize = Number(c.req.query('pageSize') || 20)
+  const actualOffset = c.req.query('offset') !== undefined ? Number(c.req.query('offset')) : (page - 1) * pageSize
   const deleted = c.req.query('deleted') === 'true'
 
   const filter = deleted ? isNotNull(notes.deletedAt) : isNull(notes.deletedAt)
@@ -22,7 +23,7 @@ export async function list(c: Context) {
     .where(filter)
     .orderBy(desc(notes.createdAt))
     .limit(pageSize)
-    .offset((page - 1) * pageSize)
+    .offset(actualOffset)
     .all()
 
   if (rows.length === 0) {

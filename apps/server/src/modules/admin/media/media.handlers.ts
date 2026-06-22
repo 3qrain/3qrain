@@ -19,6 +19,7 @@ export async function list(c: Context) {
   const query = c.req.query();
   const page = Number.parseInt(query.page || "1");
   const pageSize = Number.parseInt(query.pageSize || "24");
+  const actualOffset = query.offset !== undefined ? Number(query.offset) : (page - 1) * pageSize;
 
   const conditions = [];
   if (query.keyword) conditions.push(like(media.filename, `%${query.keyword}%`));
@@ -32,7 +33,7 @@ export async function list(c: Context) {
     .where(where)
     .orderBy(desc(media.createdAt))
     .limit(pageSize)
-    .offset((page - 1) * pageSize)
+    .offset(actualOffset)
     .all();
 
   const list = rows.map((r) => ({
