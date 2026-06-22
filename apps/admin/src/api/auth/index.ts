@@ -15,3 +15,8 @@ export async function login(password: string) {
   const { data } = await apiClient.post('/auth/login', { password })
   return data
 }
+
+export async function recover(recoveryKey: string) {
+  const { data } = await apiClient.post('/auth/recover', { recoveryKey })
+  return data
+}

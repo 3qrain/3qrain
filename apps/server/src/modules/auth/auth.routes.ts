@@ -16,7 +16,7 @@ export const passwordSchema = z.object({
 })
 
 export const recoverSchema = z.object({
-  recoveryKey: z.string().min(32, '恢复密钥长度至少32位'),
+  recoveryKey: z.string().min(1, '恢复密钥不能为空'),
 })
 
 // --- Response Schemas ---
@@ -92,7 +92,7 @@ export const recoverRoute = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: {
-      content: { 'application/json': { schema: successResponseSchema(newRecoveryKeyData) } },
+      content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
       description: '恢复成功',
     },
     [HttpStatusCodes.BAD_REQUEST]: { content: { 'application/json': { schema: errorResponseSchema } }, description: '无有效恢复密钥' },

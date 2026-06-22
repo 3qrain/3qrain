@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import Input from '~/components/base/Input.vue'
 import Button from '~/components/base/Button.vue'
-import { checkStatus, setup, login } from '~/api/auth'
+import { checkStatus, setup, login, recover } from '~/api/auth'
 
 const router = useRouter()
 
@@ -13,6 +13,8 @@ const initialized = ref(false)
 const hasAdminUser = ref(false)
 const submitting = ref(false)
 const recoveryKey = ref('')
+const showRecover = ref(false)
+const recoveryKeyInput = ref('')
 
 const form = ref({
   nickname: '3qrain',
@@ -74,6 +76,25 @@ async function handleLogin() {
     submitting.value = false
   }
 }
+
+async function handleRecover() {
+  if (!recoveryKeyInput.value) { toast.error('请输入恢复密钥'); return }
+  submitting.value = true
+  try {
+    await recover(recoveryKeyInput.value)
+    toast.success('密码已重置')
+    recoveryKeyInput.value = ''
+    initialized.value = false
+    hasAdminUser.value = true
+    showRecover.value = false
+    form.value.password = ''
+    form.value.confirmPassword = ''
+  } catch (e: any) {
+    toast.error(e.response?.data?.message || '恢复失败')
+  } finally {
+    submitting.value = false
+  }
+}
 </script>
 
 <template>
@@ -90,6 +111,20 @@ async function handleLogin() {
         <code>{{ recoveryKey }}</code>
       </div>
       <Button @click="router.push('/')">进入后台</Button>
+    </div>
+
+    <!-- 恢复密钥重置 -->
+    <div v-else-if="showRecover" class="card">
+      <h2>忘记密码</h2>
+      <p class="hint">输入恢复密钥来重置密码。</p>
+      <div class="form">
+        <label class="field">
+          <span>恢复密钥</span>
+          <Input v-model="recoveryKeyInput" placeholder="粘贴恢复密钥" @keyup.enter="handleRecover" />
+        </label>
+        <Button :loading="submitting" @click="handleRecover">重置密码</Button>
+        <button class="link" @click="showRecover = false">返回登录</button>
+      </div>
     </div>
 
     <!-- 首次设置 -->
@@ -132,6 +167,7 @@ async function handleLogin() {
           <Input v-model="form.password" type="password" placeholder="请输入密码" @keyup.enter="handleLogin" />
         </label>
         <Button :loading="submitting" @click="handleLogin">登录</Button>
+        <button class="link" @click="showRecover = true">忘记密码</button>
       </div>
     </div>
   </div>
@@ -201,6 +237,19 @@ async function handleLogin() {
     font-family: monospace;
     color: var(--color-error);
   }
+}
+
+.link {
+  border: none;
+  background: transparent;
+  font-size: 0.75rem;
+  color: var(--color-base-content);
+  opacity: 0.35;
+  cursor: pointer;
+  text-align: center;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 0.6; }
 }
 
 .dim {

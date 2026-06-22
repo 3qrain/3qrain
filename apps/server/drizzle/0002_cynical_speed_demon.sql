@@ -1,0 +1,1 @@
+ALTER TABLE `recovery_keys` DROP COLUMN `is_used`;

@@ -4,6 +4,5 @@ import { timestamps } from "./columns.helpers";
 export const recoveryKeys = sqliteTable("recovery_keys", {
   id: integer().primaryKey({ autoIncrement: true }),
   hash: text().notNull(),
-  isUsed: integer({ mode: "boolean" }).notNull().default(false),
   ...timestamps,
 });

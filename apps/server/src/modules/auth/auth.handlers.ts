@@ -76,6 +76,7 @@ export async function setup(c: Context) {
   const passwordHash = await hashPassword(password)
   db.insert(passwords).values({ hash: passwordHash }).run()
 
+  db.delete(recoveryKeys).run()
   const recoveryKey = generateToken()
   const recoveryHash = await hashPassword(recoveryKey)
   db.insert(recoveryKeys).values({ hash: recoveryHash }).run()
@@ -109,7 +110,7 @@ export async function login(c: Context) {
 export async function recover(c: Context) {
   const { recoveryKey } = await c.req.json<{ recoveryKey: string }>()
 
-  const rk = db.select().from(recoveryKeys).where(eq(recoveryKeys.isUsed, false)).limit(1).all()[0]
+  const rk = db.select().from(recoveryKeys).limit(1).all()[0]
   if (!rk) {
     return c.json(fail(ErrorCode.NO_VALID_RECOVERY_KEY, '无有效恢复密钥'), HttpStatusCodes.BAD_REQUEST)
   }
@@ -120,19 +121,12 @@ export async function recover(c: Context) {
   }
 
   db.delete(passwords).run()
-  db.update(recoveryKeys)
-    .set({ isUsed: true })
-    .where(eq(recoveryKeys.id, rk.id))
-    .run()
-
-  const newKey = generateToken()
-  const newHash = await hashPassword(newKey)
-  db.insert(recoveryKeys).values({ hash: newHash }).run()
+  db.delete(recoveryKeys).run()
 
   const keys = await redis.keys(`${SESSION_ADMIN_PREFIX}*`)
   if (keys.length > 0) {
     await redis.del(keys)
   }
 
-  return c.json(ok({ newRecoveryKey: newKey }, '恢复成功'), HttpStatusCodes.OK)
+  return c.json(ok({}, '恢复成功'), HttpStatusCodes.OK)
 }
