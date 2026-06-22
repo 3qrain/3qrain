@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { Plus, Trash2, Copy, Search, ShieldAlert } from '@lucide/vue'
@@ -48,7 +48,7 @@ async function load(append = false) {
     !append && (files.value = [])
     const params: any = { page: page.value, pageSize: pageSize.value }
     if (keyword.value) params.keyword = keyword.value
-    const result = await withMinDuration(() => getMedia(params))
+    const result = await withMinDuration(() => getMedia(params), 100)
     files.value = append ? [...files.value, ...(result.list as any)] : (result.list as any)
     total.value = result.total
     totalPages.value = Math.ceil(result.total / result.pageSize)
@@ -109,7 +109,7 @@ function search() {
   load()
 }
 
-watch(paginationMode, (val) => {
+watch(paginationMode, val => {
   page.value = 1
   if (val === 'scroll') {
     router.replace({ query: {} })
@@ -156,13 +156,11 @@ onMounted(() => {
           v-model="paginationMode"
           :options="[
             { label: '滚动', value: 'scroll' },
-            { label: '分页', value: 'button' },
+            { label: '分页', value: 'button' }
           ]"
           size="sm"
         />
-        <Button variant="primary" size="sm" @click="drawerPanel = 'upload'">
-          <Plus :size="15" /> {{ '上传' }}
-        </Button>
+        <Button variant="primary" size="sm" @click="drawerPanel = 'upload'"> <Plus :size="15" /> {{ '上传' }} </Button>
       </div>
     </div>
 
@@ -176,11 +174,12 @@ onMounted(() => {
     <!-- Grid -->
     <div v-if="!loading && files.length === 0" class="dim">暂无文件</div>
     <div v-else-if="files.length > 0" class="grid">
-      <div v-for="item in files" :key="item.id" class="card" @click="openPreview(item)">
+      <div v-for="item in files" :key="item.id" class="card">
         <div
           class="thumb"
           :class="{ loaded: item._loaded }"
           :style="item.placeholder ? { '--placeholder': `url(${item.placeholder})` } : {}"
+          @click="openPreview(item)"
         >
           <img
             v-if="item.thumbnailUrl"
@@ -198,27 +197,31 @@ onMounted(() => {
           />
           <div v-else class="file-type">{{ item.ext?.replace('.', '')?.toUpperCase() || item.type }}</div>
         </div>
-        <div class="meta">
-          <div class="name" :title="item.filename">{{ item.filename }}</div>
-          <div class="info-row">
-            <span>{{ formatBytes(item.size) }}</span>
-            <span v-if="item.width">{{ item.width }}×{{ item.height }}</span>
+        <div class="card-overlay">
+          <div class="meta">
+            <div class="name" :title="item.filename">{{ item.filename }}</div>
+            <div class="info-row">
+              <span>{{ formatBytes(item.size) }}</span>
+              <span v-if="item.width">{{ item.width }}×{{ item.height }}</span>
+            </div>
           </div>
-        </div>
-        <div class="card-act" @click.stop>
-          <button title="复制链接" @click="copyUrl(item.url)"><Copy :size="13" /></button>
-          <button title="删除" class="del" @click="onDelete(item)"><Trash2 :size="13" /></button>
+          <div class="card-act" @click.stop>
+            <button title="复制链接" @click="copyUrl(item.url)"><Copy :size="13" /></button>
+            <button title="删除" class="del" @click="onDelete(item)"><Trash2 :size="13" /></button>
+          </div>
         </div>
       </div>
     </div>
 
-    <Pagination
-      :current-page="page"
-      :total-pages="totalPages"
-      :loading="loading"
-      :mode="paginationMode"
-      @change="goPage"
-    />
+    <div class="media-pagination">
+      <Pagination
+        :current-page="page"
+        :total-pages="totalPages"
+        :loading="loading"
+        :mode="paginationMode"
+        @change="goPage"
+      />
+    </div>
 
     <!-- Preview -->
     <MediaPreview v-model="previewOpen" :items="files" :initial-index="previewIndex" height="85vh" />
@@ -227,18 +230,15 @@ onMounted(() => {
 
 <style scoped lang="less">
 .page {
-  margin: auto;
   padding: 1.5rem 2rem;
-  max-width: 75rem;
 }
 
 /* Header */
 .head {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
   flex-wrap: wrap;
-  gap: .75rem;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 h1 {
@@ -247,29 +247,29 @@ h1 {
   margin: 0;
 }
 .sub {
-  font-size: .8125rem;
+  font-size: 0.8125rem;
   opacity: 0.4;
   display: block;
-  margin-top: .125rem;
+  margin-top: 0.125rem;
 }
 .head-act {
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: 0.5rem;
 }
 .search-box {
   display: flex;
   align-items: center;
-  gap: .375rem;
-  padding: .3125rem .625rem;
-  border-radius: .5rem;
+  gap: 0.375rem;
+  padding: 0.3125rem 0.625rem;
+  border-radius: 0.5rem;
   background: var(--color-base-200);
-  border: .0625rem solid transparent;
+  border: 0.0625rem solid transparent;
   input {
     border: none;
     outline: none;
     background: transparent;
-    font-size: .8125rem;
+    font-size: 0.8125rem;
     width: 7.5rem;
     color: var(--color-base-content);
   }
@@ -287,10 +287,10 @@ h1 {
 .health-num {
   background: var(--color-warning);
   color: #fff;
-  font-size: .625rem;
-  padding: .0625rem .3125rem;
-  border-radius: .5rem;
-  margin-left: .125rem;
+  font-size: 0.625rem;
+  padding: 0.0625rem 0.3125rem;
+  border-radius: 0.5rem;
+  margin-left: 0.125rem;
   font-weight: 600;
 }
 
@@ -299,9 +299,9 @@ h1 {
   margin-bottom: 1.25rem;
 }
 .uppy-wrap {
-  border-radius: .75rem;
+  border-radius: 0.75rem;
   overflow: hidden;
-  border: .0625rem solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   :deep(.uppy-Root) {
     font-family: inherit;
   }
@@ -320,28 +320,44 @@ h1 {
 /* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
-  gap: .75rem;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0.75rem;
 }
+// @media (min-width: 40rem) {
+//   .grid { grid-template-columns: repeat(2, 1fr); }
+//   .page { padding: 1rem; }
+// }
+// @media (min-width: 48rem) {
+//   .grid { grid-template-columns: repeat(3, 1fr); }
+//   .page { padding: 1rem; }
+// }
+// @media (min-width: 64rem) {
+//   .grid { grid-template-columns: repeat(4, 1fr); }
+//   .page { padding: 1rem; }
+// }
+// @media (min-width: 80rem) {
+//   .grid { grid-template-columns: repeat(4, 1fr); }
+// }
+// @media (min-width: 88rem) {
+//   .grid { grid-template-columns: repeat(5, 1fr); }
+// }
+// @media (min-width: 96rem) {
+//   .grid { grid-template-columns: repeat(6, 1fr); }
+// }
 .card {
-  border-radius: .75rem;
-  border: .0625rem solid var(--color-border);
+  position: relative;
+  border-radius: 0.5rem;
   overflow: hidden;
-  cursor: pointer;
-  transition: box-shadow 0.15s;
-  background: var(--color-base-100);
-  &:hover {
-    box-shadow: 0 .125rem .75rem rgb(0 0 0 / 0.06);
-  }
 }
+
 .thumb {
-  aspect-ratio: 16/10;
+  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--color-base-200);
-  overflow: hidden;
   position: relative;
+  cursor: pointer;
   &::before {
     content: '';
     position: absolute;
@@ -356,6 +372,7 @@ h1 {
   &.loaded::before {
     opacity: 0;
   }
+
   img {
     width: 100%;
     height: 100%;
@@ -363,70 +380,97 @@ h1 {
     position: relative;
     z-index: 1;
   }
+
   .file-type {
-    font-size: .75rem;
+    font-size: 0.75rem;
     font-weight: 600;
     opacity: 0.25;
     position: relative;
     z-index: 1;
   }
 }
-.meta {
-  padding: .625rem .75rem .375rem;
-}
-.name {
-  font-size: .75rem;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.info-row {
-  display: flex;
-  gap: .5rem;
-  margin-top: .1875rem;
-  font-size: .6875rem;
-  opacity: 0.35;
-}
-.card-act {
-  display: flex;
-  gap: .125rem;
-  padding: .25rem .625rem .625rem;
+
+.card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 0.5rem 0.375rem;
+  color: oklch(97% 0.03 256);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
   opacity: 0;
-  transition: opacity 0.1s;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.25rem;
+  z-index: 2;
   .card:hover & {
     opacity: 1;
   }
+}
+
+.meta {
+  min-width: 0;
+  flex: 1;
+  .name {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .info-row {
+    display: flex;
+    gap: 0.375rem;
+    margin-top: 0.0625rem;
+    font-size: 0.625rem;
+    opacity: 0.4;
+  }
+}
+
+.card-act {
+  display: flex;
+  gap: 0.0625rem;
+  flex-shrink: 0;
+
   button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
     border: none;
-    border-radius: .375rem;
+    border-radius: 0.3125rem;
     background: transparent;
-    color: var(--color-base-content);
-    opacity: 0.4;
+    // color: var(--color-base-content);
+    color: inherit;
+    opacity: 0.5;
     cursor: pointer;
-    transition: all 0.1s;
+    transition: all 0.3s;
+
     &:hover {
-      opacity: 0.9;
-      background: var(--color-base-200);
+      opacity: 1;
+      // background: var(--color-base-200);
+    }
+    &.del {
+      color: var(--color-error);
     }
     &.del:hover {
       color: var(--color-error);
     }
   }
 }
-
+.media-pagination {
+  margin-top: 2rem;
+}
 .dim {
   text-align: center;
   padding: 5rem 0;
-  font-size: .875rem;
+  font-size: 0.875rem;
   opacity: 0.35;
 }
-
 /* Transitions */
 .slide-enter-active,
 .slide-leave-active {

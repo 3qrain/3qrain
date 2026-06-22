@@ -42,7 +42,7 @@ function setupObserver() {
         emit("change", props.currentPage + 1);
       }
     },
-    { rootMargin: "20%" },
+    { rootMargin: "30%" },
   );
   observer.observe(sentinel.value);
 }

@@ -9,6 +9,7 @@ import Popover from '~/components/base/Popover.vue'
 import Modal from '~/components/base/Modal.vue'
 import Pagination from '~/components/table/Pagination.vue'
 import ToggleGroup from '~/components/base/ToggleGroup.vue'
+import MediaPreview from '~/components/media/MediaPreview.vue'
 import NoteCompose from './components/NoteCompose.vue'
 import { getNotes, deleteNote, restoreNote, destroyNote } from '~/api/notes'
 import { getTags } from '~/api/tags'
@@ -33,6 +34,9 @@ const router = useRouter()
 
 const editingNote = ref<Note | null>(null)
 const editModalOpen = ref(false)
+const previewOpen = ref(false)
+const previewIndex = ref(0)
+const previewMedia = ref<any[]>([])
 
 function relativeTime(ts: any): string {
   const diff = Date.now() - new Date(ts).getTime()
@@ -84,6 +88,12 @@ async function loadTags() {
 function startEdit(note: Note) {
   editingNote.value = note
   editModalOpen.value = true
+}
+
+function openNotePreview(note: Note, index: number) {
+  previewMedia.value = note.media
+  previewIndex.value = index
+  previewOpen.value = true
 }
 
 function onEdited(note?: Note) {
@@ -153,7 +163,7 @@ onMounted(() => {
   <div class="page">
     <div class="head">
       <div>
-        <h1>{{ showDeleted ? '回收站' : '说说' }}</h1>
+        <h1>{{ showDeleted ? '说说-回收站' : '说说' }}</h1>
         <span class="sub">共 {{ total }} 条</span>
       </div>
       <div class="head-right">
@@ -222,7 +232,16 @@ onMounted(() => {
         <div class="note-content">{{ note.content }}</div>
 
         <div v-if="note.media.length > 0" class="note-images">
-          <img v-for="m in note.media" :key="m.id" :src="m.thumbnailUrl || m.url" class="note-img" alt="" />
+          <div
+            v-for="(m, mi) in note.media"
+            :key="m.id"
+            class="note-thumb"
+            :class="{ loaded: (m as any)._loaded }"
+            :style="m.placeholder ? { '--placeholder': `url(${m.placeholder})` } : {}"
+            @click.stop="openNotePreview(note, mi)"
+          >
+            <img :src="m.thumbnailUrl || m.url" :alt="m.filename" loading="lazy" @load="(m as any)._loaded = true" />
+          </div>
         </div>
 
         <div v-if="note.tags.length > 0" class="note-footer">
@@ -253,12 +272,14 @@ onMounted(() => {
         />
       </div>
     </Modal>
+
+    <MediaPreview v-model="previewOpen" :items="previewMedia" :initial-index="previewIndex" height="85vh" />
   </div>
 </template>
 
 <style scoped lang="less">
 .page {
-  max-width: 36rem;
+  max-width: 38rem;
   padding: 1.75rem 2rem;
 }
 
@@ -357,12 +378,36 @@ onMounted(() => {
   margin-top: 0.625rem;
 }
 
-.note-img {
+.note-thumb {
   width: 6rem;
   height: 6rem;
-  object-fit: cover;
   border-radius: 0.375rem;
+  overflow: hidden;
+  position: relative;
   cursor: pointer;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--placeholder);
+    background-size: cover;
+    background-position: center;
+    filter: blur(1.25rem);
+    transform: scale(1.1);
+    transition: opacity 0.3s;
+  }
+  &.loaded::before {
+    opacity: 0;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .note-footer {
@@ -429,7 +474,7 @@ onMounted(() => {
 }
 
 .edit-modal {
-  width: 28rem;
+  width: 35rem;
   max-width: calc(100vw - 3rem);
 }
 

@@ -237,7 +237,12 @@ async function publish() {
           id: img.mediaId!,
           url: img.preview,
           thumbnailUrl: img.preview,
+          previewUrl: null,
+          placeholder: null,
+          type: 'image',
           mimeType: '',
+          filename: '',
+          ext: '',
           width: null,
           height: null,
           sort: i,
@@ -388,7 +393,8 @@ onUnmounted(() => {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 0.1875rem;
+  // height: 0.1875rem;
+  height: .25rem;
   background: var(--color-primary);
   transition: width 0.2s;
 }

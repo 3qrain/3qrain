@@ -149,7 +149,7 @@ onMounted(() => {
   <div class="page">
     <div class="head">
       <div>
-        <h1>{{ showDeleted ? '回收站' : '文章' }}</h1>
+        <h1>{{ showDeleted ? '文章-回收站' : '文章' }}</h1>
         <span class="sub">共 {{ total }} 篇</span>
       </div>
       <div class="head-right">

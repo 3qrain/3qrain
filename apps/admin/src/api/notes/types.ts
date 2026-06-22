@@ -2,7 +2,12 @@ export interface NoteMedia {
   id: number
   url: string
   thumbnailUrl: string | null
+  previewUrl: string | null
+  placeholder: string | null
+  type: string
   mimeType: string
+  filename: string
+  ext: string
   width: number | null
   height: number | null
   sort: number

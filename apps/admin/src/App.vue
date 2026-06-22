@@ -7,6 +7,6 @@ const store = useAppStore();
 
 <template>
   <router-view />
-  <Toaster :theme="store.theme" richColors />
+  <Toaster :theme="store.theme" />
 </template>
 
