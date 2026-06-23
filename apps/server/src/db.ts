@@ -10,6 +10,7 @@ import { mkdirSync } from 'fs'
 mkdirSync('data/db', { recursive: true })
 const sqlite = new Database('data/db/3qrain.db')
 sqlite.run('PRAGMA journal_mode=WAL')
+sqlite.run('PRAGMA foreign_keys=ON')
 
 export const db = drizzle(sqlite, { schema, casing: 'snake_case' })
 

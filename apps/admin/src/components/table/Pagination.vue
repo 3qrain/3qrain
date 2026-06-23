@@ -39,9 +39,7 @@ function setupObserver() {
   if (!sentinel.value) return
   const scrollRoot = document.getElementById('app-main')
   observer = new IntersectionObserver(
-    ([entry]) => {
-      console.log(entry);
-      
+    ([entry]) => {      
       if (entry.isIntersecting && !props.loading && props.currentPage < props.totalPages) {
         emit('change', props.currentPage + 1)
       }
