@@ -5,6 +5,7 @@ import Uppy from '@uppy/core'
 import Tus from '@uppy/tus'
 import { ImagePlus, X, Eye, EyeOff } from '@lucide/vue'
 import Button from '~/components/base/Button.vue'
+import { useAppStore } from '~/stores/app'
 import { createNote, updateNote } from '~/api/notes'
 import type { Note } from '~/api/notes/types'
 import type { Tag } from '~/api/tags/types'
@@ -36,7 +37,7 @@ const publishing = ref(false)
 const fileInput = ref<HTMLInputElement>()
 const textareaRef = ref<HTMLTextAreaElement>()
 
-const DRAFT_KEY = 'note-compose-draft'
+const appStore = useAppStore()
 const mediaResults = new Map<string, any>()
 
 const uppy = new Uppy({ autoProceed: true })
@@ -95,39 +96,31 @@ function autoResize() {
 
 function saveDraft() {
   if (isEdit()) return
-  localStorage.setItem(
-    DRAFT_KEY,
-    JSON.stringify({
-      content: content.value,
-      tagIds: selectedTagIds.value,
-      isPublished: isPublished.value,
-      images: images.value.filter(i => i.mediaId).map(i => ({ mediaId: i.mediaId, preview: i.preview }))
-    })
-  )
-}
-
-function restoreDraft() {
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY)
-    if (!raw) return
-    const d = JSON.parse(raw)
-    content.value = d.content || ''
-    selectedTagIds.value = d.tagIds || []
-    isPublished.value = d.isPublished ?? true
-    images.value = (d.images || []).map((i: any) => ({
-      mediaId: i.mediaId,
-      preview: i.preview,
-      progress: 100,
-      status: 'existing' as const
-    }))
-    nextTick(autoResize)
-  } catch {
-    /* ignore */
+  appStore.noteComposeDraft = {
+    content: content.value,
+    tagIds: selectedTagIds.value,
+    isPublished: isPublished.value,
+    images: images.value.filter(i => i.mediaId).map(i => ({ mediaId: i.mediaId!, preview: i.preview })),
   }
 }
 
+function restoreDraft() {
+  const d = appStore.noteComposeDraft
+  if (!d) return
+  content.value = d.content || ''
+  selectedTagIds.value = d.tagIds || []
+  isPublished.value = d.isPublished ?? true
+  images.value = (d.images || []).map((i: any) => ({
+    mediaId: i.mediaId,
+    preview: i.preview,
+    progress: 100,
+    status: 'existing' as const,
+  }))
+  nextTick(autoResize)
+}
+
 function clearDraft() {
-  localStorage.removeItem(DRAFT_KEY)
+  appStore.noteComposeDraft = null
 }
 
 function initFromNote() {

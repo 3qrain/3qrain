@@ -93,14 +93,21 @@ export async function create(c: Context) {
   }).returning().get()
 
   if (body.tagIds?.length) {
-    for (const tagId of body.tagIds) {
+    const validTagIds = db.select({ id: tags.id }).from(tags)
+      .where(inArray(tags.id, body.tagIds)).all().map(t => t.id)
+    for (const tagId of validTagIds) {
       db.insert(noteTags).values({ noteId: note.id, tagId }).run()
     }
   }
 
   if (body.mediaIds?.length) {
-    for (let i = 0; i < body.mediaIds.length; i++) {
-      db.insert(noteMedia).values({ noteId: note.id, mediaId: body.mediaIds[i], sort: i }).run()
+    const validMediaIds = new Set(
+      db.select({ id: media.id }).from(media)
+        .where(inArray(media.id, body.mediaIds)).all().map(m => m.id),
+    )
+    const ordered = body.mediaIds.filter(id => validMediaIds.has(id))
+    for (let i = 0; i < ordered.length; i++) {
+      db.insert(noteMedia).values({ noteId: note.id, mediaId: ordered[i], sort: i }).run()
     }
   }
 
@@ -125,15 +132,26 @@ export async function update(c: Context) {
 
   if (body.tagIds !== undefined) {
     db.delete(noteTags).where(eq(noteTags.noteId, id)).run()
-    for (const tagId of body.tagIds) {
-      db.insert(noteTags).values({ noteId: id, tagId }).run()
+    if (body.tagIds.length) {
+      const validTagIds = db.select({ id: tags.id }).from(tags)
+        .where(inArray(tags.id, body.tagIds)).all().map(t => t.id)
+      for (const tagId of validTagIds) {
+        db.insert(noteTags).values({ noteId: id, tagId }).run()
+      }
     }
   }
 
   if (body.mediaIds !== undefined) {
     db.delete(noteMedia).where(eq(noteMedia.noteId, id)).run()
-    for (let i = 0; i < body.mediaIds.length; i++) {
-      db.insert(noteMedia).values({ noteId: id, mediaId: body.mediaIds[i], sort: i }).run()
+    if (body.mediaIds.length) {
+      const validMediaIds = new Set(
+        db.select({ id: media.id }).from(media)
+          .where(inArray(media.id, body.mediaIds)).all().map(m => m.id),
+      )
+      const ordered = body.mediaIds.filter(id => validMediaIds.has(id))
+      for (let i = 0; i < ordered.length; i++) {
+        db.insert(noteMedia).values({ noteId: id, mediaId: ordered[i], sort: i }).run()
+      }
     }
   }
 
