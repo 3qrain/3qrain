@@ -243,7 +243,7 @@ export async function update(c: Context) {
     }
   }
 
-  if (body.categoryId !== undefined && body.categoryId > 0) {
+  if (body.categoryId && body.categoryId > 0) {
     const category = db.select().from(categories).where(eq(categories.id, body.categoryId)).get()
     if (!category) {
       return c.json(fail(ErrorCode.CATEGORY_NOT_FOUND, '分类不存在'), HttpStatusCodes.NOT_FOUND)
