@@ -1,16 +1,16 @@
-import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { eq } from 'drizzle-orm'
-import { z } from '@hono/zod-openapi'
 import { db, redis } from '~/db'
 import { users } from '~/db/schema'
 import { ok, fail } from '~/utils/response'
 import * as HttpStatusCodes from '~/constants/http-status-codes'
 import { ErrorCode } from '@3qrain/shared'
 import { SESSION_USER_PREFIX, userSessionValueSchema } from '~/constants/session'
+import { updateMeSchema } from './user.routes'
 
 const TOKEN_TTL = Number(process.env.TOKEN_TTL) || 86400
 
-async function resolveSession(c: any) {
+async function resolveSession(c: Context) {
   const cookie = c.req.header('cookie') || ''
   const match = cookie.match(/3qrain_user_token=([^;]+)/)
   if (!match) return null
@@ -33,9 +33,7 @@ async function resolveSession(c: any) {
   return { token: match[1], user }
 }
 
-const userRouter = new Hono()
-
-userRouter.get('/user/me', async (c) => {
+export async function me(c: Context) {
   const session = await resolveSession(c)
   if (!session) {
     return c.json(ok(null, '未登录'), HttpStatusCodes.OK)
@@ -45,21 +43,16 @@ userRouter.get('/user/me', async (c) => {
     ok({ id: user.id, username: user.username, email: user.email, avatarUrl: user.avatarUrl, role: user.role }, '获取成功'),
     HttpStatusCodes.OK,
   )
-})
+}
 
-const updateProfileSchema = z.object({
-  username: z.string().min(1, '昵称不能为空').optional(),
-  email: z.email('邮箱格式不正确').optional(),
-}).strict()
-
-userRouter.patch('/user/me', async (c) => {
+export async function updateMe(c: Context) {
   const session = await resolveSession(c)
   if (!session) {
     return c.json(fail(ErrorCode.UNAUTHORIZED, '未登录'), HttpStatusCodes.UNAUTHORIZED)
   }
 
   const body = await c.req.json()
-  const parsed = updateProfileSchema.safeParse(body)
+  const parsed = updateMeSchema.safeParse(body)
   if (!parsed.success) {
     return c.json(fail(ErrorCode.INVALID_PARAMS, parsed.error.issues[0].message), HttpStatusCodes.BAD_REQUEST)
   }
@@ -75,9 +68,9 @@ userRouter.patch('/user/me', async (c) => {
     ok({ id: updated.id, username: updated.username, email: updated.email, avatarUrl: updated.avatarUrl }, '更新成功'),
     HttpStatusCodes.OK,
   )
-})
+}
 
-userRouter.post('/user/logout', async (c) => {
+export async function logout(c: Context) {
   const cookie = c.req.header('cookie') || ''
   const match = cookie.match(/3qrain_user_token=([^;]+)/)
   if (match) {
@@ -85,6 +78,4 @@ userRouter.post('/user/logout', async (c) => {
     c.header('set-cookie', '3qrain_user_token=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0')
   }
   return c.json(ok({}, '已退出'), HttpStatusCodes.OK)
-})
-
-export default userRouter
+}

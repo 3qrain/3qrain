@@ -83,6 +83,7 @@ onMounted(fetchUser)
 
       <nav class="nav">
         <NuxtLink to="/posts" class="nav-link">文章</NuxtLink>
+        <NuxtLink to="/notes" class="nav-link">说说</NuxtLink>
         <NuxtLink to="/tags" class="nav-link">标签</NuxtLink>
       </nav>
 

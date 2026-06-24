@@ -4,17 +4,10 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@pinia/nuxt'],
   nitro: {
-    devProxy: {
-      '/api': 'http://localhost:3010',
-      '/storage/': 'http://localhost:3010'
-    },
-  },
-  vite: {
-    server: {
-      proxy: {
-        '/api': 'http://localhost:3010',
-        '/storage/': 'http://localhost:3010'
-      }
+    // csr ssr下都生效
+    routeRules: {
+      '/api/**': { proxy: 'http://localhost:3010/api/**' },
+      '/storage/**': { proxy: 'http://localhost:3010/storage/**' },
     }
-  }
+  },
 })

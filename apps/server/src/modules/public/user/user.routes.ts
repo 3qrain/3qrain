@@ -1,0 +1,66 @@
+import { createRoute, z } from '@hono/zod-openapi'
+import * as HttpStatusCodes from '~/constants/http-status-codes'
+import { successResponseSchema, errorResponseSchema } from '~/utils/response'
+
+const userSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  email: z.string(),
+  avatarUrl: z.string(),
+  role: z.string(),
+})
+
+export const meRoute = createRoute({
+  tags: ['Public/User'],
+  summary: '获取当前用户',
+  method: 'get',
+  path: '/user/me',
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(userSchema.nullable()) } },
+      description: '返回用户信息或 null',
+    },
+  },
+})
+
+export const updateMeSchema = z.object({
+  username: z.string().min(1, '昵称不能为空').optional(),
+  email: z.email('邮箱格式不正确').optional(),
+}).strict()
+
+export const updateMeRoute = createRoute({
+  tags: ['Public/User'],
+  summary: '更新当前用户信息',
+  method: 'patch',
+  path: '/user/me',
+  request: {
+    body: { content: { 'application/json': { schema: updateMeSchema } } },
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(userSchema) } },
+      description: '更新成功',
+    },
+    [HttpStatusCodes.BAD_REQUEST]: {
+      content: { 'application/json': { schema: errorResponseSchema } },
+      description: '参数校验失败',
+    },
+    [HttpStatusCodes.UNAUTHORIZED]: {
+      content: { 'application/json': { schema: errorResponseSchema } },
+      description: '未登录',
+    },
+  },
+})
+
+export const logoutRoute = createRoute({
+  tags: ['Public/User'],
+  summary: '退出登录',
+  method: 'post',
+  path: '/user/logout',
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
+      description: '退出成功',
+    },
+  },
+})
