@@ -16,7 +16,7 @@ export const createPostSchema = z.object({
   contentText: z.string().optional().default(""),
   status: z.enum(POST_STATUS).optional().default("draft"),
   isPinned: z.boolean().optional().default(false),
-  categoryId: z.number().int().optional(),
+  categoryId: z.number().int().optional().nullable(),
   tagIds: z.array(z.number().int()).optional().default([]),
 });
 
@@ -30,7 +30,7 @@ export const updatePostSchema = z.object({
   contentText: z.string().optional(),
   status: z.enum(POST_STATUS).optional(),
   isPinned: z.boolean().optional(),
-  categoryId: z.number().int().optional(),
+  categoryId: z.number().int().optional().nullable(),
   tagIds: z.array(z.number().int()).optional(),
 });
 

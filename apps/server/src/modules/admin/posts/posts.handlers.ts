@@ -45,9 +45,10 @@ async function getPostWithRelations(postId: number) {
   return serialize({ ...post, category, tags: tagRows })
 }
 
-// API → DB：空 slug → null，content 对象 → JSON 字符串
+// API → DB：空 slug → null，content 对象 → JSON 字符串，categoryId 0 false -> null
 function normalize(data: Record<string, any>) {
   if (data.slug === '') data.slug = null
+  if (!data.categoryId) delete data.categoryId
   if (data.content !== undefined && typeof data.content !== 'string') {
     data.content = JSON.stringify(data.content)
   }
@@ -201,6 +202,7 @@ export async function create(c: Context) {
       .returning()
       .get()
   )
+  
   await syncPostTags(result.id, tagIds)
 
   const post = await getPostWithRelations(result.id)
