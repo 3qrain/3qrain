@@ -1,12 +1,17 @@
-export const useAppStore = defineStore('web-app', () => {
-  const visitorId = ref('')
+type Theme = 'system' | 'light' | 'dark'
 
-  function genVisitorId() {
-    if (!visitorId.value) {
-      visitorId.value = crypto.randomUUID()
-    }
-    return visitorId.value
-  }
-
-  return { visitorId, genVisitorId }
-}, { persist: { key: '3qrain:web-app', pick: ['visitorId'] } })
+export const useAppStore = defineStore('app', {
+  state: () => ({
+    visitorId: '',
+    theme: 'system' as Theme,
+  }),
+  actions: {
+    genVisitorId() {
+      if (!this.visitorId) {
+        this.visitorId = crypto.randomUUID()
+      }
+      return this.visitorId
+    },
+  },
+  persist: { key: '3qrain:web-app', pick: ['visitorId', 'theme'] },
+})

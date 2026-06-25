@@ -1,0 +1,52 @@
+<script setup lang="ts">
+const open = defineModel<boolean>('open', { default: false })
+</script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="open" class="overlay" @click.self="open = false">
+        <div class="modal-inner" @click.stop>
+          <slot />
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<style scoped lang="less">
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(0 0 0 / 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-inner {
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+
+  .modal-inner {
+    transition: transform 0.2s ease;
+  }
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+
+  .modal-inner {
+    transform: scale(0.95);
+  }
+}
+</style>

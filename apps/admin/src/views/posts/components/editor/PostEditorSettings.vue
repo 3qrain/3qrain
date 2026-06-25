@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import Input from "~/components/base/Input.vue";
-import Select from "~/components/base/Select.vue";
-import type { Category, Tag } from "~/api/tags/types";
+import { computed } from 'vue'
+import Input from '~/components/base/Input.vue'
+import Select from '~/components/base/Select.vue'
+import type { Category, Tag } from '~/api/tags/types'
 
-const slug = defineModel<string>("slug", { default: "" });
-const summary = defineModel<string>("summary", { default: "" });
-const cover = defineModel<string>("cover", { default: "" });
-const isPinned = defineModel<boolean>("isPinned", { default: false });
-const categoryId = defineModel<number>("categoryId", { default: 0 });
-const tagIds = defineModel<number[]>("tagIds", { default: () => [] });
+const slug = defineModel<string>('slug', { default: '' })
+const summary = defineModel<string>('summary', { default: '' })
+const cover = defineModel<string>('cover', { default: '' })
+const isPinned = defineModel<boolean>('isPinned', { default: false })
+const categoryId = defineModel<number>('categoryId', { default: 0 })
+const tagIds = defineModel<number[]>('tagIds', { default: () => [] })
 
 const props = defineProps<{
   categories: Category[];

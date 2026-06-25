@@ -6,10 +6,6 @@ import { ok, fail } from '~/utils/response'
 import { ErrorCode } from '@3qrain/shared'
 import * as HttpStatusCodes from '~/constants/http-status-codes'
 
-function toUrl(p: string | null) {
-  return p ? `/storage${p}` : null
-}
-
 const publishedFilter = and(eq(posts.status, 'published'), isNull(posts.deletedAt))
 
 export async function list(c: Context) {
@@ -101,7 +97,7 @@ export async function list(c: Context) {
   const list = rows.map(p => ({
     ...p,
     slug: p.slug || '',
-    cover: toUrl(p.cover),
+    cover: p.cover,
     category: (p.categoryId && catMap.get(p.categoryId)) || null,
     tags: tagMap.get(p.id) || [],
   }))
@@ -139,7 +135,7 @@ export async function detail(c: Context) {
     title: post.title,
     slug: post.slug || '',
     summary: post.summary,
-    cover: toUrl(post.cover),
+    cover: post.cover,
     contentHtml: post.contentHtml,
     isPinned: post.isPinned,
     categoryId: post.categoryId,

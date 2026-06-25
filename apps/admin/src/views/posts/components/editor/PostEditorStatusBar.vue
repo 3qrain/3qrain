@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Settings, Send, Loader, Check, Pencil } from '@lucide/vue'
+import { Settings, Send, Archive, Loader, Check, Pencil } from '@lucide/vue'
 import Button from '~/components/base/Button.vue'
 import Badge from '~/components/base/Badge.vue'
 
@@ -11,11 +11,13 @@ const props = defineProps<{
   isNew?: boolean
   isDraft?: boolean
   isPublished?: boolean
+  isArchived?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'toggleSettings'): void
   (e: 'publish'): void
+  (e: 'archive'): void
 }>()
 
 const saveStatus = computed(() => {
@@ -25,15 +27,27 @@ const saveStatus = computed(() => {
 })
 
 const badgeVariant = computed(() => {
-  if (saveStatus.value === 'saved') return 'success'
+  if (saveStatus.value === 'saving') return 'neutral'
   if (saveStatus.value === 'unsaved') return 'warning'
-  return 'neutral'
+  return 'success'
 })
 
 const badgeText = computed(() => {
   if (saveStatus.value === 'saving') return '保存中'
   if (saveStatus.value === 'unsaved') return '未保存'
   return '已保存'
+})
+
+const statusBadge = computed(() => {
+  if (props.isArchived) return 'neutral' as const
+  if (props.isPublished) return 'success' as const
+  return 'warning' as const
+})
+
+const statusText = computed(() => {
+  if (props.isArchived) return '已归档'
+  if (props.isPublished) return '已发布'
+  return '草稿'
 })
 </script>
 
@@ -49,12 +63,16 @@ const badgeText = computed(() => {
     </div>
 
     <div class="right">
-      <Button v-if="isDraft || isNew" variant="success" size="sm" @click="emit('publish')">
+      <Badge :variant="statusBadge">{{ statusText }}</Badge>
+
+      <Button v-if="!isArchived" variant="neutral" size="sm" :loading="saving" @click="emit('archive')">
+        <Archive style="width: .875rem; height: .875rem;" /> 归档
+      </Button>
+
+      <Button v-if="!isPublished" variant="success" size="sm" :loading="saving" @click="emit('publish')">
         <Send style="width: .875rem; height: .875rem;" /> 发布
       </Button>
-      <Badge v-else-if="isPublished" variant="success">
-        <Check style="width: .875rem; height: .875rem;" /> 已发布
-      </Badge>
+
       <Button variant="ghost" size="sm" icon :active="settingsOpen" @click="emit('toggleSettings')">
         <Settings style="width: 1.25rem; height: 1.25rem;" />
       </Button>

@@ -3,7 +3,7 @@ import { Loader } from '@lucide/vue'
 
 withDefaults(
   defineProps<{
-    variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success'
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'neutral'
     size?: 'sm' | 'md'
     icon?: boolean
     loading?: boolean
@@ -133,6 +133,16 @@ withDefaults(
   &.active {
     opacity: 1;
     background: var(--color-base-300);
+  }
+}
+
+.neutral {
+  background: var(--color-neutral);
+  color: var(--color-neutral-content);
+  border-color: var(--color-border);
+
+  &:hover:not(:disabled) {
+    opacity: 0.88;
   }
 }
 

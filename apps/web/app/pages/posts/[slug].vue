@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { formatDate } from '~/utils/date'
 
 const route = useRoute()
 const slug = route.params.slug as string
 
 const postApi = usePostApi()
+const viewApi = useViewApi()
+const appStore = useAppStore()
+
 const { data: res, error } = await useAsyncData(`post-${slug}`, () => postApi.getDetail(slug))
 
 if (error.value || !res.value?.success) {
@@ -19,6 +23,10 @@ const post = computed(() => res.value!.data)
 useHead({
   title: computed(() => `${post.value.title} - 3qrain`),
 })
+
+onMounted(() => {
+  viewApi.record(post.value.id, 'post', appStore.genVisitorId()).catch(() => {})
+})
 </script>
 
 <template>
@@ -30,12 +38,7 @@ useHead({
       <div class="article-meta">
         <time>{{ formatDate(post.createdAt) }}</time>
         <span v-if="post.category" class="category">{{ post.category.name }}</span>
-        <ClientOnly>
-          <ViewCount :content-id="post.id" :initial-count="post.viewCount" class="views" />
-          <template #fallback>
-            <span class="views">{{ post.viewCount }} 次阅读</span>
-          </template>
-        </ClientOnly>
+        <span class="views">{{ post.viewCount }} 次阅读</span>
       </div>
       <div v-if="post.tags.length" class="article-tags">
         <span v-for="tag in post.tags" :key="tag.id" class="tag"># {{ tag.name }}</span>

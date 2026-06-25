@@ -29,7 +29,7 @@ const summary = ref('')
 const cover = ref('')
 const contentEditorRef = ref<InstanceType<typeof PostEditorContent> | null>(null)
 const initialContent = ref<object>({ type: 'doc', content: [] })
-const status = ref<'draft' | 'published'>('draft')
+const status = ref<'draft' | 'published' | 'archived'>('draft')
 const isPinned = ref(false)
 const categoryId = ref(0)
 const tagIds = ref<number[]>([])
@@ -37,20 +37,20 @@ const tagIds = ref<number[]>([])
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
 async function loadData() {
+  const [cats, tagList] = await Promise.all([getCategories(), getTags()])
+  categories.value = cats
+  tags.value = tagList
+
   if (postId.value) {
     try {
       const post = await getPost(postId.value)
-
-      const [cats, tagList] = await Promise.all([getCategories(), getTags()])
-      categories.value = cats
-      tags.value = tagList
 
       initialContent.value = post.content
       title.value = post.title
       slug.value = post.slug
       summary.value = post.summary
       cover.value = post.cover
-      status.value = post.status as 'draft' | 'published'
+      status.value = post.status as 'draft' | 'published' | 'archived'
       isPinned.value = post.isPinned === true || (post.isPinned as unknown as number) === 1
       categoryId.value = post.categoryId
       tagIds.value = post.tags?.map((t: Tag) => t.id) || []
@@ -84,7 +84,7 @@ function buildForm() {
   }
 }
 
-async function doSave(asStatus?: string, silent = false): Promise<boolean> {
+async function doSave(asStatus?: string, silent = false, successMsg?: string): Promise<boolean> {
   if (saving.value) return false
   // 发布/归档时前端先校验
   if (!silent && asStatus && asStatus !== 'draft') {
@@ -97,20 +97,23 @@ async function doSave(asStatus?: string, silent = false): Promise<boolean> {
     clearTimeout(saveTimer)
     saveTimer = null
   }
+  const prevStatus = status.value
   saving.value = true
   try {
     if (postId.value) {
-      if (asStatus) status.value = asStatus as 'draft' | 'published'
+      if (asStatus) status.value = asStatus as 'draft' | 'published' | 'archived'
       await updatePost(postId.value, buildForm())
     } else {
-      status.value = (asStatus || 'draft') as 'draft' | 'published'
+      status.value = (asStatus || 'draft') as 'draft' | 'published' | 'archived'
       const created = await createPost(buildForm())
       postId.value = created.id
       router.replace({ name: 'postEdit', params: { id: String(created.id) } })
     }
     isDirty.value = false
+    if (successMsg) toast.success(successMsg)
     return true
   } catch (e: any) {
+    if (asStatus) status.value = prevStatus
     if (!silent) toast.error(e?.response?.data?.message || '保存失败')
     return false
   } finally {
@@ -132,8 +135,11 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 async function publish() {
-  const ok = await doSave('published')
-  if (ok) toast.success('已发布')
+  await doSave('published', false, '已发布')
+}
+
+async function archive() {
+  await doSave('archived', false, '已归档')
 }
 
 onMounted(() => {
@@ -168,8 +174,10 @@ onUnmounted(() => {
           :is-new="postId === 0"
           :is-draft="status === 'draft'"
           :is-published="status === 'published'"
+          :is-archived="status === 'archived'"
           @toggle-settings="showSettings = !showSettings"
           @publish="publish"
+          @archive="archive"
         />
         <PostEditorContent
           ref="contentEditorRef"
@@ -208,7 +216,6 @@ onUnmounted(() => {
                 v-model:slug="slug"
                 v-model:summary="summary"
                 v-model:cover="cover"
-                v-model:status="status"
                 v-model:is-pinned="isPinned"
                 v-model:category-id="categoryId"
                 v-model:tag-ids="tagIds"

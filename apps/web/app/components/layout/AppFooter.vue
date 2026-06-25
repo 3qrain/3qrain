@@ -1,6 +1,7 @@
 <template>
   <footer class="footer">
     <span>3qrain blog</span>
+    <ThemeToggle />
   </footer>
 </template>
 
