@@ -4,9 +4,11 @@ import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import Input from '~/components/base/Input.vue'
 import Button from '~/components/base/Button.vue'
+import { useAppStore } from '~/stores/app'
 import { checkStatus, setup, login, recover } from '~/api/auth'
 
 const router = useRouter()
+const appStore = useAppStore()
 
 const loading = ref(true)
 const initialized = ref(false)
@@ -27,7 +29,7 @@ const isFreshSetup = () => !initialized.value && !hasAdminUser.value
 const isRecoverySetup = () => !initialized.value && hasAdminUser.value
 
 onMounted(async () => {
-  if (localStorage.getItem('admin')) {
+  if (appStore.adminUser) {
     router.push('/')
     return
   }

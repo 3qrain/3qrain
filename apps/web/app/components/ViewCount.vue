@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useVisitorId } from '~/composables/useVisitorId'
 
 const props = defineProps<{
   contentId: number
@@ -8,16 +7,12 @@ const props = defineProps<{
 }>()
 
 const count = ref(props.initialCount)
-
-const { $api } = useNuxtApp()
+const viewApi = useViewApi()
+const appStore = useAppStore()
 
 onMounted(async () => {
   try {
-    const visitorId = useVisitorId()
-    const res = await $api<{ success: boolean; data: { viewCount: number } }>('/view', {
-      method: 'POST',
-      body: { contentId: props.contentId, contentType: 'post', visitorId },
-    })
+    const res = await viewApi.record(props.contentId, 'post', appStore.genVisitorId())
     if (res.success) {
       count.value = res.data.viewCount
     }

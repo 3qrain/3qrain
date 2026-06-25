@@ -37,20 +37,9 @@ export async function syncThemeFromServer() {
 }
 
 export function initTheme() {
-  apply(resolve(readPersistedTheme()));
+  apply(resolve(getTheme()));
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     if (getTheme() === "system") apply(resolve("system"));
   });
-}
-
-function readPersistedTheme(): Theme {
-  try {
-    const raw = localStorage.getItem("app");
-    const parsed = raw && JSON.parse(raw);
-    if (["light", "dark", "system"].includes(parsed?.theme)) {
-      return parsed.theme;
-    }
-  } catch { /* ignore */ }
-  return "system";
 }

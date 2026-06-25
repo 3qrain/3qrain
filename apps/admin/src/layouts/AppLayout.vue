@@ -7,10 +7,12 @@ import Notification from '~/components/notification/Notification.vue'
 import UppyUploader from '~/components/uppy-uploader/UppyUploader.vue'
 import { apiClient } from '~/lib/axios'
 import { useGlobalStore, type DrawerPanel } from '~/stores/global.ts'
+import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
 import { syncThemeFromServer } from '~/css/themes/index'
 
 const { drawerPanel } = storeToRefs(useGlobalStore())
+const appStore = useAppStore()
 
 const isMobile = ref(false)
 
@@ -25,7 +27,7 @@ let mediaQuery: MediaQueryList
 async function fetchAdminInfo() {
   try {
     const { data } = await apiClient.get('/admin/profile')
-    localStorage.setItem('admin', JSON.stringify(data.data))
+    appStore.adminUser = data.data
   } catch { /* 401 拦截器会处理 */ }
 }
 

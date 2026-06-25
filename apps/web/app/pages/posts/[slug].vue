@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { ApiResponse, PostDetail } from '~/types/api'
 import { formatDate } from '~/utils/date'
 
 const route = useRoute()
 const slug = route.params.slug as string
 
-const { data: res, error } = await useAPI<ApiResponse<PostDetail>>(`/posts/${slug}`)
+const postApi = usePostApi()
+const { data: res, error } = await useAsyncData(`post-${slug}`, () => postApi.getDetail(slug))
 
 if (error.value || !res.value?.success) {
   throw createError({

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { PaginatedData, PostItem } from '~/types/api'
 import { formatDate } from '~/utils/date'
 
 const route = useRoute()
@@ -7,9 +6,8 @@ const router = useRouter()
 
 const page = computed(() => Number(route.query.page) || 1)
 
-const { data: res, status } = await useAPI<PaginatedData<PostItem>>(
-  computed(() => `/posts?page=${page.value}&pageSize=10`),
-)
+const postApi = usePostApi()
+const { data: res, status } = await useAsyncData('posts-list', () => postApi.getList({ page: page.value, pageSize: 10 }), { watch: [page] })
 
 const posts = computed(() => res.value?.data?.list ?? [])
 const total = computed(() => res.value?.data?.total ?? 0)

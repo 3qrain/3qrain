@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { PaginatedData, NoteItem } from '~/types/api'
 import { formatRelativeTime } from '~/utils/date'
 
 const route = useRoute()
@@ -7,9 +6,8 @@ const router = useRouter()
 
 const page = computed(() => Number(route.query.page) || 1)
 
-const { data: res, status } = await useAPI<PaginatedData<NoteItem>>(
-  computed(() => `/notes?page=${page.value}&pageSize=20`),
-)
+const noteApi = useNoteApi()
+const { data: res, status } = await useAsyncData('notes-list', () => noteApi.getList({ page: page.value, pageSize: 20 }), { watch: [page] })
 
 const notes = computed(() => res.value?.data?.list ?? [])
 const total = computed(() => res.value?.data?.total ?? 0)

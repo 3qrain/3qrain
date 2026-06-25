@@ -9,12 +9,20 @@ interface NoteComposeDraft {
   images: { mediaId: number; preview: string }[]
 }
 
+interface AdminUser {
+  id: number
+  username: string
+  email: string
+  avatarUrl: string
+}
+
 interface AppState {
   theme: 'system' | 'light' | 'dark'
   postsPaginationMode: PaginationMode
   notesPaginationMode: PaginationMode
   mediaPaginationMode: PaginationMode
   noteComposeDraft: NoteComposeDraft | null
+  adminUser: AdminUser | null
 }
 
 export const useAppStore = defineStore('app', {
@@ -24,6 +32,7 @@ export const useAppStore = defineStore('app', {
     notesPaginationMode: 'scroll',
     mediaPaginationMode: 'scroll',
     noteComposeDraft: null,
+    adminUser: null,
   }),
-  persist: true,
+  persist: { key: '3qrain:admin-app' },
 })

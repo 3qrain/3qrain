@@ -7,6 +7,7 @@ import Input from '~/components/base/Input.vue'
 import Button from '~/components/base/Button.vue'
 import Loading from '~/components/base/Loading.vue'
 import Popover from '~/components/base/Popover.vue'
+import { useAppStore } from '~/stores/app'
 import { changePassword, getSessions, kickSession, kickAllSessions, logout } from '~/api/account'
 import type { AdminSession } from '~/api/account/types'
 import { withMinDuration } from '~/utils/async'
@@ -58,7 +59,7 @@ async function handleKickAll() {
 async function handleLogout() {
   try {
     await logout()
-    localStorage.removeItem('admin')
+    useAppStore().adminUser = null
     router.push('/login')
   } catch {
     toast.error('注销失败，请重试')
@@ -74,7 +75,7 @@ async function handleChangePassword() {
   try {
     await withMinDuration(() => changePassword({ oldPassword, newPassword }))
     toast.success('密码已修改，即将重新登录')
-    localStorage.removeItem('admin')
+    useAppStore().adminUser = null
     setTimeout(() => router.push('/login'), 1500)
   } catch (e: any) {
     toast.error(e?.response?.data?.message || '修改失败')

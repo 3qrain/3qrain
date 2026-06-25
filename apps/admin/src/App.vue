@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import { Toaster } from "vue-sonner";
-import { useAppStore } from "~/stores/app";
+import { Toaster } from 'vue-sonner'
+import { useAppStore } from '~/stores/app'
+import { initTheme } from '~/css/themes/index'
 
-const store = useAppStore();
+const store = useAppStore()
+initTheme()
 </script>
 
 <template>

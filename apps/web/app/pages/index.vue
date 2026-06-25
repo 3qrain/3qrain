@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { PaginatedData, PostItem, NoteItem } from '~/types/api'
 import { formatDate, formatRelativeTime } from '~/utils/date'
 
-const { data: postsRes } = await useAPI<PaginatedData<PostItem>>('/posts?pageSize=5')
-const { data: notesRes } = await useAPI<PaginatedData<NoteItem>>('/notes?pageSize=4')
+const postApi = usePostApi()
+const noteApi = useNoteApi()
+
+const { data: postsRes } = await useAsyncData('home-posts', () => postApi.getList({ pageSize: 5 }))
+const { data: notesRes } = await useAsyncData('home-notes', () => noteApi.getList({ pageSize: 4 }))
 
 const recentPosts = computed(() => postsRes.value?.data?.list ?? [])
 const recentNotes = computed(() => notesRes.value?.data?.list ?? [])

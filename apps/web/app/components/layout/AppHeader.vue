@@ -13,6 +13,8 @@ interface UserInfo {
   role: 'system' | 'admin' | 'visitor'
 }
 
+const userApi = useUserApi()
+
 const user = ref<UserInfo | null>(null)
 const showLoginModal = ref(false)
 const showProfileModal = ref(false)
@@ -34,12 +36,7 @@ function openProfile() {
 async function saveProfile() {
   savingProfile.value = true
   try {
-    const res = await fetch('/api/user/me', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(profileForm.value),
-    })
-    const json = await res.json()
+    const json = await userApi.updateMe(profileForm.value)
     if (json.success && json.data) {
       user.value = json.data
       showProfileModal.value = false
@@ -56,15 +53,14 @@ async function saveProfile() {
 
 async function fetchUser() {
   try {
-    const res = await fetch('/api/user/me')
-    const json = await res.json()
+    const json = await userApi.me()
     user.value = json.data ?? null
   } catch { /* not logged in */ }
 }
 
 async function logout() {
   try {
-    await fetch('/api/user/logout', { method: 'POST' })
+    await userApi.logout()
     user.value = null
     showProfileModal.value = false
   } catch { /* ignore */ }
