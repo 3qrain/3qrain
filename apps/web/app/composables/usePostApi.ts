@@ -1,4 +1,23 @@
-import type { ApiResponse, PaginatedData, PostItem, PostDetail } from '~/types/api'
+import type { ApiResponse, PaginatedData } from '~/types/api'
+
+export interface PostItem {
+  id: number
+  title: string
+  slug: string
+  summary: string | null
+  cover: string | null
+  isPinned: boolean
+  viewCount: number
+  categoryId: number | null
+  category: { id: number; name: string; slug: string } | null
+  tags: { id: number; name: string; slug: string }[]
+  createdAt: string
+}
+
+export interface PostDetail extends PostItem {
+  contentHtml: string | null
+  updatedAt: string
+}
 
 export function usePostApi() {
   const { $api } = useNuxtApp()
