@@ -9,4 +9,5 @@ export { media } from "./media";
 export { users } from "./users";
 export { notes } from "./notes";
 export { noteTags } from "./note-tags";
-export { noteMedia } from "./note-media";
+export { noteMedia } from './note-media'
+export { comments } from './comments'
