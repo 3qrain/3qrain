@@ -16,8 +16,7 @@ function resolve(theme: Theme) {
 }
 
 function apply(resolved: 'light' | 'dark') {
-  document.documentElement.classList.toggle('dark', resolved === 'dark')
-  document.documentElement.classList.toggle('light', resolved === 'light')
+  document.documentElement.dataset.theme = resolved
 }
 
 function toggle() {

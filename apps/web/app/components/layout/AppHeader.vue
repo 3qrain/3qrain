@@ -5,10 +5,9 @@ import { User as UserIcon } from '@lucide/vue'
 import type { UserInfo } from '~/composables/useUserApi'
 
 const userApi = useUserApi()
-const siteApi = useSiteApi()
+const store = useAppStore()
 
 const user = ref<UserInfo | null>(null)
-const site = ref({ name: '3qrain', avatar: '' })
 const showLoginModal = ref(false)
 const showProfileModal = ref(false)
 const savingProfile = ref(false)
@@ -45,13 +44,6 @@ async function fetchUser() {
   } catch { /* not logged in */ }
 }
 
-async function fetchSite() {
-  try {
-    const res = await siteApi.get()
-    if (res.success) site.value = res.data
-  } catch { /* ignore */ }
-}
-
 async function logout() {
   try {
     await userApi.logout()
@@ -60,18 +52,14 @@ async function logout() {
   } catch { /* ignore */ }
 }
 
-onMounted(() => {
-  fetchUser()
-  fetchSite()
-})
+onMounted(fetchUser)
 </script>
 
 <template>
   <header class="header">
     <div class="header-inner">
       <NuxtLink to="/" class="brand">
-        <img v-if="site.avatar" :src="site.avatar" alt="" class="avatar" />
-        <span class="brand-name">{{ site.name }}</span>
+        <img v-if="store.site.avatar" :src="store.site.avatar" alt="" class="avatar" />
       </NuxtLink>
 
       <nav class="nav">

@@ -1,3 +1,14 @@
+<script setup lang="ts">
+const store = useAppStore()
+const siteApi = useSiteApi()
+
+const { data: siteRes } = await useAsyncData('layout-site', () => siteApi.get())
+
+watch(siteRes, (val) => {
+  if (val?.success) store.site = val.data
+}, { immediate: true })
+</script>
+
 <template>
   <div class="layout">
     <LayoutAppHeader />
