@@ -10,6 +10,7 @@ export interface CommentQuery {
   targetId?: number
   deleted?: string
   keyword?: string
+  parentOnly?: boolean
 }
 
 export async function getComments(query: CommentQuery = {}) {

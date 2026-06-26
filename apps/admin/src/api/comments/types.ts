@@ -24,6 +24,7 @@ export interface Comment {
   deletedAt: string | null
   ip: string | null
   userAgent: string | null
+  replyCount?: number
   createdAt: string
   updatedAt: string
 }

@@ -8,6 +8,7 @@ import Badge from '~/components/base/Badge.vue'
 import Input from '~/components/base/Input.vue'
 import Popover from '~/components/base/Popover.vue'
 import Pagination from '~/components/table/Pagination.vue'
+import { CONTENT_TYPE_LABELS } from '~/api/comments/types'
 import {
   getComments,
   getReplies,
@@ -18,7 +19,6 @@ import {
   destroyComment,
   emptyTrashComments
 } from '~/api/comments'
-import { CONTENT_TYPE_LABELS } from '~/api/comments/types'
 import type { Comment } from '~/api/comments/types'
 import { formatDate } from '~/utils/date'
 import { withMinDuration } from '~/utils/async'
@@ -27,9 +27,10 @@ import { storeToRefs } from 'pinia'
 
 const tabOptions = [
   { label: '全部', value: '' },
-  { label: '待审核', value: 'pending' },
-  { label: '已发布', value: 'published' }
+  { label: '待审核', value: 'pending' }
 ]
+
+const { commentsPaginationMode: paginationMode } = storeToRefs(useAppStore())
 
 const comments = ref<Comment[]>([])
 const total = ref(0)
@@ -37,7 +38,6 @@ const loading = ref(true)
 const page = ref(1)
 const totalPages = ref(1)
 const pageSize = 10
-const { commentsPaginationMode: paginationMode } = storeToRefs(useAppStore())
 const tab = ref('')
 const keyword = ref('')
 const showDeleted = ref(false)
@@ -51,8 +51,7 @@ async function toggleExpand(id: number) {
     expanded.value = next
     return
   }
-
-  if (!replyCache.value[id]) {
+  if (!replyCache.value[id] && !commentTree.value.children[id]?.length) {
     try {
       const result = await getReplies(id)
       replyCache.value[id] = result.list
@@ -60,7 +59,6 @@ async function toggleExpand(id: number) {
       /* ignore */
     }
   }
-
   const next = new Set(expanded.value)
   next.add(id)
   expanded.value = next
@@ -80,6 +78,14 @@ const commentTree = computed(() => {
   return { parents, children }
 })
 
+const orphanReplies = computed(() =>
+  comments.value.filter(c => c.parentId && !commentTree.value.parents.some(p => p.id === c.parentId))
+)
+
+function typeLabel(c: Comment) {
+  return CONTENT_TYPE_LABELS[c.targetType] || c.targetType
+}
+
 async function load(append = false) {
   loading.value = true
   try {
@@ -87,7 +93,8 @@ async function load(append = false) {
       pageSize,
       status: showDeleted.value ? undefined : tab.value || undefined,
       keyword: keyword.value || undefined,
-      deleted: showDeleted.value ? 'true' : undefined
+      deleted: showDeleted.value ? 'true' : undefined,
+      parentOnly: showDeleted.value ? false : true
     }
     if (paginationMode.value === 'scroll') {
       params.offset = append ? comments.value.length : 0
@@ -117,7 +124,8 @@ async function approve(c: Comment) {
 
 async function togglePin(c: Comment) {
   try {
-    Object.assign(c, await pinComment(c.id, !c.isPinned))
+    await pinComment(c.id, !c.isPinned)
+    c.isPinned = !c.isPinned
   } catch (e: any) {
     toast.error(e?.response?.data?.message || '操作失败')
   }
@@ -131,8 +139,7 @@ async function doDelete(c: Comment) {
     total.value -= 1 + kids.length
     toast.success('已移入回收站')
   } catch (e: any) {
-    console.log(123)
-    toast.error(e?.response?.data?.message || '操作失败')
+    toast.error(e?.message || '操作失败')
   }
 }
 
@@ -166,10 +173,6 @@ async function emptyTrash() {
   } catch (e: any) {
     toast.error(e?.message || '操作失败')
   }
-}
-
-function typeLabel(c: Comment) {
-  return CONTENT_TYPE_LABELS[c.targetType] || c.targetType
 }
 
 function goPage(p: number) {
@@ -231,12 +234,11 @@ onMounted(load)
     <div v-if="!loading && !comments.length" class="empty">暂无数据</div>
 
     <div v-else class="list">
-      <template v-for="c in comments" :key="c.id">
-        <div :class="['card', { child: c.parentId }]">
+      <template v-for="c in commentTree.parents" :key="c.id">
+        <div class="card">
           <div class="card-row">
             <div class="left">
-              <span v-if="!c.parentId" class="root-tag">主</span>
-              <span v-else class="reply-tag">回</span>
+              <span class="root-tag">主</span>
               <img :src="c.user.avatarUrl" alt="" class="avatar" />
               <span class="name"
                 >{{ c.user.username }}<span class="uid">#{{ c.userId }}</span></span
@@ -262,7 +264,9 @@ onMounted(load)
           <div class="card-foot">
             <span class="meta">{{ typeLabel(c) }} #{{ c.targetId }} · {{ formatDate(c.createdAt) }}</span>
             <div class="actions">
-              <Button v-if="c.status === 'pending'" variant="success" size="sm" @click="approve(c)">通过</Button>
+              <Button v-if="c.status === 'pending'" variant="success" size="sm" @click="approve(c)"
+                ><Check style="width: 0.75rem; height: 0.75rem" /> 通过</Button
+              >
               <Button v-if="!c.deletedAt && !c.parentId" variant="ghost" size="sm" icon @click="togglePin(c)">
                 <PinOff v-if="c.isPinned" style="width: 0.875rem; height: 0.875rem" />
                 <Pin v-else style="width: 0.875rem; height: 0.875rem" />
@@ -318,22 +322,24 @@ onMounted(load)
               </template>
             </div>
           </div>
-
-          <!-- 顶级评论：展开查看子评论 -->
           <button
-            v-if="!c.parentId && commentTree.children[c.id]?.length"
+            v-if="c.replyCount || commentTree.children[c.id]?.length"
             class="toggle-kids"
             @click="toggleExpand(c.id)"
           >
             <ChevronRight v-if="!expanded.has(c.id)" style="width: 0.875rem; height: 0.875rem" />
             <ChevronDown v-else style="width: 0.875rem; height: 0.875rem" />
-            查看 {{ commentTree.children[c.id].length }} 条回复
+            {{
+              c.replyCount || commentTree.children[c.id]?.length
+                ? `查看 ${c.replyCount || commentTree.children[c.id].length} 条回复`
+                : '查看回复'
+            }}
           </button>
         </div>
 
-        <!-- 展开的子评论面板 -->
-        <div v-if="!c.parentId && expanded.has(c.id)" class="children-panel">
-          <div v-for="r in replyCache[c.id]" :key="r.id" class="child-row">
+        <!-- 展开 -->
+        <div v-if="expanded.has(c.id)" class="children-panel">
+          <div v-for="r in replyCache[c.id] || commentTree.children[c.id] || []" :key="r.id" class="child-row">
             <div class="card-row">
               <div class="left">
                 <span class="reply-tag">回</span>
@@ -412,6 +418,60 @@ onMounted(load)
           </div>
         </div>
       </template>
+
+      <!-- 回收站：孤立回复 -->
+      <div v-if="showDeleted && orphanReplies.length" class="orphan-list">
+        <div v-for="r in orphanReplies" :key="'orphan-' + r.id" class="card">
+          <div class="card-row">
+            <div class="left">
+              <span class="reply-tag">回</span>
+              <img :src="r.user.avatarUrl" alt="" class="avatar" />
+              <span class="name"
+                >{{ r.user.username }}<span class="uid">#{{ r.userId }}</span></span
+              >
+              <template v-if="r.replyToUser">
+                <span class="reply-arrow">→</span>
+                <img :src="r.replyToUser.avatarUrl" alt="" class="avatar sm" />
+                <span class="name"
+                  >{{ r.replyToUser.username }}<span class="uid">#{{ r.replyToUserId }}</span></span
+                >
+              </template>
+            </div>
+            <div class="tags">
+              <Badge variant="error">回收站</Badge>
+            </div>
+          </div>
+          <p class="content">{{ r.content }}</p>
+          <div class="card-foot">
+            <span class="meta">{{ typeLabel(r) }} #{{ r.targetId }} · 所属主评论 #{{ r.parentId }}</span>
+            <div class="actions">
+              <Button variant="ghost" size="sm" icon @click="doRestore(r)"
+                ><RotateCcw style="width: 0.875rem; height: 0.875rem"
+              /></Button>
+              <Popover>
+                <Button variant="ghost" size="sm" icon><Trash2 style="width: 0.875rem; height: 0.875rem" /></Button>
+                <template #content="{ close }">
+                  <p class="confirm-text">永久删除？</p>
+                  <div class="confirm-actions">
+                    <Button variant="ghost" size="sm" @click="close()">取消</Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      @click="
+                        () => {
+                          doDestroy(r)
+                          close()
+                        }
+                      "
+                      >删除</Button
+                    >
+                  </div>
+                </template>
+              </Popover>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="pagination">
@@ -429,7 +489,7 @@ onMounted(load)
 <style scoped lang="less">
 .page {
   padding: 1.75rem 2rem;
-  max-width: 50rem;
+  max-width: 48rem;
 }
 .head {
   display: flex;
@@ -469,7 +529,7 @@ onMounted(load)
   }
   &.active {
     opacity: 1;
-    color: var(--color-error);
+    color: var(--color-warning);
   }
 }
 .toolbar {
@@ -498,7 +558,6 @@ onMounted(load)
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
 }
-
 .card-row {
   display: flex;
   align-items: center;
@@ -509,7 +568,6 @@ onMounted(load)
   align-items: center;
   gap: 0.5rem;
 }
-
 .root-tag {
   font-size: 0.5625rem;
   font-weight: 700;
@@ -541,6 +599,17 @@ onMounted(load)
   font-size: 0.8125rem;
   font-weight: 600;
 }
+.uid {
+  font-size: 0.625rem;
+  opacity: 0.35;
+  font-weight: 400;
+  margin-left: 0.125rem;
+}
+.reply-arrow {
+  font-size: 0.625rem;
+  opacity: 0.3;
+  margin: 0 0.125rem;
+}
 .tags {
   display: flex;
   align-items: center;
@@ -561,26 +630,14 @@ onMounted(load)
 .content.kid {
   font-size: 0.8125rem;
 }
-.meta {
-  font-size: 0.75rem;
-  opacity: 0.3;
-}
-.uid {
-  font-size: 0.625rem;
-  opacity: 0.35;
-  font-weight: 400;
-  margin-left: 0.125rem;
-}
-.reply-arrow {
-  font-size: 0.625rem;
-  opacity: 0.3;
-  margin: 0 0.125rem;
-}
-
 .card-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.meta {
+  font-size: 0.75rem;
+  opacity: 0.3;
 }
 .actions {
   display: flex;
@@ -617,11 +674,18 @@ onMounted(load)
   flex-direction: column;
   gap: 0.375rem;
 }
-
 .child-row {
   padding: 0.5rem 0.75rem;
   border-radius: 0.375rem;
   background: var(--color-base-100);
+}
+.orphan-list {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px dashed var(--color-border);
+}
+.pagination {
+  margin-top: 1.5rem;
 }
 
 .confirm-text {
@@ -633,10 +697,6 @@ onMounted(load)
   display: flex;
   gap: 0.375rem;
   justify-content: flex-end;
-}
-
-.pagination {
-  margin-top: 1rem;
 }
 
 @media (max-width: 48rem) {

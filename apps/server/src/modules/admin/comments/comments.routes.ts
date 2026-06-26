@@ -157,7 +157,7 @@ export const pinCommentRoute = createRoute({
   },
   responses: {
     [HttpStatusCodes.OK]: {
-      content: { 'application/json': { schema: successResponseSchema(commentSchema) } },
+      content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
       description: '操作成功',
     },
     [HttpStatusCodes.NOT_FOUND]: {
