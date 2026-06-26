@@ -23,7 +23,6 @@ export async function githubCallback(c: any) {
     db.update(users)
       .set({
         username: ghUser.login ?? existing.username,
-        email: ghUser.email ?? existing.email,
         avatarUrl: ghUser.avatar_url ?? existing.avatarUrl,
       })
       .where(eq(users.id, existing.id))
@@ -43,9 +42,11 @@ export async function githubCallback(c: any) {
     userId = row.id
   }
 
+  const role = db.select({ role: users.role }).from(users).where(eq(users.id, userId)).get()!.role
+
   const token = generateToken()
   const session = JSON.stringify({
-    role: 'user',
+    role,
     userId,
     createdAt: Date.now(),
     lastActiveAt: Date.now(),

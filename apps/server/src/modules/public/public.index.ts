@@ -4,6 +4,7 @@ import postsRouter from './posts/posts.index'
 import notesRouter from './notes/notes.index'
 import viewRouter from './view/view.index'
 import siteRouter from './site/site.index'
+import commentsRouter from './comments/comments.index'
 
 const publicRouter = createApp()
 
@@ -12,5 +13,6 @@ publicRouter.route('/', postsRouter)
 publicRouter.route('/', notesRouter)
 publicRouter.route('/', viewRouter)
 publicRouter.route('/', siteRouter)
+publicRouter.route('/', commentsRouter)
 
 export default publicRouter

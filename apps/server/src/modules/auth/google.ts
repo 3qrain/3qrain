@@ -27,7 +27,6 @@ export async function googleCallback(c: any) {
     db.update(users)
       .set({
         username: gUser.name ?? existing.username,
-        email: gUser.email ?? existing.email,
         avatarUrl: gUser.picture ?? existing.avatarUrl,
       })
       .where(eq(users.id, existing.id))
@@ -47,9 +46,11 @@ export async function googleCallback(c: any) {
     userId = row.id
   }
 
+  const role = db.select({ role: users.role }).from(users).where(eq(users.id, userId)).get()!.role
+
   const token = generateToken()
   const session = JSON.stringify({
-    role: 'user',
+    role,
     userId,
     createdAt: Date.now(),
     lastActiveAt: Date.now(),

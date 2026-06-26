@@ -7,7 +7,7 @@ const contentTypeEnum = z.enum(['post'])
 export const recordViewSchema = z.object({
   contentId: z.number().int().positive(),
   contentType: contentTypeEnum,
-  visitorId: z.string().min(1),
+  visitorId: z.string().min(1).max(128),
 })
 
 const viewCountSchema = z.object({ viewCount: z.number() })

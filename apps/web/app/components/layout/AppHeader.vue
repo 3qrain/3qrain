@@ -11,11 +11,11 @@ const user = ref<UserInfo | null>(null)
 const showLoginModal = ref(false)
 const showProfileModal = ref(false)
 const savingProfile = ref(false)
-const profileForm = ref({ username: '', email: '' })
+const profileForm = ref({ email: '' })
 
 function openProfile() {
   if (!user.value) return
-  profileForm.value = { username: user.value.username, email: user.value.email }
+  profileForm.value = { email: user.value.email }
   showProfileModal.value = true
 }
 
@@ -30,8 +30,8 @@ async function saveProfile() {
     } else {
       toast.error(json.message || '保存失败')
     }
-  } catch {
-    toast.error('网络错误')
+  } catch (e: any) {
+    toast.error(e?.message)
   } finally {
     savingProfile.value = false
   }
@@ -98,15 +98,12 @@ onMounted(fetchUser)
     <div v-if="user" class="profile-card">
       <div class="profile-header">
         <img :src="user.avatarUrl" alt="" class="profile-avatar" />
+        <p class="profile-name">{{ user.username }}</p>
       </div>
       <div class="profile-form">
         <label class="field">
-          <span>昵称</span>
-          <input v-model="profileForm.username" class="input" />
-        </label>
-        <label class="field">
           <span>邮箱</span>
-          <input v-model="profileForm.email" type="email" class="input" placeholder="用于接收通知" />
+          <input v-model="profileForm.email" type="email" class="input" placeholder="用于接收通知" maxlength="254" />
         </label>
       </div>
       <div class="profile-actions">
@@ -286,7 +283,8 @@ onMounted(fetchUser)
 }
 .profile-header {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 1.25rem;
 }
 
@@ -295,6 +293,12 @@ onMounted(fetchUser)
   height: 4rem;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.profile-name {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .profile-form {

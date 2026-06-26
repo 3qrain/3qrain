@@ -1,13 +1,12 @@
-export default defineNuxtPlugin(nuxtApp => {
+export default defineNuxtPlugin(() => {
   const api = $fetch.create({
     baseURL: '/api',
-    onRequest({ request, options, error }) {},
-    async onResponseError({ response }) {}
+    async onResponseError({ response }) {
+      const data = response._data
+      if (data?.message) throw new Error(data.message)
+      throw new Error('服务异常')
+    },
   })
 
-  return {
-    provide: {
-        api
-    }
-  }
+  return { provide: { api } }
 })

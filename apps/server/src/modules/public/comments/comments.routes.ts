@@ -1,0 +1,83 @@
+import { createRoute, z } from '@hono/zod-openapi'
+import * as HttpStatusCodes from '~/constants/http-status-codes'
+import { successResponseSchema, errorResponseSchema } from '~/utils/response'
+
+const userSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  avatarUrl: z.string(),
+})
+
+const commentItemSchema = z.object({
+  id: z.number(),
+  targetType: z.string(),
+  targetId: z.number(),
+  userId: z.number(),
+  user: userSchema,
+  parentId: z.number().nullable(),
+  replyToUserId: z.number().nullable(),
+  replyToUser: userSchema.nullable(),
+  content: z.string(),
+  isPinned: z.boolean(),
+  createdAt: z.string(),
+})
+
+const commentListSchema = z.object({
+  list: z.array(commentItemSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+})
+
+export const listCommentsRoute = createRoute({
+  tags: ['Public/Comments'],
+  summary: '获取评论列表',
+  method: 'get',
+  path: '/comments',
+  request: {
+    query: z.object({
+      targetType: z.enum(['post', 'note']),
+      targetId: z.string(),
+      page: z.string().optional(),
+      pageSize: z.string().optional(),
+    }),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(commentListSchema) } },
+      description: '评论列表',
+    },
+  },
+})
+
+export const createCommentSchema = z.object({
+  targetType: z.enum(['post', 'note']),
+  targetId: z.number().int().positive(),
+  content: z.string().min(1).max(500, '内容过长'),
+  parentId: z.number().int().positive().optional(),
+  replyToUserId: z.number().int().positive().optional(),
+})
+
+export const createCommentRoute = createRoute({
+  tags: ['Public/Comments'],
+  summary: '发表评论',
+  method: 'post',
+  path: '/comments',
+  request: {
+    body: { content: { 'application/json': { schema: createCommentSchema } } },
+  },
+  responses: {
+    [HttpStatusCodes.CREATED]: {
+      content: { 'application/json': { schema: successResponseSchema(commentItemSchema) } },
+      description: '评论成功',
+    },
+    [HttpStatusCodes.UNAUTHORIZED]: {
+      content: { 'application/json': { schema: errorResponseSchema } },
+      description: '未登录',
+    },
+    [HttpStatusCodes.BAD_REQUEST]: {
+      content: { 'application/json': { schema: errorResponseSchema } },
+      description: '参数校验失败',
+    },
+  },
+})

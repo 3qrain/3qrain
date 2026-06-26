@@ -24,8 +24,7 @@ export const meRoute = createRoute({
 })
 
 export const updateMeSchema = z.object({
-  username: z.string().min(1, '昵称不能为空').optional(),
-  email: z.email('邮箱格式不正确').optional(),
+  email: z.string().email('邮箱格式不正确').max(254, '邮箱过长').optional(),
 }).strict()
 
 export const updateMeRoute = createRoute({

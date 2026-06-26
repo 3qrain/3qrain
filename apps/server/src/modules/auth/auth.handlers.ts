@@ -13,7 +13,7 @@ const TOKEN_TTL = Number(process.env.TOKEN_TTL) || 86400
 
 function buildSessionValue(c: Context): SessionValue {
   return {
-    role: 'admin' as const,
+    role: 'system' as const,
     loginIp: c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown',
     userAgent: c.req.header('user-agent') || 'unknown',
     createdAt: Date.now(),
