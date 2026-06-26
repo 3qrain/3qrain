@@ -107,6 +107,20 @@ export const menuRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/comments',
+    meta: {
+      title: '评论管理',
+      icon: MessageCircle
+    },
+    children: [
+      {
+        path: '',
+        name: 'comments',
+        component: () => import('~/views/comments/Comments.vue')
+      }
+    ]
+  },
+  {
     path: '/settings',
     meta: {
       title: '设置',

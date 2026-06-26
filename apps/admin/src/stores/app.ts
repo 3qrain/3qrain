@@ -21,6 +21,7 @@ interface AppState {
   postsPaginationMode: PaginationMode
   notesPaginationMode: PaginationMode
   mediaPaginationMode: PaginationMode
+  commentsPaginationMode: PaginationMode
   noteComposeDraft: NoteComposeDraft | null
   adminUser: AdminUser | null
 }
@@ -31,6 +32,7 @@ export const useAppStore = defineStore('app', {
     postsPaginationMode: 'scroll',
     notesPaginationMode: 'scroll',
     mediaPaginationMode: 'scroll',
+    commentsPaginationMode: 'scroll',
     noteComposeDraft: null,
     adminUser: null,
   }),

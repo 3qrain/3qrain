@@ -11,7 +11,7 @@ import Pagination from '~/components/table/Pagination.vue'
 import ToggleGroup from '~/components/base/ToggleGroup.vue'
 import MediaPreview from '~/components/media/MediaPreview.vue'
 import NoteCompose from './components/NoteCompose.vue'
-import { getNotes, deleteNote, restoreNote, destroyNote } from '~/api/notes'
+import { getNotes, deleteNote, restoreNote, destroyNote, emptyTrashNotes } from '~/api/notes'
 import { getTags } from '~/api/tags'
 import type { Note } from '~/api/notes/types'
 import type { Tag } from '~/api/tags/types'
@@ -73,7 +73,7 @@ async function load(append = false) {
 function goPage(p: number) {
   page.value = p
   if (paginationMode.value === 'button') {
-    router.replace({ query: { ...route.query, page: String(p) } })
+    if (!showDeleted.value) router.replace({ query: { ...route.query, page: String(p) } })
   }
   load(paginationMode.value === 'scroll')
 }
@@ -159,10 +159,22 @@ async function handleDestroy(note: Note) {
 function toggleDeleted() {
   showDeleted.value = !showDeleted.value
   page.value = 1
+  router.replace({ query: {} })
   load()
 }
 
-watch(paginationMode, (val) => {
+async function handleEmptyTrash() {
+  if (!confirm('确定清空回收站？所有说说将被永久删除。')) return
+  try {
+    await emptyTrashNotes()
+    load()
+    toast.success('回收站已清空')
+  } catch (e: any) {
+    toast.error(e?.message || '操作失败')
+  }
+}
+
+watch(paginationMode, val => {
   page.value = 1
   if (val === 'scroll') {
     router.replace({ query: {} })
@@ -188,8 +200,13 @@ onMounted(() => {
         <span class="sub">共 {{ total }} 条</span>
       </div>
       <div class="head-right">
-        <button :class="['trash-toggle', showDeleted && 'active']" :title="showDeleted ? '返回说说' : '回收站'" @click="toggleDeleted">
-          <Trash style="width: 1rem; height: 1rem;" />
+        <Button v-if="showDeleted" variant="danger" size="sm" @click="handleEmptyTrash">清空回收站</Button>
+        <button
+          :class="['trash-toggle', showDeleted && 'active']"
+          :title="showDeleted ? '返回说说' : '回收站'"
+          @click="toggleDeleted"
+        >
+          <Trash style="width: 1rem; height: 1rem" />
         </button>
         <ToggleGroup
           v-model="paginationMode"
@@ -225,7 +242,17 @@ onMounted(() => {
                   <p class="confirm-text">永久删除？此操作不可恢复</p>
                   <div class="confirm-actions">
                     <Button variant="ghost" size="sm" @click="close()">取消</Button>
-                    <Button variant="danger" size="sm" @click="() => { handleDestroy(note); close() }">确定</Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      @click="
+                        () => {
+                          handleDestroy(note)
+                          close()
+                        }
+                      "
+                      >确定</Button
+                    >
                   </div>
                 </template>
               </Popover>
@@ -242,7 +269,17 @@ onMounted(() => {
                   <p class="confirm-text">确定删除这条说说？</p>
                   <div class="confirm-actions">
                     <Button variant="ghost" size="sm" @click="close()">取消</Button>
-                    <Button variant="danger" size="sm" @click="() => { remove(note); close() }">确定</Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      @click="
+                        () => {
+                          remove(note)
+                          close()
+                        }
+                      "
+                      >确定</Button
+                    >
                   </div>
                 </template>
               </Popover>
@@ -337,8 +374,13 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.12s;
 
-  &:hover { opacity: 0.6; }
-  &.active { opacity: 1; color: var(--color-error); }
+  &:hover {
+    opacity: 0.6;
+  }
+  &.active {
+    opacity: 1;
+    color: var(--color-error);
+  }
 }
 
 .sub {

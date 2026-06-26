@@ -212,6 +212,19 @@ export const destroyPostRoute = createRoute({
   },
 });
 
+export const emptyTrashRoute = createRoute({
+  tags: ['Admin/Posts'],
+  summary: '清空回收站',
+  method: 'delete',
+  path: '/trash/posts',
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
+      description: '回收站已清空',
+    },
+  },
+})
+
 export const restorePostRoute = createRoute({
   tags: ["Admin/Posts"],
   summary: "恢复文章",

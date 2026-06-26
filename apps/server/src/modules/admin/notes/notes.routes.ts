@@ -114,6 +114,19 @@ export const restoreNoteRoute = createRoute({
   },
 })
 
+export const emptyTrashRoute = createRoute({
+  tags: ['Admin/Notes'],
+  summary: '清空回收站',
+  method: 'delete',
+  path: '/trash/notes',
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
+      description: '回收站已清空',
+    },
+  },
+})
+
 export const destroyNoteRoute = createRoute({
   tags: ['Admin/Notes'],
   summary: '永久删除说说',

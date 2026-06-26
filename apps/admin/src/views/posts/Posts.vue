@@ -8,9 +8,8 @@ import ToggleGroup from '~/components/base/ToggleGroup.vue'
 import Select from '~/components/base/Select.vue'
 import Button from '~/components/base/Button.vue'
 import Badge from '~/components/base/Badge.vue'
-import Input from '~/components/base/Input.vue'
 import Popover from '~/components/base/Popover.vue'
-import { getPosts, deletePost, restorePost, destroyPost } from '~/api/posts'
+import { getPosts, deletePost, restorePost, destroyPost, emptyTrash } from '~/api/posts'
 import { getCategories } from '~/api/categories'
 import type { Post } from '~/api/posts/types'
 import type { Category } from '~/api/categories/types'
@@ -81,7 +80,7 @@ function search() {
 function goPage(p: number) {
   query.value.page = p
   if (paginationMode.value === 'button') {
-    router.replace({ query: { ...route.query, page: String(p) } })
+    if (!showDeleted.value) router.replace({ query: { ...route.query, page: String(p) } })
   }
   load(paginationMode.value === 'scroll')
 }
@@ -142,7 +141,14 @@ async function handleDestroy(post: Post) {
 function toggleDeleted() {
   showDeleted.value = !showDeleted.value
   query.value.page = 1
+  router.replace({ query: {} })
   load()
+}
+
+async function handleEmptyTrash() {
+  if (!confirm('确定清空回收站？所有文章将被永久删除。')) return
+  try { await emptyTrash(); load(); toast.success('回收站已清空') }
+  catch (e: any) { toast.error(e?.message || '操作失败') }
 }
 
 watch(() => query.value.status, () => search())
@@ -173,6 +179,7 @@ onMounted(() => {
         <span class="sub">共 {{ total }} 篇</span>
       </div>
       <div class="head-right">
+        <Button v-if="showDeleted" variant="danger" size="sm" @click="handleEmptyTrash">清空回收站</Button>
         <button :class="['trash-toggle', showDeleted && 'active']" :title="showDeleted ? '返回文章' : '回收站'" @click="toggleDeleted">
           <Trash style="width: 1rem; height: 1rem;" />
         </button>
@@ -451,9 +458,7 @@ onMounted(() => {
 
   .row-actions { opacity: 1; }
 }
-</style>
 
-<style lang="less">
 .row:has([data-popover-open]) .row-actions {
   opacity: 1;
 }

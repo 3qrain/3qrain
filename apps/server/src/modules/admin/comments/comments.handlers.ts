@@ -48,6 +48,7 @@ export async function list(c: Context) {
   const query = c.req.query()
   const page = Number(query.page || 1)
   const pageSize = Number(query.pageSize || 20)
+  const actualOffset = query.offset !== undefined ? Number(query.offset) : (page - 1) * pageSize
 
   const conditions = buildFilters(query)
   const where = conditions.length > 0 ? and(...conditions) : undefined
@@ -60,7 +61,7 @@ export async function list(c: Context) {
     .where(where)
     .orderBy(desc(comments.createdAt))
     .limit(pageSize)
-    .offset((page - 1) * pageSize)
+    .offset(actualOffset)
     .all()
 
   const list = enrichComments(rows)
@@ -152,7 +153,9 @@ export async function remove(c: Context) {
     return c.json(fail(ErrorCode.INVALID_PARAMS, '评论不存在'), HttpStatusCodes.NOT_FOUND)
   }
 
-  db.update(comments).set({ deletedAt: new Date() }).where(eq(comments.id, id)).run()
+  const now = new Date()
+  db.update(comments).set({ deletedAt: now }).where(eq(comments.parentId, id)).run()
+  db.update(comments).set({ deletedAt: now }).where(eq(comments.id, id)).run()
   return c.json(ok({}, '已移入回收站'), HttpStatusCodes.OK)
 }
 
@@ -173,6 +176,25 @@ export async function restore(c: Context) {
   return c.json(ok(enriched as any, '已恢复'), HttpStatusCodes.OK)
 }
 
+export async function replies(c: Context) {
+  const id = Number(c.req.param('id')!)
+
+  const rows = db
+    .select()
+    .from(comments)
+    .where(eq(comments.parentId, id))
+    .orderBy(desc(comments.createdAt))
+    .all()
+
+  const list = enrichComments(rows)
+  return c.json(ok({ list, total: rows.length }, '获取成功'), HttpStatusCodes.OK)
+}
+
+export async function emptyTrash(c: Context) {
+  db.delete(comments).where(isNotNull(comments.deletedAt)).run()
+  return c.json(ok({}, '回收站已清空'), HttpStatusCodes.OK)
+}
+
 export async function destroy(c: Context) {
   const id = Number(c.req.param('id')!)
 
@@ -181,6 +203,7 @@ export async function destroy(c: Context) {
     return c.json(fail(ErrorCode.INVALID_PARAMS, '评论不存在'), HttpStatusCodes.NOT_FOUND)
   }
 
+  db.delete(comments).where(eq(comments.parentId, id)).run()
   db.delete(comments).where(eq(comments.id, id)).run()
   return c.json(ok({}, '已永久删除'), HttpStatusCodes.OK)
 }

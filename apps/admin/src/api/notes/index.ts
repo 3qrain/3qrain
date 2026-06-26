@@ -26,6 +26,11 @@ export async function restoreNote(id: number) {
   return data
 }
 
+export async function emptyTrashNotes() {
+  const { data } = await apiClient.delete('/admin/trash/notes')
+  return data
+}
+
 export async function destroyNote(id: number) {
   const { data } = await apiClient.delete(`/admin/notes/${id}/destroy`)
   return data

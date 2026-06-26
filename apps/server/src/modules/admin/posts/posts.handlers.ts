@@ -285,6 +285,15 @@ export async function trash(c: Context) {
   return c.json(ok({}, '已移入回收站'), HttpStatusCodes.OK)
 }
 
+export async function emptyTrash(c: Context) {
+  const trashed = db.select({ id: posts.id }).from(posts).where(isNotNull(posts.deletedAt)).all()
+  for (const p of trashed) {
+    db.delete(postTags).where(eq(postTags.postId, p.id)).run()
+  }
+  db.delete(posts).where(isNotNull(posts.deletedAt)).run()
+  return c.json(ok({}, '回收站已清空'), HttpStatusCodes.OK)
+}
+
 export async function destroy(c: Context) {
   const id = Number.parseInt(c.req.param('id')!)
 

@@ -203,6 +203,39 @@ export const restoreCommentRoute = createRoute({
   },
 })
 
+const repliesListSchema = z.object({ list: z.array(commentSchema), total: z.number() })
+
+export const repliesRoute = createRoute({
+  tags: ['Admin/Comments'],
+  summary: '获取某条评论的所有回复',
+  method: 'get',
+  path: '/comments/{id}/replies',
+  request: { params: z.object({ id: z.string() }) },
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(repliesListSchema) } },
+      description: '回复列表',
+    },
+    [HttpStatusCodes.NOT_FOUND]: {
+      content: { 'application/json': { schema: errorResponseSchema } },
+      description: '评论不存在',
+    },
+  },
+})
+
+export const emptyTrashRoute = createRoute({
+  tags: ['Admin/Comments'],
+  summary: '清空回收站',
+  method: 'delete',
+  path: '/trash/comments',
+  responses: {
+    [HttpStatusCodes.OK]: {
+      content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
+      description: '回收站已清空',
+    },
+  },
+})
+
 export const destroyCommentRoute = createRoute({
   tags: ['Admin/Comments'],
   summary: '物理删除',

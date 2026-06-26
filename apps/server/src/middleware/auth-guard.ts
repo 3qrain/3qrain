@@ -31,7 +31,8 @@ export const authGuard = createMiddleware(async (c, next) => {
 
   const result = sessionValueSchema.safeParse(parsed)
   if (!result.success) {
-    return c.json(fail(ErrorCode.INTERNAL_ERROR, 'session数据值校验失败'), HttpStatusCodes.INTERNAL_SERVER_ERROR)
+    await redis.del(`${SESSION_ADMIN_PREFIX}${token}`)
+    return c.json(fail(ErrorCode.UNAUTHORIZED, 'session数据值校验失败'), HttpStatusCodes.UNAUTHORIZED)
   }
 
   result.data.lastActiveAt = Date.now()

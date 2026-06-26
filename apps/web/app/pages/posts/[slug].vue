@@ -56,6 +56,8 @@ onMounted(() => {
     />
 
     <div v-else class="empty">暂无内容。</div>
+
+    <CommentSection target-type="post" :target-id="post.id" />
   </article>
 </template>
 

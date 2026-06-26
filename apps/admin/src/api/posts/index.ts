@@ -31,6 +31,11 @@ export async function destroyPost(id: number) {
   return data;
 }
 
+export async function emptyTrash() {
+  const { data } = await apiClient.delete('/admin/trash/posts')
+  return data
+}
+
 export async function restorePost(id: number) {
   const { data } = await apiClient.patch<{ data: Post }>(`/admin/posts/${id}/restore`);
   return data.data;

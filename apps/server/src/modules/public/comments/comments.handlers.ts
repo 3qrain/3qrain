@@ -67,7 +67,7 @@ export async function list(c: Context) {
     .select()
     .from(comments)
     .where(filter)
-    .orderBy(desc(comments.isPinned), asc(comments.createdAt))
+    .orderBy(desc(comments.isPinned), desc(comments.createdAt))
     .limit(pageSize)
     .offset((page - 1) * pageSize)
     .all()

@@ -181,6 +181,16 @@ export async function restore(c: Context) {
   return c.json(ok({}, '已恢复'), HttpStatusCodes.OK)
 }
 
+export async function emptyTrash(c: Context) {
+  const trashed = db.select({ id: notes.id }).from(notes).where(isNotNull(notes.deletedAt)).all()
+  for (const n of trashed) {
+    db.delete(noteTags).where(eq(noteTags.noteId, n.id)).run()
+    db.delete(noteMedia).where(eq(noteMedia.noteId, n.id)).run()
+  }
+  db.delete(notes).where(isNotNull(notes.deletedAt)).run()
+  return c.json(ok({}, '回收站已清空'), HttpStatusCodes.OK)
+}
+
 export async function destroy(c: Context) {
   const id = Number.parseInt(c.req.param('id')!)
   const existing = db.select().from(notes).where(eq(notes.id, id)).get()
