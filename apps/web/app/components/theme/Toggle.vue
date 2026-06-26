@@ -37,9 +37,11 @@ if (import.meta.client) {
 </script>
 
 <template>
-  <button class="toggle" :title="store.theme" @click="toggle">
-    <component :is="icons[store.theme]" :size="14" :stroke-width="1.5" />
-  </button>
+  <ClientOnly>
+    <button class="toggle" :title="store.theme" @click="toggle">
+      <component :is="icons[store.theme]" :size="14" :stroke-width="1.5" />
+    </button>
+  </ClientOnly>
 </template>
 
 <style scoped lang="less">
@@ -57,6 +59,8 @@ if (import.meta.client) {
   cursor: pointer;
   transition: opacity 0.15s;
 
-  &:hover { opacity: 0.7; }
+  &:hover {
+    opacity: 0.7;
+  }
 }
 </style>

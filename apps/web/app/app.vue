@@ -4,6 +4,8 @@ import 'vue-sonner/style.css'
 import '~/assets/css/global.css'
 import '~/assets/css/themes/index.css'
 
+const appstore = useAppStore()
+
 useHead({
   script: [
     {
@@ -33,6 +35,6 @@ useHead({
     <NuxtPage />
   </NuxtLayout>
   <ClientOnly>
-    <Toaster position="bottom-right" />
+    <Toaster position="bottom-right" :theme="appstore.theme" />
   </ClientOnly>
 </template>

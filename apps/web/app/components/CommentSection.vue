@@ -9,9 +9,9 @@ const props = defineProps<{
 }>()
 
 const commentApi = useCommentApi()
-const userApi = useUserApi()
+const store = useAppStore()
 
-const comments = ref<typeof import('~/composables/useCommentApi').CommentItem[]>([])
+const comments = ref<(typeof import('~/composables/useCommentApi').CommentItem)[]>([])
 const total = ref(0)
 const totalPages = ref(1)
 const page = ref(1)
@@ -20,8 +20,6 @@ const submitting = ref(false)
 
 const content = ref('')
 const replyTo = ref<{ id: number; userId: number; username: string } | null>(null)
-
-const user = ref<any>(null)
 
 // 树形结构
 const commentTree = computed(() => {
@@ -48,16 +46,11 @@ async function load() {
       total.value = res.data.total
       totalPages.value = Math.ceil(res.data.total / 20)
     }
-  } catch { /* ignore */ } finally {
+  } catch {
+    /* ignore */
+  } finally {
     loading.value = false
   }
-}
-
-async function fetchUser() {
-  try {
-    const res = await userApi.me()
-    user.value = res.data ?? null
-  } catch { /* ignore */ }
 }
 
 function startReply(comment: any) {
@@ -77,7 +70,7 @@ async function submit(parentId?: number, replyToUserId?: number) {
       targetId: props.targetId,
       content: content.value,
       parentId,
-      replyToUserId,
+      replyToUserId
     })
     if (res.success) {
       content.value = ''
@@ -94,7 +87,6 @@ async function submit(parentId?: number, replyToUserId?: number) {
 }
 
 load()
-fetchUser()
 </script>
 
 <template>
@@ -102,29 +94,32 @@ fetchUser()
     <h3 class="title">评论 {{ total ? `(${total})` : '' }}</h3>
 
     <!-- 评论输入框 -->
-    <div v-if="user" class="composer">
-      <img :src="user.avatarUrl" alt="" class="avatar" />
-      <div class="composer-body">
-        <div v-if="replyTo" class="reply-hint">
-          回复 <strong>@{{ replyTo.username }}</strong>
-          <button class="cancel-reply" @click="cancelReply">取消</button>
+    <ClientOnly>
+      <div v-if="store.user" class="composer">
+        <img :src="store.user?.avatarUrl" alt="" class="avatar" />
+        <div class="composer-body">
+          <div v-if="replyTo" class="reply-hint">
+            回复 <strong>@{{ replyTo.username }}</strong>
+            <button class="cancel-reply" @click="cancelReply">取消</button>
+          </div>
+          <textarea
+            v-model="content"
+            class="input"
+            rows="3"
+            :placeholder="replyTo ? `回复 @${replyTo.username}...` : '说点什么...'"
+            maxlength="500"
+          />
+          <button
+            class="btn-submit"
+            :disabled="!content.trim() || submitting"
+            @click="submit(replyTo?.id, replyTo?.userId)"
+          >
+            {{ submitting ? '提交中...' : '发布' }}
+          </button>
         </div>
-        <textarea
-          v-model="content"
-          class="input"
-          rows="3"
-          :placeholder="replyTo ? `回复 @${replyTo.username}...` : '说点什么...'"
-          maxlength="500"
-        />
-        <button class="btn-submit" :disabled="!content.trim() || submitting" @click="submit(replyTo?.id, replyTo?.userId)">
-          {{ submitting ? '提交中...' : '发布' }}
-        </button>
       </div>
-    </div>
-    <p v-else class="login-tip">
-      <a href="/api/auth/github">登录</a>后参与评论
-    </p>
-
+      <p v-else class="login-tip"><a href="/api/auth/github">登录</a>后参与评论</p>
+    </ClientOnly>
     <!-- 评论列表 -->
     <div v-if="loading" class="loading">加载中...</div>
 
@@ -140,7 +135,7 @@ fetchUser()
             <time>{{ formatDate(c.createdAt) }}</time>
           </div>
           <p class="comment-content">{{ c.content }}</p>
-          <button v-if="user" class="reply-btn" @click="startReply(c)">回复</button>
+          <button v-if="store.user" class="reply-btn" @click="startReply(c)">回复</button>
 
           <!-- 子评论 -->
           <div v-if="commentTree.replies[c.id]?.length" class="replies">
@@ -156,7 +151,7 @@ fetchUser()
                   <time>{{ formatDate(r.createdAt) }}</time>
                 </div>
                 <p class="comment-content">{{ r.content }}</p>
-                <button v-if="user" class="reply-btn" @click="startReply(c)">回复</button>
+                <button v-if="store.user" class="reply-btn" @click="startReply(c)">回复</button>
               </div>
             </div>
           </div>
@@ -169,7 +164,12 @@ fetchUser()
       class="pagination"
       :current-page="page"
       :total-pages="totalPages"
-      @change="p => { page = p; load() }"
+      @change="
+        p => {
+          page = p
+          load()
+        }
+      "
     />
   </div>
 </template>
@@ -191,7 +191,7 @@ fetchUser()
 /* --- Composer --- */
 .composer {
   display: flex;
-  gap: .75rem;
+  gap: 0.75rem;
   margin-bottom: 2rem;
 }
 
@@ -208,9 +208,9 @@ fetchUser()
 }
 
 .reply-hint {
-  font-size: .75rem;
+  font-size: 0.75rem;
   opacity: 0.5;
-  margin-bottom: .375rem;
+  margin-bottom: 0.375rem;
 }
 
 .cancel-reply {
@@ -218,54 +218,63 @@ fetchUser()
   background: transparent;
   color: var(--color-primary);
   cursor: pointer;
-  font-size: .75rem;
-  margin-left: .5rem;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
 }
 
 .input {
   width: 100%;
-  padding: .5rem .75rem;
-  border-radius: .5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--color-border);
   background: var(--color-base-100);
-  font-size: .875rem;
+  font-size: 0.875rem;
   color: var(--color-base-content);
   outline: none;
   resize: vertical;
   font-family: inherit;
   line-height: 1.5;
 
-  &:focus { border-color: var(--color-primary); }
+  &:focus {
+    border-color: var(--color-primary);
+  }
 }
 
 .btn-submit {
-  margin-top: .5rem;
-  padding: .375rem 1rem;
-  border-radius: .375rem;
+  margin-top: 0.5rem;
+  padding: 0.375rem 1rem;
+  border-radius: 0.375rem;
   border: none;
   background: var(--color-primary);
   color: var(--color-primary-content);
-  font-size: .8125rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
 
-  &:hover { opacity: 0.9; }
-  &:disabled { opacity: 0.4; cursor: default; }
+  &:hover {
+    opacity: 0.9;
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
 }
 
 .login-tip {
-  font-size: .875rem;
+  font-size: 0.875rem;
   opacity: 0.4;
   margin-bottom: 2rem;
 
-  a { color: var(--color-primary); }
+  a {
+    color: var(--color-primary);
+  }
 }
 
 .loading,
 .empty {
   padding: 2rem 0;
   text-align: center;
-  font-size: .875rem;
+  font-size: 0.875rem;
   opacity: 0.35;
 }
 
@@ -273,22 +282,27 @@ fetchUser()
 .list {
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: 0.5rem;
 }
 
 .comment {
   display: flex;
-  gap: .75rem;
-  padding: .75rem 0;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
   border-bottom: 1px solid var(--color-border);
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 
   &.reply {
     border-bottom: none;
-    padding: .5rem 0;
+    padding: 0.5rem 0;
 
-    .avatar { width: 1.75rem; height: 1.75rem; }
+    .avatar {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
   }
 }
 
@@ -300,10 +314,10 @@ fetchUser()
 .comment-head {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  font-size: .75rem;
+  gap: 0.5rem;
+  font-size: 0.75rem;
   opacity: 0.5;
-  margin-bottom: .25rem;
+  margin-bottom: 0.25rem;
 }
 
 .username {
@@ -312,18 +326,18 @@ fetchUser()
 }
 
 .pin-badge {
-  font-size: .625rem;
+  font-size: 0.625rem;
   font-weight: 600;
   color: var(--color-warning);
 }
 
 .reply-arrow {
-  font-size: .625rem;
+  font-size: 0.625rem;
   opacity: 0.4;
 }
 
 .comment-content {
-  font-size: .875rem;
+  font-size: 0.875rem;
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
@@ -332,17 +346,19 @@ fetchUser()
 .reply-btn {
   border: none;
   background: transparent;
-  font-size: .75rem;
+  font-size: 0.75rem;
   color: var(--color-base-content);
   opacity: 0.3;
   cursor: pointer;
-  margin-top: .25rem;
+  margin-top: 0.25rem;
 
-  &:hover { opacity: 0.6; }
+  &:hover {
+    opacity: 0.6;
+  }
 }
 
 .replies {
-  margin-top: .5rem;
+  margin-top: 0.5rem;
   padding-left: 1.25rem;
   border-left: 2px solid var(--color-border);
 }

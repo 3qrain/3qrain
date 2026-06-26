@@ -1,12 +1,24 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
+
 const store = useAppStore()
 const siteApi = useSiteApi()
+const userApi = useUserApi()
 
 const { data: siteRes } = await useAsyncData('layout-site', () => siteApi.get())
 
 watch(siteRes, (val) => {
   if (val?.success) store.site = val.data
 }, { immediate: true })
+
+onMounted(async () => {
+  try {
+    const res = await userApi.me()
+    store.user = res.data ?? null
+  } catch {
+    store.user = null
+  }
+})
 </script>
 
 <template>

@@ -7,6 +7,7 @@ export const useAppStore = defineStore('app', {
     visitorId: '',
     theme: 'system' as Theme,
     site: { name: '3qrain', avatar: '', bio: '' },
+    user: null as { id: number; username: string; email: string; avatarUrl: string; role: string } | null,
   }),
   actions: {
     genVisitorId() {
@@ -16,5 +17,5 @@ export const useAppStore = defineStore('app', {
       return this.visitorId
     },
   },
-  persist: { key: APP_STORAGE_KEY, pick: ['visitorId', 'theme', 'site'] },
+  persist: { key: APP_STORAGE_KEY, pick: ['visitorId', 'theme', 'site', 'user'] },
 })

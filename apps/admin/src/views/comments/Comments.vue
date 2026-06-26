@@ -60,7 +60,9 @@ async function toggleExpand(c: Comment) {
         const existing = comments.value.find(x => x.id === r.id)
         return existing ? Object.assign(existing, r) : r
       })
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
   const next = new Set(expanded.value)
   next.add(c.id)
@@ -265,9 +267,7 @@ onMounted(load)
               <Popover v-if="!c.deletedAt">
                 <Button variant="ghost" size="sm" icon><Trash2 style="width: 0.875rem; height: 0.875rem" /></Button>
                 <template #content="{ close }">
-                  <p class="confirm-text">
-                    移入回收站？
-                  </p>
+                  <p class="confirm-text">移入回收站？</p>
                   <div class="confirm-actions">
                     <Button variant="ghost" size="sm" @click="close()">取消</Button>
                     <Button
@@ -291,9 +291,7 @@ onMounted(load)
                 <Popover>
                   <Button variant="ghost" size="sm" icon><Trash2 style="width: 0.875rem; height: 0.875rem" /></Button>
                   <template #content="{ close }">
-                    <p class="confirm-text">
-                      永久删除？子评论也会一并删除。
-                    </p>
+                    <p class="confirm-text">永久删除？子评论也会一并删除。</p>
                     <div class="confirm-actions">
                       <Button variant="ghost" size="sm" @click="close()">取消</Button>
                       <Button
@@ -313,11 +311,7 @@ onMounted(load)
               </template>
             </div>
           </div>
-          <button
-            v-if="c.replyCount"
-            class="toggle-kids"
-            @click="toggleExpand(c)"
-          >
+          <button v-if="c.replyCount" class="toggle-kids" @click="toggleExpand(c)">
             <ChevronRight v-if="!expanded.has(c.id)" style="width: 0.875rem; height: 0.875rem" />
             <ChevronDown v-else style="width: 0.875rem; height: 0.875rem" />
             查看 {{ c.replyCount }} 条回复

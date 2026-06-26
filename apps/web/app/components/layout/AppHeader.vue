@@ -1,34 +1,31 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { User as UserIcon } from '@lucide/vue'
-import type { UserInfo } from '~/composables/useUserApi'
 
-const userApi = useUserApi()
 const store = useAppStore()
-
-const user = ref<UserInfo | null>(null)
+const userApi = useUserApi()
 const showLoginModal = ref(false)
 const showProfileModal = ref(false)
 const savingProfile = ref(false)
 const profileForm = ref({ email: '' })
 
 function openProfile() {
-  if (!user.value) return
-  profileForm.value = { email: user.value.email }
+  if (!store.user) return
+  profileForm.value = { email: store.user.email }
   showProfileModal.value = true
 }
 
 async function saveProfile() {
   savingProfile.value = true
   try {
-    const json = await userApi.updateMe(profileForm.value)
-    if (json.success && json.data) {
-      user.value = json.data
+    const res = await userApi.updateMe(profileForm.value)
+    if (res.success) {
+      store.user = res.data
       showProfileModal.value = false
       toast.success('已保存')
     } else {
-      toast.error(json.message || '保存失败')
+      toast.error(res.message || '保存失败')
     }
   } catch (e: any) {
     toast.error(e?.message)
@@ -37,22 +34,13 @@ async function saveProfile() {
   }
 }
 
-async function fetchUser() {
-  try {
-    const res = await userApi.me()
-    user.value = res.data ?? null
-  } catch { /* not logged in */ }
-}
-
 async function logout() {
   try {
     await userApi.logout()
-    user.value = null
+    store.user = null
     showProfileModal.value = false
   } catch { /* ignore */ }
 }
-
-onMounted(fetchUser)
 </script>
 
 <template>
@@ -68,12 +56,19 @@ onMounted(fetchUser)
       </nav>
 
       <div class="actions">
-        <button v-if="user" class="user-trigger" @click="openProfile">
-          <img :src="user.avatarUrl" alt="" class="user-avatar" />
-        </button>
-        <button v-else class="trigger" @click="showLoginModal = true">
-          <UserIcon :size="18" :stroke-width="1.5" />
-        </button>
+        <ClientOnly>
+          <button v-if="store.user" class="user-trigger" @click="openProfile">
+            <img :src="store.user.avatarUrl" alt="" class="user-avatar" />
+          </button>
+          <button v-else class="trigger" @click="showLoginModal = true">
+            <UserIcon :size="18" :stroke-width="1.5" />
+          </button>
+          <template #fallback>
+            <button class="trigger">
+              <UserIcon :size="18" :stroke-width="1.5" />
+            </button>
+          </template>
+        </ClientOnly>
       </div>
     </div>
   </header>
@@ -95,10 +90,10 @@ onMounted(fetchUser)
   </BaseModal>
 
   <BaseModal v-model:open="showProfileModal">
-    <div v-if="user" class="profile-card">
+    <div v-if="store.user" class="profile-card">
       <div class="profile-header">
-        <img :src="user.avatarUrl" alt="" class="profile-avatar" />
-        <p class="profile-name">{{ user.username }}</p>
+        <img :src="store.user.avatarUrl" alt="" class="profile-avatar" />
+        <p class="profile-name">{{ store.user.username }}</p>
       </div>
       <div class="profile-form">
         <label class="field">
