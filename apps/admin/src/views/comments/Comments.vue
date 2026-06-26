@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { Check, Pin, PinOff, Trash2, RotateCcw, Search, ChevronDown, ChevronRight, Trash } from '@lucide/vue'
 import ToggleGroup from '~/components/base/ToggleGroup.vue'
@@ -42,45 +42,30 @@ const tab = ref('')
 const keyword = ref('')
 const showDeleted = ref(false)
 const expanded = ref<Set<number>>(new Set())
-const replyCache = ref<Record<number, Comment[]>>({})
 
-async function toggleExpand(id: number) {
-  if (expanded.value.has(id)) {
+async function toggleExpand(c: Comment) {
+  if (expanded.value.has(c.id)) {
     const next = new Set(expanded.value)
-    next.delete(id)
+    next.delete(c.id)
     expanded.value = next
     return
   }
-  if (!replyCache.value[id] && !commentTree.value.children[id]?.length) {
+  const arr = (c as any).replies
+  if (!arr) {
     try {
-      const result = await getReplies(id)
-      replyCache.value[id] = result.list
-    } catch {
-      /* ignore */
-    }
+      const result = await getReplies(c.id)
+      ;(c as any).replies = result.list.map((r: Comment) => {
+        // 如果当前评论列表已经有这个子评论A，那么展开区这个子评论用A这个引用
+        // 方便同步子评论的恢复、删除状态
+        const existing = comments.value.find(x => x.id === r.id)
+        return existing ? Object.assign(existing, r) : r
+      })
+    } catch { /* ignore */ }
   }
   const next = new Set(expanded.value)
-  next.add(id)
+  next.add(c.id)
   expanded.value = next
 }
-
-const commentTree = computed(() => {
-  const parents: Comment[] = []
-  const children: Record<number, Comment[]> = {}
-  for (const c of comments.value) {
-    if (c.parentId) {
-      if (!children[c.parentId]) children[c.parentId] = []
-      children[c.parentId].push(c)
-    } else {
-      parents.push(c)
-    }
-  }
-  return { parents, children }
-})
-
-const orphanReplies = computed(() =>
-  comments.value.filter(c => c.parentId && !commentTree.value.parents.some(p => p.id === c.parentId))
-)
 
 function typeLabel(c: Comment) {
   return CONTENT_TYPE_LABELS[c.targetType] || c.targetType
@@ -134,12 +119,11 @@ async function togglePin(c: Comment) {
 async function doDelete(c: Comment) {
   try {
     await deleteComment(c.id)
-    const kids = commentTree.value.children[c.id] || []
-    comments.value = comments.value.filter(x => x.id !== c.id && !kids.some(k => k.id === x.id))
-    total.value -= 1 + kids.length
+    c.deletedAt = new Date().toISOString()
+    c.status = 'published'
     toast.success('已移入回收站')
   } catch (e: any) {
-    toast.error(e?.message || '操作失败')
+    toast.error(e?.response?.data?.message || '操作失败')
   }
 }
 
@@ -155,12 +139,18 @@ async function doRestore(c: Comment) {
 async function doDestroy(c: Comment) {
   try {
     await destroyComment(c.id)
-    const kids = commentTree.value.children[c.id] || []
-    comments.value = comments.value.filter(x => x.id !== c.id && !kids.some(k => k.id === x.id))
-    total.value -= 1 + kids.length
+    const removed = comments.value.filter(x => x.id === c.id || x.parentId === c.id).length
+    comments.value = comments.value.filter(x => x.id !== c.id && x.parentId !== c.id)
+    for (const x of comments.value) {
+      // 清理 replies 引用 + 更新 replyCount
+      if (x.id === c.parentId && x.replyCount) x.replyCount--
+      const arr = (x as any).replies
+      if (arr) (x as any).replies = arr.filter((r: Comment) => r.id !== c.id)
+    }
+    total.value -= removed
     toast.success('已删除')
   } catch (e: any) {
-    toast.error(e?.message || '操作失败')
+    toast.error(e?.response?.data?.message || '操作失败')
   }
 }
 
@@ -171,7 +161,7 @@ async function emptyTrash() {
     await load()
     toast.success('回收站已清空')
   } catch (e: any) {
-    toast.error(e?.message || '操作失败')
+    toast.error(e?.response?.data?.message || '操作失败')
   }
 }
 
@@ -234,11 +224,12 @@ onMounted(load)
     <div v-if="!loading && !comments.length" class="empty">暂无数据</div>
 
     <div v-else class="list">
-      <template v-for="c in commentTree.parents" :key="c.id">
+      <template v-for="c in comments" :key="c.id">
         <div class="card">
           <div class="card-row">
             <div class="left">
-              <span class="root-tag">主</span>
+              <span v-if="!c.parentId" class="root-tag">主</span>
+              <span v-else class="reply-tag">回</span>
               <img :src="c.user.avatarUrl" alt="" class="avatar" />
               <span class="name"
                 >{{ c.user.username }}<span class="uid">#{{ c.userId }}</span></span
@@ -275,7 +266,7 @@ onMounted(load)
                 <Button variant="ghost" size="sm" icon><Trash2 style="width: 0.875rem; height: 0.875rem" /></Button>
                 <template #content="{ close }">
                   <p class="confirm-text">
-                    移入回收站？{{ commentTree.children[c.id]?.length ? '子评论一并移除。' : '' }}
+                    移入回收站？
                   </p>
                   <div class="confirm-actions">
                     <Button variant="ghost" size="sm" @click="close()">取消</Button>
@@ -301,7 +292,7 @@ onMounted(load)
                   <Button variant="ghost" size="sm" icon><Trash2 style="width: 0.875rem; height: 0.875rem" /></Button>
                   <template #content="{ close }">
                     <p class="confirm-text">
-                      永久删除？{{ commentTree.children[c.id]?.length ? '子评论一并删除。' : '' }}
+                      永久删除？子评论也会一并删除。
                     </p>
                     <div class="confirm-actions">
                       <Button variant="ghost" size="sm" @click="close()">取消</Button>
@@ -323,23 +314,19 @@ onMounted(load)
             </div>
           </div>
           <button
-            v-if="c.replyCount || commentTree.children[c.id]?.length"
+            v-if="c.replyCount"
             class="toggle-kids"
-            @click="toggleExpand(c.id)"
+            @click="toggleExpand(c)"
           >
             <ChevronRight v-if="!expanded.has(c.id)" style="width: 0.875rem; height: 0.875rem" />
             <ChevronDown v-else style="width: 0.875rem; height: 0.875rem" />
-            {{
-              c.replyCount || commentTree.children[c.id]?.length
-                ? `查看 ${c.replyCount || commentTree.children[c.id].length} 条回复`
-                : '查看回复'
-            }}
+            查看 {{ c.replyCount }} 条回复
           </button>
         </div>
 
         <!-- 展开 -->
-        <div v-if="expanded.has(c.id)" class="children-panel">
-          <div v-for="r in replyCache[c.id] || commentTree.children[c.id] || []" :key="r.id" class="child-row">
+        <div v-if="expanded.has(c.id) && c.replyCount" class="children-panel">
+          <div v-for="r in c.replies || []" :key="r.id" class="child-row">
             <div class="card-row">
               <div class="left">
                 <span class="reply-tag">回</span>
@@ -418,60 +405,6 @@ onMounted(load)
           </div>
         </div>
       </template>
-
-      <!-- 回收站：孤立回复 -->
-      <div v-if="showDeleted && orphanReplies.length" class="orphan-list">
-        <div v-for="r in orphanReplies" :key="'orphan-' + r.id" class="card">
-          <div class="card-row">
-            <div class="left">
-              <span class="reply-tag">回</span>
-              <img :src="r.user.avatarUrl" alt="" class="avatar" />
-              <span class="name"
-                >{{ r.user.username }}<span class="uid">#{{ r.userId }}</span></span
-              >
-              <template v-if="r.replyToUser">
-                <span class="reply-arrow">→</span>
-                <img :src="r.replyToUser.avatarUrl" alt="" class="avatar sm" />
-                <span class="name"
-                  >{{ r.replyToUser.username }}<span class="uid">#{{ r.replyToUserId }}</span></span
-                >
-              </template>
-            </div>
-            <div class="tags">
-              <Badge variant="error">回收站</Badge>
-            </div>
-          </div>
-          <p class="content">{{ r.content }}</p>
-          <div class="card-foot">
-            <span class="meta">{{ typeLabel(r) }} #{{ r.targetId }} · 所属主评论 #{{ r.parentId }}</span>
-            <div class="actions">
-              <Button variant="ghost" size="sm" icon @click="doRestore(r)"
-                ><RotateCcw style="width: 0.875rem; height: 0.875rem"
-              /></Button>
-              <Popover>
-                <Button variant="ghost" size="sm" icon><Trash2 style="width: 0.875rem; height: 0.875rem" /></Button>
-                <template #content="{ close }">
-                  <p class="confirm-text">永久删除？</p>
-                  <div class="confirm-actions">
-                    <Button variant="ghost" size="sm" @click="close()">取消</Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      @click="
-                        () => {
-                          doDestroy(r)
-                          close()
-                        }
-                      "
-                      >删除</Button
-                    >
-                  </div>
-                </template>
-              </Popover>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="pagination">
@@ -529,7 +462,7 @@ onMounted(load)
   }
   &.active {
     opacity: 1;
-    color: var(--color-warning);
+    color: var(--color-error);
   }
 }
 .toolbar {
@@ -679,11 +612,6 @@ onMounted(load)
   border-radius: 0.375rem;
   background: var(--color-base-100);
 }
-.orphan-list {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px dashed var(--color-border);
-}
 .pagination {
   margin-top: 1.5rem;
 }
@@ -692,6 +620,7 @@ onMounted(load)
   font-size: 0.8125rem;
   margin-bottom: 0.625rem;
   max-width: 14rem;
+  white-space: nowrap;
 }
 .confirm-actions {
   display: flex;

@@ -16,7 +16,7 @@ function buildFilters(query: Record<string, string | undefined>) {
   }
 
   if (query.status) conditions.push(eq(comments.status, query.status))
-  if (query.parentOnly) conditions.push(isNull(comments.parentId))
+  if (query.parentOnly === 'true') conditions.push(isNull(comments.parentId))
   if (query.targetType) conditions.push(eq(comments.targetType, query.targetType))
   if (query.targetId) conditions.push(eq(comments.targetId, Number(query.targetId)))
   if (query.keyword) conditions.push(like(comments.content, `%${query.keyword}%`))
@@ -73,7 +73,7 @@ export async function list(c: Context) {
   if (parentIds.length > 0) {
     for (const pid of parentIds) {
       const cnt = db.select({ count: count() }).from(comments)
-        .where(and(eq(comments.parentId, pid), isNull(comments.deletedAt))).get()!.count
+        .where(eq(comments.parentId, pid)).get()!.count
       replyCounts[pid] = cnt
     }
   }
@@ -166,9 +166,7 @@ export async function remove(c: Context) {
     return c.json(fail(ErrorCode.INVALID_PARAMS, '评论不存在'), HttpStatusCodes.NOT_FOUND)
   }
 
-  const now = new Date()
-  db.update(comments).set({ deletedAt: now }).where(eq(comments.parentId, id)).run()
-  db.update(comments).set({ deletedAt: now }).where(eq(comments.id, id)).run()
+  db.update(comments).set({ deletedAt: new Date() }).where(eq(comments.id, id)).run()
   return c.json(ok({}, '已移入回收站'), HttpStatusCodes.OK)
 }
 
@@ -195,7 +193,7 @@ export async function replies(c: Context) {
   const rows = db
     .select()
     .from(comments)
-    .where(and(eq(comments.parentId, id), isNull(comments.deletedAt)))
+    .where(eq(comments.parentId, id))
     .orderBy(desc(comments.createdAt))
     .all()
 

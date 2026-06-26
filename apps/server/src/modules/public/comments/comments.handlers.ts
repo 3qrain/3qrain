@@ -81,6 +81,9 @@ export async function create(c: Context) {
   if (!user) {
     return c.json(fail(ErrorCode.UNAUTHORIZED, '请先登录'), HttpStatusCodes.UNAUTHORIZED)
   }
+  if (user.isBanned) {
+    return c.json(fail(ErrorCode.UNAUTHORIZED, '账号已被封禁'), HttpStatusCodes.FORBIDDEN)
+  }
 
   const parsed = createCommentSchema.safeParse(await c.req.json())
   if (!parsed.success) {

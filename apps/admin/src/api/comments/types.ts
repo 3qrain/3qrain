@@ -25,6 +25,7 @@ export interface Comment {
   ip: string | null
   userAgent: string | null
   replyCount?: number
+  replies?: Comment[]
   createdAt: string
   updatedAt: string
 }
