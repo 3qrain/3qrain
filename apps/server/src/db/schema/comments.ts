@@ -9,6 +9,7 @@ export const comments = sqliteTable('comments', {
   userId: integer('user_id').notNull().references(() => users.id),
   parentId: integer('parent_id'),
   replyToUserId: integer('reply_to_user_id'),
+  replyToId: integer('reply_to_id'),
   isPinned: integer('is_pinned', { mode: 'boolean' }).notNull().default(false),
   content: text('content').notNull(),
   status: text('status').notNull().default('pending'),

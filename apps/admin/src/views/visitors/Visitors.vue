@@ -54,7 +54,7 @@ onMounted(load)
       <div v-for="v in list" :key="v.id" class="row">
         <img :src="v.avatarUrl || ''" alt="" class="avatar" />
         <div class="info">
-          <span class="name">{{ v.username }}</span>
+          <span class="name">{{ v.username }}<span class="uid">#{{  v.id  }}</span></span>
           <span class="email">{{ v.email }}</span>
         </div>
         <span class="badge" :class="v.provider">{{ v.provider }}</span>
@@ -137,6 +137,12 @@ onMounted(load)
 .name {
   font-size: 0.8125rem;
   font-weight: 500;
+  .uid {
+    font-size: 0.625rem;
+    opacity: 0.35;
+    font-weight: 400;
+    margin-left: 0.125rem;
+  }
 }
 
 .email {

@@ -14,6 +14,12 @@ html {
   touch-action: manipulation;
 }
 
+/* 禁止左右拖动时出现的橡皮筋效果 */
+html,body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
 a {
   text-decoration: none;
   color: inherit;

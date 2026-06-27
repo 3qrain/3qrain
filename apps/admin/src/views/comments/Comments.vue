@@ -239,9 +239,7 @@ onMounted(load)
               <template v-if="c.replyToUser">
                 <span class="reply-arrow">→</span>
                 <img :src="c.replyToUser.avatarUrl" alt="" class="avatar sm" />
-                <span class="name"
-                  >{{ c.replyToUser.username }}<span class="uid">#{{ c.replyToUserId }}</span></span
-                >
+                <span class="name">{{ c.replyToUser.username }}<span class="uid">#{{ c.replyToUserId }}</span></span>
               </template>
             </div>
             <div class="tags">
@@ -328,12 +326,10 @@ onMounted(load)
                 <span class="name"
                   >{{ r.user.username }}<span class="uid">#{{ r.userId }}</span></span
                 >
-                <template v-if="r.replyToUser">
+                <template v-if="r.replyToId && r.replyToUser">
                   <span class="reply-arrow">→</span>
                   <img :src="r.replyToUser.avatarUrl" alt="" class="avatar sm" />
-                  <span class="name"
-                    >{{ r.replyToUser.username }}<span class="uid">#{{ r.replyToUserId }}</span></span
-                  >
+                  <span class="name">{{ r.replyToUser.username }}<span class="uid">#{{ r.replyToUserId }}</span></span>
                 </template>
               </div>
               <div class="tags">

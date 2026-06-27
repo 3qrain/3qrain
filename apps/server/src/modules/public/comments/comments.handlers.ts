@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { and, eq, asc, desc, isNull, count, inArray } from 'drizzle-orm'
+import { eq, and, asc, desc, isNull, count, inArray, lt } from 'drizzle-orm'
 import { db, redis } from '~/db'
 import { comments, users } from '~/db/schema'
 import { ok, fail } from '~/utils/response'
@@ -12,13 +12,10 @@ async function resolveUserSession(c: Context) {
   const cookie = c.req.header('cookie') || ''
   const match = cookie.match(/3qrain_user_token=([^;]+)/)
   if (!match) return null
-
   const raw = await redis.get(`${SESSION_USER_PREFIX}${match[1]}`)
   if (!raw) return null
-
   const parsed = userSessionValueSchema.safeParse(JSON.parse(raw))
   if (!parsed.success) return null
-
   const user = db.select().from(users).where(eq(users.id, parsed.data.userId)).get()
   return user || null
 }
@@ -30,8 +27,10 @@ function enrichComments(rows: any[]) {
   )] as number[]
 
   const userMap = new Map(
-    db.select({ id: users.id, username: users.username, avatarUrl: users.avatarUrl })
-      .from(users).where(inArray(users.id, userIds)).all().map(u => [u.id, u]),
+    userIds.length > 0
+      ? db.select({ id: users.id, username: users.username, avatarUrl: users.avatarUrl })
+        .from(users).where(inArray(users.id, userIds)).all().map(u => [u.id, u])
+      : [],
   )
 
   return rows.map(c => ({
@@ -41,6 +40,7 @@ function enrichComments(rows: any[]) {
     userId: c.userId,
     user: userMap.get(c.userId) || { id: c.userId, username: '', avatarUrl: '' },
     parentId: c.parentId,
+    replyToId: c.replyToId,
     replyToUserId: c.replyToUserId,
     replyToUser: c.replyToUserId ? (userMap.get(c.replyToUserId) || null) : null,
     content: c.content,
@@ -51,29 +51,74 @@ function enrichComments(rows: any[]) {
 
 export async function list(c: Context) {
   const { targetType, targetId } = c.req.query()
-  const page = Number(c.req.query('page') || 1)
-  const pageSize = Number(c.req.query('pageSize') || 20)
+  const query = c.req.query()
+  const pageSize = Number(query.pageSize || 10)
+  const cursor = query.cursor ? Number(query.cursor) : undefined
 
-  const filter = and(
+  const publishedFilter = and(
     eq(comments.targetType, targetType),
     eq(comments.targetId, Number(targetId)),
     eq(comments.status, 'published'),
     isNull(comments.deletedAt),
   )
+  const cursorCondition = cursor ? lt(comments.createdAt, new Date(cursor)) : undefined
+  const parentFilter = cursorCondition
+    ? and(publishedFilter!, isNull(comments.parentId), cursorCondition)
+    : and(publishedFilter!, isNull(comments.parentId))
 
-  const total = db.select({ count: count() }).from(comments).where(filter).get()!.count
+  // 总数 = 所有已发布未删除的评论
+  const total = db.select({ count: count() }).from(comments).where(publishedFilter!).get()!.count
 
-  const rows = db
+  // 游标分页：查主评论
+  const parentRows = db
     .select()
     .from(comments)
-    .where(filter)
+    .where(parentFilter!)
     .orderBy(desc(comments.isPinned), desc(comments.createdAt))
     .limit(pageSize)
-    .offset((page - 1) * pageSize)
     .all()
 
-  const list = enrichComments(rows)
-  return c.json(ok({ list, total, page, pageSize }, '获取成功'), HttpStatusCodes.OK)
+  if (parentRows.length === 0) {
+    return c.json(ok({ list: [], total, pageSize }, '获取成功'), HttpStatusCodes.OK)
+  }
+
+  // 查所有主评论的子评论
+  const parentIds = parentRows.map(p => p.id)
+  const childRows = db
+    .select()
+    .from(comments)
+    .where(and(inArray(comments.parentId, parentIds), publishedFilter!))
+    .orderBy(asc(comments.createdAt))
+    .all()
+
+  // 查子评论的子评论（回复的回复）
+  const childIds = childRows.map(c => c.id)
+  const grandchildRows = childIds.length > 0
+    ? db.select().from(comments).where(and(inArray(comments.parentId, childIds), publishedFilter!)).orderBy(asc(comments.createdAt)).all()
+    : []
+
+  // 按 parentId 分组
+  const childrenMap: Record<number, any[]> = {}
+  for (const child of childRows) {
+    if (child.parentId === null) continue
+    if (!childrenMap[child.parentId]) childrenMap[child.parentId] = []
+    childrenMap[child.parentId].push(child)
+  }
+
+  // 合并所有需要 enrich 的行
+  const allRows = [...parentRows, ...childRows, ...grandchildRows]
+  const enriched = enrichComments(allRows)
+  const enrichedMap = new Map(enriched.map((e: any) => [e.id, e]))
+
+  const list = parentRows.map(p => ({
+    ...enrichedMap.get(p.id)!,
+    replies: (childrenMap[p.id] || []).map((c: any) => ({
+      ...enrichedMap.get(c.id)!,
+      replies: (childrenMap[c.id] || []).map((gc: any) => enrichedMap.get(gc.id)!),
+    })),
+  }))
+
+  return c.json(ok({ list, total, pageSize }, '获取成功'), HttpStatusCodes.OK)
 }
 
 export async function create(c: Context) {
@@ -98,6 +143,7 @@ export async function create(c: Context) {
       targetId: body.targetId,
       userId: user.id,
       parentId: body.parentId || null,
+      replyToId: body.replyToId || null,
       replyToUserId: body.replyToUserId || null,
       content: body.content,
       status: 'published',

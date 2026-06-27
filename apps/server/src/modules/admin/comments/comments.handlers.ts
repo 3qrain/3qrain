@@ -100,6 +100,7 @@ export async function create(c: Context) {
       targetId: body.targetId,
       userId: systemUser.id,
       parentId: body.parentId || null,
+      replyToId: body.replyToId || null,
       replyToUserId: body.replyToUserId || null,
       content: body.content,
       status: 'published',

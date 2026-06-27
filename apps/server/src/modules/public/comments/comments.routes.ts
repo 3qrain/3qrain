@@ -8,19 +8,23 @@ const userSchema = z.object({
   avatarUrl: z.string(),
 })
 
-const commentItemSchema = z.object({
-  id: z.number(),
-  targetType: z.string(),
-  targetId: z.number(),
-  userId: z.number(),
-  user: userSchema,
-  parentId: z.number().nullable(),
-  replyToUserId: z.number().nullable(),
-  replyToUser: userSchema.nullable(),
-  content: z.string(),
-  isPinned: z.boolean(),
-  createdAt: z.string(),
-})
+const commentItemSchema: any = z.lazy(() =>
+  z.object({
+    id: z.number(),
+    targetType: z.string(),
+    targetId: z.number(),
+    userId: z.number(),
+    user: userSchema,
+    parentId: z.number().nullable(),
+    replyToId: z.number().nullable(),
+    replyToUserId: z.number().nullable(),
+    replyToUser: userSchema.nullable(),
+    content: z.string(),
+    isPinned: z.boolean(),
+    createdAt: z.string(),
+    replies: z.array(commentItemSchema).optional(),
+  }),
+)
 
 const commentListSchema = z.object({
   list: z.array(commentItemSchema),
@@ -38,8 +42,8 @@ export const listCommentsRoute = createRoute({
     query: z.object({
       targetType: z.enum(['post', 'note']),
       targetId: z.string(),
-      page: z.string().optional(),
       pageSize: z.string().optional(),
+      cursor: z.string().optional(),
     }),
   },
   responses: {
@@ -55,6 +59,7 @@ export const createCommentSchema = z.object({
   targetId: z.number().int().positive(),
   content: z.string().min(1).max(500, '内容过长'),
   parentId: z.number().int().positive().optional(),
+  replyToId: z.number().int().positive().optional(),
   replyToUserId: z.number().int().positive().optional(),
 })
 

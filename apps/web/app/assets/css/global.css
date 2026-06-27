@@ -2,17 +2,21 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--color-base-content) 35%, #0000) #0000;
 }
 
 html {
   --color-border: color-mix(in oklab, var(--color-base-content) 12%, transparent);
-}
-
-body {
   background: var(--color-base-100);
   color: var(--color-base-content);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 禁止左右拖动时出现的橡皮筋效果 */
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
 }
 
 a {

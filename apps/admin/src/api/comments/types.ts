@@ -16,6 +16,7 @@ export interface Comment {
   userId: number
   user: CommentUser
   parentId: number | null
+  replyToId: number | null
   replyToUserId: number | null
   replyToUser: CommentUser | null
   content: string
