@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { formatDate } from '~/utils/date'
-import { AtSign } from '@lucide/vue';
+import { AtSign } from '@lucide/vue'
 
 const props = defineProps<{ targetType: string; targetId: number }>()
 
@@ -48,7 +48,13 @@ onMounted(load)
       <CommentComposer
         :target-type="targetType"
         :target-id="targetId"
-        @done="() => { t = String(Date.now()); page = 1; load() }"
+        @done="
+          () => {
+            t = String(Date.now())
+            page = 1
+            load()
+          }
+        "
       />
     </ClientOnly>
 
@@ -66,8 +72,9 @@ onMounted(load)
               <span v-if="c.isPinned" class="pin">置顶</span>
             </div>
             <p class="text">{{ c.content }}</p>
-            <button v-if="store.user" class="act" @click="toggleReply(c.id)">回复</button>
-
+            <div class="act-group">
+              <button v-if="store.user" class="act" @click="toggleReply(c.id)">回复</button>
+            </div>
             <CommentComposer
               v-show="showReply.has(c.id)"
               :target-type="targetType"
@@ -93,13 +100,15 @@ onMounted(load)
               <div class="meta">
                 <span class="name">{{ r.user.username }}</span>
                 <template v-if="r.replyToId && r.replyToUser">
-                  <span class="re"><AtSign style="width: .8125rem; height: .8125rem;" stroke-width="2" /></span>
+                  <span class="re"><AtSign style="width: 0.8125rem; height: 0.8125rem" stroke-width="2" /></span>
                   <span class="name">{{ r.replyToUser.username }}</span>
                 </template>
                 <time>{{ formatDate(r.createdAt) }}</time>
               </div>
               <p class="text">{{ r.content }}</p>
-              <button v-if="store.user" class="act" @click="toggleReply(r.id)">回复</button>
+              <div class="act-group">
+                <button v-if="store.user" class="act" @click="toggleReply(r.id)">回复</button>
+              </div>
 
               <CommentComposer
                 v-show="showReply.has(r.id)"
@@ -156,7 +165,8 @@ onMounted(load)
 .thread {
   display: flex;
   flex-direction: column;
-  padding: 1rem 0;
+  // padding: 1rem 0;
+  margin: 1rem 0;
 }
 .title {
   margin-top: 1.25rem;
@@ -225,23 +235,27 @@ time {
   opacity: 0.35;
 }
 .text {
-  padding: .25rem 0;
+  padding: 0.25rem 0;
   font-size: 0.875rem;
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
 }
-.act {
-  border: none;
-  background: transparent;
-  font-size: 0.75rem;
-  color: var(--color-base-content);
-  opacity: 0.25;
-  cursor: pointer;
-  padding: 0;
-  transition: opacity 0.15s;
-  &:hover {
-    opacity: 0.5;
+.act-group {
+  display: flex;
+  height: 1.5rem;
+  .act {
+    border: none;
+    background: transparent;
+    font-size: 0.75rem;
+    color: var(--color-base-content);
+    opacity: 0.25;
+    cursor: pointer;
+    padding: 0;
+    transition: opacity 0.15s;
+    &:hover {
+      opacity: 0.5;
+    }
   }
 }
 .replies {

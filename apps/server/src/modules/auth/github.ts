@@ -1,59 +1,31 @@
 import { githubAuth } from '@hono/oauth-providers/github'
-import { eq } from 'drizzle-orm'
-import { db, redis } from '~/db'
-import { users } from '~/db/schema'
-import { generateToken } from '~/utils/crypto'
-import { SESSION_USER_PREFIX } from '~/constants/session'
+import { setCookie, getCookie } from 'hono/cookie'
+import { upsertOAuthUser, createUserSession, OAUTH_CALLBACK_HTML } from './oauth-helpers'
 
-const TOKEN_TTL = Number(process.env.TOKEN_TTL)
 const WEB_URL = process.env.WEB_URL
+
+export async function saveRedirect(c: any, next: any) {
+  const to = c.req.query('redirect_to')
+  if (to?.startsWith('/')) {
+    setCookie(c, 'oauth_redirect', to, { maxAge: 600, httpOnly: true, path: '/' })
+    return c.redirect(c.req.path)
+  }
+  await next()
+}
 
 export const githubMiddleware = githubAuth({ scope: ['read:user', 'user:email'], oauthApp: true })
 
 export async function githubCallback(c: any) {
   const ghUser = c.get('user-github')
-  if (!ghUser?.id) {
-    return c.redirect(`${WEB_URL}?error=oauth_failed`)
-  }
+  if (!ghUser?.id) return c.redirect(`${WEB_URL}?error=oauth_failed`)
 
-  const existing = db.select().from(users).where(eq(users.githubId, ghUser.id)).get()
-
-  let userId: number
-  if (existing) {
-    db.update(users)
-      .set({
-        username: ghUser.login ?? existing.username,
-        avatarUrl: ghUser.avatar_url ?? existing.avatarUrl,
-      })
-      .where(eq(users.id, existing.id))
-      .run()
-    userId = existing.id
-  } else {
-    const row = db
-      .insert(users)
-      .values({
-        githubId: ghUser.id,
-        username: ghUser.login ?? '',
-        email: ghUser.email ?? '',
-        avatarUrl: ghUser.avatar_url ?? '',
-      })
-      .returning()
-      .get()
-    userId = row.id
-  }
-
-  const role = db.select({ role: users.role }).from(users).where(eq(users.id, userId)).get()!.role
-
-  const token = generateToken()
-  const session = JSON.stringify({
-    role,
-    userId,
-    createdAt: Date.now(),
-    lastActiveAt: Date.now(),
+  const user = upsertOAuthUser('github', ghUser.id, {
+    username: ghUser.login ?? '',
+    email: ghUser.email ?? '',
+    avatarUrl: ghUser.avatar_url ?? '',
   })
-  await redis.setex(`${SESSION_USER_PREFIX}${token}`, TOKEN_TTL, session)
 
-  c.header('set-cookie', `3qrain_user_token=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${TOKEN_TTL}`)
+  await createUserSession(c, user.id, user.role)
 
-  return c.redirect(WEB_URL)
+  return c.html(OAUTH_CALLBACK_HTML)
 }

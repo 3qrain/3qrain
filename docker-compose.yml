@@ -1,27 +1,21 @@
 services:
-  mongo:
-    image: mongo:8
-    container_name: 3qrain-mongo
-    ports:
-      - "27017:27017"
-    environment:
-      TZ: Asia/Shanghai
-      MONGO_INITDB_DATABASE: 3qrain
-    volumes:
-      - mongo-data:/data/db
-
   redis:
     image: redis:alpine
     container_name: 3qrain-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     environment:
       TZ: Asia/Shanghai
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+    restart: unless-stopped
     volumes:
-      - redis-data:/data
+      - ./apps/server/data/redis:/data
 
 volumes:
-  mongo-data:
-    name: 3qrain-mongo-data
   redis-data:
     name: 3qrain-redis-data
