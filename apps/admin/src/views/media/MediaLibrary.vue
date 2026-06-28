@@ -344,7 +344,7 @@ h1 {
 /* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
   gap: 0.75rem;
 }
 // @media (min-width: 40rem) {
@@ -398,11 +398,12 @@ h1 {
   }
 
   img {
+    position: relative;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    position: relative;
     z-index: 1;
+    user-select: none;
   }
 
   .file-type {
@@ -504,5 +505,11 @@ h1 {
 .slide-leave-to {
   opacity: 0;
   transform: translateY(-0.5rem);
+}
+
+@media (max-width: 48rem) {
+  .page {
+    padding: 1.25rem 1rem;
+  }
 }
 </style>
