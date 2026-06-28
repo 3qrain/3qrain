@@ -6,6 +6,7 @@ import Tus from '@uppy/tus'
 import { ImagePlus, X, Eye, EyeOff } from '@lucide/vue'
 import Button from '~/components/base/Button.vue'
 import { useAppStore } from '~/stores/app'
+import { TUS_CHUNK_SIZE } from '~/stores/uppy'
 import { createNote, updateNote } from '~/api/notes'
 import type { Note } from '~/api/notes/types'
 import type { Tag } from '~/api/tags/types'
@@ -47,6 +48,7 @@ const isEdit = () => !!props.note
 function setupUppy() {
   uppy.use(Tus, {
     endpoint: '/api/admin/upload/',
+    chunkSize: TUS_CHUNK_SIZE,
     onAfterResponse: (req: any, res: any) => {
       const header = res.getHeader('X-Media-Record')
       if (header) {

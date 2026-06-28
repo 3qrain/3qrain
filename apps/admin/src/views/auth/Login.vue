@@ -26,7 +26,6 @@ const form = ref({
 })
 
 const isFreshSetup = () => !initialized.value && !hasAdminUser.value
-const isRecoverySetup = () => !initialized.value && hasAdminUser.value
 
 onMounted(async () => {
   if (appStore.adminUser) {

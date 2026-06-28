@@ -7,6 +7,8 @@ import ScreenCapture from '@uppy/screen-capture'
 import Tus from '@uppy/tus'
 import { expireTime_localstorage } from '@3qrain/shared'
 
+export const TUS_CHUNK_SIZE = 1024 * 1024 * 100  // Tus分块大小，100MB
+
 export const useUppyStore = defineStore('uppy', () => {
   sweepLocalStorage()
   const uppy = new Uppy()
@@ -14,7 +16,7 @@ export const useUppyStore = defineStore('uppy', () => {
     // ScreenCapture 需要安全上下文（HTTPS/localhost）。
     // 使用局域网 HTTP 地址访问时会报："Screen recorder access not supported"
     .use(ScreenCapture)
-    .use(Tus, { endpoint: '/api/admin/upload/', removeFingerprintOnSuccess: true })
+    .use(Tus, { endpoint: '/api/admin/upload/', removeFingerprintOnSuccess: true, chunkSize: TUS_CHUNK_SIZE })
   const uploading = ref(false)
 
   function mountDashboard(target: string | HTMLElement, theme: 'light' | 'dark' | 'auto' = 'auto') {
