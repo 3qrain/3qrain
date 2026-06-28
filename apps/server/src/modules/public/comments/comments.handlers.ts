@@ -7,6 +7,7 @@ import { ErrorCode } from '@3qrain/shared'
 import * as HttpStatusCodes from '~/constants/http-status-codes'
 import { SESSION_USER_PREFIX, userSessionValueSchema } from '~/constants/session'
 import { createCommentSchema } from './comments.routes'
+import { getClientIp } from '~/utils/getClientIp'
 
 async function resolveUserSession(c: Context) {
   const cookie = c.req.header('cookie') || ''
@@ -148,7 +149,7 @@ export async function create(c: Context) {
       replyToUserId: body.replyToUserId || null,
       content: body.content,
       status: 'published',
-      ip: c.req.header('x-forwarded-for') || null,
+      ip: getClientIp(c),
       userAgent: c.req.header('user-agent') || null,
     })
     .returning()
