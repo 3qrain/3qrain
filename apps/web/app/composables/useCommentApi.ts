@@ -13,6 +13,7 @@ export interface CommentItem {
   userId: number
   user: CommentUser
   parentId: number | null
+  replies: CommentItem[] | []
   replyToId: number | null
   replyToUserId: number | null
   replyToUser: CommentUser | null
@@ -24,10 +25,10 @@ export interface CommentItem {
 export function useCommentApi() {
   const { $api } = useNuxtApp()
 
-  function getList(targetType: string, targetId: number, pageSize = 10, cursor?: string) {
-    const query: Record<string, any> = { targetType, targetId, pageSize }
-    if (cursor) query.cursor = cursor
-    return $api<ApiResponse<{ list: CommentItem[]; total: number; pageSize: number }>>('/comments', { query })
+  function getList(targetType: string, targetId: number, page = 1, t?: string) {
+    const query: Record<string, any> = { targetType, targetId, pageSize: 10, page }
+    if (t) query.t = t
+    return $api<ApiResponse<{ list: CommentItem[]; total: number; parentTotal: number; pageSize: number }>>('/comments', { query })
   }
 
   function create(body: { targetType: string; targetId: number; content: string; parentId?: number; replyToId?: number; replyToUserId?: number }) {

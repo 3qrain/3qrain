@@ -65,6 +65,8 @@ watch(() => props.mode, async (val) => {
   }
 })
 
+// 每次加载完后重建Observer，强制触发一次新的交叉检测 
+// 避免了加载完成时，填充完内容后，分页组件还在观测区域范围内，导致不能重新计算交叉关系。
 watch(() => props.loading, async (val) => {
   if (!val && props.mode === 'scroll') {
     teardownObserver()

@@ -42,8 +42,9 @@ export const listCommentsRoute = createRoute({
     query: z.object({
       targetType: z.enum(['post', 'note']),
       targetId: z.string(),
+      page: z.string().optional(),
       pageSize: z.string().optional(),
-      cursor: z.string().optional(),
+      t: z.string().optional(),
     }),
   },
   responses: {

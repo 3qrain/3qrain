@@ -52,8 +52,9 @@ function enrichComments(rows: any[]) {
 export async function list(c: Context) {
   const { targetType, targetId } = c.req.query()
   const query = c.req.query()
+  const page = Number(query.page || 1)
   const pageSize = Number(query.pageSize || 10)
-  const cursor = query.cursor ? Number(query.cursor) : undefined
+  const t = query.t ? Number(query.t) : undefined
 
   const publishedFilter = and(
     eq(comments.targetType, targetType),
@@ -61,25 +62,25 @@ export async function list(c: Context) {
     eq(comments.status, 'published'),
     isNull(comments.deletedAt),
   )
-  const cursorCondition = cursor ? lt(comments.createdAt, new Date(cursor)) : undefined
-  const parentFilter = cursorCondition
-    ? and(publishedFilter!, isNull(comments.parentId), cursorCondition)
+  const tCondition = t ? lt(comments.createdAt, new Date(t)) : undefined
+  const parentFilter = tCondition
+    ? and(publishedFilter!, isNull(comments.parentId), tCondition)
     : and(publishedFilter!, isNull(comments.parentId))
 
-  // 总数 = 所有已发布未删除的评论
   const total = db.select({ count: count() }).from(comments).where(publishedFilter!).get()!.count
+  const parentTotal = db.select({ count: count() }).from(comments).where(parentFilter!).get()!.count
 
-  // 游标分页：查主评论
   const parentRows = db
     .select()
     .from(comments)
     .where(parentFilter!)
     .orderBy(desc(comments.isPinned), desc(comments.createdAt))
     .limit(pageSize)
+    .offset((page - 1) * pageSize)
     .all()
 
   if (parentRows.length === 0) {
-    return c.json(ok({ list: [], total, pageSize }, '获取成功'), HttpStatusCodes.OK)
+    return c.json(ok({ list: [], total, parentTotal: 0, pageSize }, '获取成功'), HttpStatusCodes.OK)
   }
 
   // 查所有主评论的子评论
@@ -118,7 +119,7 @@ export async function list(c: Context) {
     })),
   }))
 
-  return c.json(ok({ list, total, pageSize }, '获取成功'), HttpStatusCodes.OK)
+  return c.json(ok({ list, total, parentTotal, pageSize }, '获取成功'), HttpStatusCodes.OK)
 }
 
 export async function create(c: Context) {

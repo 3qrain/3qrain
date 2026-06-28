@@ -10,6 +10,7 @@ html {
   --color-border: color-mix(in oklab, var(--color-base-content) 12%, transparent);
   background: var(--color-base-100);
   color: var(--color-base-content);
+  line-height: 1.5;
 }
 
 /* 禁止左右拖动时出现的橡皮筋效果 */
