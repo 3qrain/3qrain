@@ -2,8 +2,9 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'node:path'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [vue()],
+  base: command === 'build' ? '/admin/' : '/',
   server: {
     proxy: {
       // "/api": "http://localhost:3010",
@@ -24,4 +25,4 @@ export default defineConfig({
       '~': path.resolve(__dirname, 'src')
     }
   }
-})
+}))
