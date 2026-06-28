@@ -7,15 +7,16 @@ export const useAppStore = defineStore('app', {
     visitorId: '',
     theme: 'system' as Theme,
     site: { name: '3qrain', avatar: '', bio: '' },
-    user: null as { id: number; username: string; email: string; avatarUrl: string; role: string } | null,
+    user: null as { id: number; username: string; email: string; avatarUrl: string; role: string } | null
   }),
   actions: {
     genVisitorId() {
+      //
       if (!this.visitorId) {
-        this.visitorId = crypto.randomUUID()
+        this.visitorId = Date.now().toString(36) + Math.random().toString(36).slice(2)
       }
       return this.visitorId
-    },
+    }
   },
-  persist: { key: APP_STORAGE_KEY, pick: ['visitorId', 'theme', 'site', 'user'] },
+  persist: { key: APP_STORAGE_KEY, pick: ['visitorId', 'theme', 'site', 'user'] }
 })
