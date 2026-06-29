@@ -42,7 +42,7 @@ withDefaults(
   justify-content: center;
   cursor: pointer;
   font-weight: 500;
-  border-radius: 0.375rem;
+  border-radius: .25rem;
   white-space: nowrap;
   font-family: inherit;
   outline: none;
@@ -101,7 +101,7 @@ withDefaults(
 
 /* variants */
 .primary {
-  background: var(--color-primary);
+  background: color-mix(in oklch, var(--color-primary) 70%, transparent 30%);
   color: var(--color-primary-content);
   border-color: var(--color-primary);
 

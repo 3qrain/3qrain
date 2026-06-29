@@ -209,8 +209,8 @@ onMounted(() => {
         ]"
       />
       <Select v-model="query.categoryId" :options="categoryOptions" />
-      <Button size="sm" @click="create">
-        <Plus style="width: 0.875rem; height: 0.875rem;" /> 写文章
+      <Button size="md" @click="create">
+        <Plus style="width: 1rem; height: 1rem;" /> 写文章
       </Button>
     </div>
 
