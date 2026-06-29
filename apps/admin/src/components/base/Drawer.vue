@@ -31,9 +31,9 @@ function getClientY(e: TouchEvent | MouseEvent) {
 }
 
 function onDragStart(e: TouchEvent | MouseEvent) {
-  const target = e.target as HTMLElement | null
   // 避免a标签等拖动导致drawer的拖动异常
-  if (target && ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return
+  // const target = e.target as HTMLElement | null
+  // if (target && ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return
 
   startY = getClientY(e)
   if (drawerRef.value) drawerRef.value.style.transition = 'none'
