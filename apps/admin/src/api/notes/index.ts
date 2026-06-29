@@ -16,8 +16,8 @@ export async function updateNote(id: number, body: { content?: string; isPublish
   return data.data
 }
 
-export async function deleteNote(id: number) {
-  const { data } = await apiClient.delete(`/admin/notes/${id}`)
+export async function deleteNote(ids: number[]) {
+  const { data } = await apiClient.post('/admin/notes/trash', { ids })
   return data
 }
 
@@ -31,7 +31,7 @@ export async function emptyTrashNotes() {
   return data
 }
 
-export async function destroyNote(id: number) {
-  const { data } = await apiClient.delete(`/admin/notes/${id}/destroy`)
+export async function destroyNote(ids: number[]) {
+  const { data } = await apiClient.post('/admin/notes/destroy', { ids })
   return data
 }

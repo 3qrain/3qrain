@@ -86,7 +86,7 @@ async function checkHealth() {
 async function onDelete(item: MediaItem) {
   if (!confirm(`删除「${item.filename}」？`)) return
   try {
-    await deleteMedia(item.id)
+    await deleteMedia([item.id])
     toast.success('已删除')
     if (paginationMode.value === 'scroll') {
       files.value = files.value.filter(f => f.id !== item.id)
@@ -420,7 +420,7 @@ h1 {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 2rem 0.5rem 0.375rem;
+  padding: 1rem 0.5rem 0.375rem;
   color: oklch(97% 0.03 256);
   background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
   opacity: 0;

@@ -38,8 +38,8 @@ export async function pinComment(id: number, pinned: boolean) {
   return data.data
 }
 
-export async function deleteComment(id: number) {
-  const { data } = await apiClient.delete(`/admin/comments/${id}`)
+export async function deleteComment(ids: number[]) {
+  const { data } = await apiClient.post('/admin/comments/trash', { ids })
   return data
 }
 
@@ -58,7 +58,7 @@ export async function emptyTrashComments() {
   return data
 }
 
-export async function destroyComment(id: number) {
-  const { data } = await apiClient.delete(`/admin/comments/${id}/force`)
+export async function destroyComment(ids: number[]) {
+  const { data } = await apiClient.post('/admin/comments/destroy', { ids })
   return data
 }

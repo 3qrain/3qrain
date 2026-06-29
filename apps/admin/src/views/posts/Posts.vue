@@ -95,7 +95,7 @@ function edit(post: Post) {
 
 async function remove(post: Post) {
   try {
-    await deletePost(post.id)
+    await deletePost([post.id])
     toast.success('已移至回收站')
     if (paginationMode.value === 'scroll') {
       posts.value = posts.value.filter(p => p.id !== post.id)
@@ -125,7 +125,7 @@ async function handleRestore(post: Post) {
 
 async function handleDestroy(post: Post) {
   try {
-    await destroyPost(post.id)
+    await destroyPost([post.id])
     toast.success('已永久删除')
     if (paginationMode.value === 'scroll') {
       posts.value = posts.value.filter(p => p.id !== post.id)

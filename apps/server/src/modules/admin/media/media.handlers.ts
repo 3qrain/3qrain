@@ -47,16 +47,16 @@ export async function list(c: Context) {
 }
 
 export async function remove(c: Context) {
-  const id = Number.parseInt(c.req.param("id")!);
-  const record = db.select().from(media).where(eq(media.id, id)).get();
-  if (!record) return c.json(fail(ErrorCode.FILE_NOT_FOUND, "文件不存在"), HttpStatusCodes.NOT_FOUND);
-
-  for (const p of [record.originalPath, record.thumbnailPath, record.previewPath].filter(Boolean)) {
-    try { await unlink(`${UPLOADS_DIR}${p}`); } catch { /* gone */ }
+  const { ids } = await c.req.json<{ ids: number[] }>()
+  for (const id of ids) {
+    const record = db.select().from(media).where(eq(media.id, id)).get()
+    if (!record) continue
+    for (const p of [record.originalPath, record.thumbnailPath, record.previewPath].filter(Boolean)) {
+      try { await unlink(`${UPLOADS_DIR}${p}`) } catch { /* gone */ }
+    }
+    db.delete(media).where(eq(media.id, id)).run()
   }
-
-  db.delete(media).where(eq(media.id, id)).run();
-  return c.json(ok({}, "已删除"), HttpStatusCodes.OK);
+  return c.json(ok({}, '已删除'), HttpStatusCodes.OK)
 }
 
 export async function health(c: Context) {

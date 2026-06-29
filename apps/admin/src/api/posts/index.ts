@@ -21,14 +21,14 @@ export async function updatePost(id: number, body: UpdatePostBody) {
   return data.data;
 }
 
-export async function deletePost(id: number) {
-  const { data } = await apiClient.delete(`/admin/posts/${id}`);
-  return data;
+export async function deletePost(ids: number[]) {
+  const { data } = await apiClient.post('/admin/posts/trash', { ids })
+  return data
 }
 
-export async function destroyPost(id: number) {
-  const { data } = await apiClient.delete(`/admin/posts/${id}/force`);
-  return data;
+export async function destroyPost(ids: number[]) {
+  const { data } = await apiClient.post('/admin/posts/destroy', { ids })
+  return data
 }
 
 export async function emptyTrash() {

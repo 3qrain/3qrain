@@ -158,16 +158,10 @@ export async function pin(c: Context) {
 }
 
 export async function remove(c: Context) {
-  const id = Number(c.req.param('id')!)
-
-  const existing = db.select().from(comments)
-    .where(and(eq(comments.id, id), isNull(comments.deletedAt)))
-    .get()
-  if (!existing) {
-    return c.json(fail(ErrorCode.INVALID_PARAMS, '评论不存在'), HttpStatusCodes.NOT_FOUND)
+  const { ids } = await c.req.json<{ ids: number[] }>()
+  for (const id of ids) {
+    db.update(comments).set({ deletedAt: new Date() }).where(eq(comments.id, id)).run()
   }
-
-  db.update(comments).set({ deletedAt: new Date() }).where(eq(comments.id, id)).run()
   return c.json(ok({}, '已移入回收站'), HttpStatusCodes.OK)
 }
 
@@ -208,14 +202,10 @@ export async function emptyTrash(c: Context) {
 }
 
 export async function destroy(c: Context) {
-  const id = Number(c.req.param('id')!)
-
-  const existing = db.select().from(comments).where(eq(comments.id, id)).get()
-  if (!existing) {
-    return c.json(fail(ErrorCode.INVALID_PARAMS, '评论不存在'), HttpStatusCodes.NOT_FOUND)
+  const { ids } = await c.req.json<{ ids: number[] }>()
+  for (const id of ids) {
+    db.delete(comments).where(eq(comments.parentId, id)).run()
+    db.delete(comments).where(eq(comments.id, id)).run()
   }
-
-  db.delete(comments).where(eq(comments.parentId, id)).run()
-  db.delete(comments).where(eq(comments.id, id)).run()
   return c.json(ok({}, '已永久删除'), HttpStatusCodes.OK)
 }

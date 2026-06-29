@@ -35,9 +35,9 @@ export async function getMedia(params: { keyword?: string; page?: number; pageSi
   return data.data;
 }
 
-export async function deleteMedia(id: number) {
-  const { data } = await apiClient.delete(`/admin/media/${id}`);
-  return data;
+export async function deleteMedia(ids: number[]) {
+  const { data } = await apiClient.post('/admin/media/destroy', { ids })
+  return data
 }
 
 export async function getMediaHealth() {

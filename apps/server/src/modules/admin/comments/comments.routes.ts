@@ -171,10 +171,12 @@ export const pinCommentRoute = createRoute({
 
 export const deleteCommentRoute = createRoute({
   tags: ['Admin/Comments'],
-  summary: '移入回收站',
-  method: 'delete',
-  path: '/comments/{id}',
-  request: { params: z.object({ id: z.string() }) },
+  summary: '批量移入回收站',
+  method: 'post',
+  path: '/comments/trash',
+  request: {
+    body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.number().int().positive()) }) } } },
+  },
   responses: {
     [HttpStatusCodes.OK]: {
       content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
@@ -240,10 +242,12 @@ export const emptyTrashRoute = createRoute({
 
 export const destroyCommentRoute = createRoute({
   tags: ['Admin/Comments'],
-  summary: '物理删除',
-  method: 'delete',
-  path: '/comments/{id}/force',
-  request: { params: z.object({ id: z.string() }) },
+  summary: '批量永久删除',
+  method: 'post',
+  path: '/comments/destroy',
+  request: {
+    body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.number().int().positive()) }) } } },
+  },
   responses: {
     [HttpStatusCodes.OK]: {
       content: { 'application/json': { schema: successResponseSchema(z.object({})) } },

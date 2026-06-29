@@ -160,13 +160,10 @@ export async function update(c: Context) {
 }
 
 export async function remove(c: Context) {
-  const id = Number.parseInt(c.req.param('id')!)
-  const existing = db.select().from(notes).where(and(eq(notes.id, id), isNull(notes.deletedAt))).get()
-  if (!existing) {
-    return c.json(fail(ErrorCode.INVALID_PARAMS, '说说不存在'), HttpStatusCodes.NOT_FOUND)
+  const { ids } = await c.req.json<{ ids: number[] }>()
+  for (const id of ids) {
+    db.update(notes).set({ deletedAt: new Date() }).where(eq(notes.id, id)).run()
   }
-
-  db.update(notes).set({ deletedAt: new Date() }).where(eq(notes.id, id)).run()
   return c.json(ok({}, '已移至回收站'), HttpStatusCodes.OK)
 }
 
@@ -192,12 +189,11 @@ export async function emptyTrash(c: Context) {
 }
 
 export async function destroy(c: Context) {
-  const id = Number.parseInt(c.req.param('id')!)
-  const existing = db.select().from(notes).where(eq(notes.id, id)).get()
-  if (!existing) {
-    return c.json(fail(ErrorCode.INVALID_PARAMS, '说说不存在'), HttpStatusCodes.NOT_FOUND)
+  const { ids } = await c.req.json<{ ids: number[] }>()
+  for (const id of ids) {
+    db.delete(noteTags).where(eq(noteTags.noteId, id)).run()
+    db.delete(noteMedia).where(eq(noteMedia.noteId, id)).run()
+    db.delete(notes).where(eq(notes.id, id)).run()
   }
-
-  db.delete(notes).where(eq(notes.id, id)).run()
   return c.json(ok({}, '已永久删除'), HttpStatusCodes.OK)
 }

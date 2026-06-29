@@ -270,18 +270,10 @@ export async function update(c: Context) {
 }
 
 export async function trash(c: Context) {
-  const id = Number.parseInt(c.req.param('id')!)
-
-  const existing = db
-    .select()
-    .from(posts)
-    .where(and(eq(posts.id, id), isNull(posts.deletedAt)))
-    .get()
-  if (!existing) {
-    return c.json(fail(ErrorCode.POST_NOT_FOUND, '文章不存在'), HttpStatusCodes.NOT_FOUND)
+  const { ids } = await c.req.json<{ ids: number[] }>()
+  for (const id of ids) {
+    db.update(posts).set({ deletedAt: new Date() }).where(eq(posts.id, id)).run()
   }
-
-  db.update(posts).set({ deletedAt: new Date() }).where(eq(posts.id, id)).run()
   return c.json(ok({}, '已移入回收站'), HttpStatusCodes.OK)
 }
 
@@ -295,15 +287,11 @@ export async function emptyTrash(c: Context) {
 }
 
 export async function destroy(c: Context) {
-  const id = Number.parseInt(c.req.param('id')!)
-
-  const existing = db.select().from(posts).where(eq(posts.id, id)).get()
-  if (!existing) {
-    return c.json(fail(ErrorCode.POST_NOT_FOUND, '文章不存在'), HttpStatusCodes.NOT_FOUND)
+  const { ids } = await c.req.json<{ ids: number[] }>()
+  for (const id of ids) {
+    db.delete(postTags).where(eq(postTags.postId, id)).run()
+    db.delete(posts).where(eq(posts.id, id)).run()
   }
-
-  db.delete(postTags).where(eq(postTags.postId, id)).run()
-  db.delete(posts).where(eq(posts.id, id)).run()
   return c.json(ok({}, '已永久删除'), HttpStatusCodes.OK)
 }
 

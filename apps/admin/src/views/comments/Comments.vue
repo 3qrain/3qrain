@@ -120,7 +120,7 @@ async function togglePin(c: Comment) {
 
 async function doDelete(c: Comment) {
   try {
-    await deleteComment(c.id)
+    await deleteComment([c.id])
     c.deletedAt = new Date().toISOString()
     c.status = 'published'
     toast.success('已移入回收站')
@@ -140,7 +140,7 @@ async function doRestore(c: Comment) {
 
 async function doDestroy(c: Comment) {
   try {
-    await destroyComment(c.id)
+    await destroyComment([c.id])
     const removed = comments.value.filter(x => x.id === c.id || x.parentId === c.id).length
     comments.value = comments.value.filter(x => x.id !== c.id && x.parentId !== c.id)
     for (const x of comments.value) {

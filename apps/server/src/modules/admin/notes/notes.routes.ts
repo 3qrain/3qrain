@@ -76,20 +76,16 @@ export const updateNoteRoute = createRoute({
 
 export const deleteNoteRoute = createRoute({
   tags: ['Admin/Notes'],
-  summary: '删除说说',
-  method: 'delete',
-  path: '/notes/{id}',
+  summary: '批量移入回收站',
+  method: 'post',
+  path: '/notes/trash',
   request: {
-    params: z.object({ id: z.string() }),
+    body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.number().int().positive()) }) } } },
   },
   responses: {
     [HttpStatusCodes.OK]: {
       content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
       description: '已移至回收站',
-    },
-    [HttpStatusCodes.NOT_FOUND]: {
-      content: { 'application/json': { schema: errorResponseSchema } },
-      description: '不存在',
     },
   },
 })
@@ -129,20 +125,16 @@ export const emptyTrashRoute = createRoute({
 
 export const destroyNoteRoute = createRoute({
   tags: ['Admin/Notes'],
-  summary: '永久删除说说',
-  method: 'delete',
-  path: '/notes/{id}/destroy',
+  summary: '批量永久删除说说',
+  method: 'post',
+  path: '/notes/destroy',
   request: {
-    params: z.object({ id: z.string() }),
+    body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.number().int().positive()) }) } } },
   },
   responses: {
     [HttpStatusCodes.OK]: {
       content: { 'application/json': { schema: successResponseSchema(z.object({})) } },
       description: '已永久删除',
-    },
-    [HttpStatusCodes.NOT_FOUND]: {
-      content: { 'application/json': { schema: errorResponseSchema } },
-      description: '不存在',
     },
   },
 })

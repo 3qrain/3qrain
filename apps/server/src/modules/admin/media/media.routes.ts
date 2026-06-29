@@ -48,14 +48,15 @@ export const listMediaRoute = createRoute({
 });
 
 export const deleteMediaRoute = createRoute({
-  tags: ["Admin/Media"],
-  summary: "删除媒体文件",
-  method: "delete",
-  path: "/media/{id}",
-  request: { params: z.object({ id: z.string() }) },
+  tags: ['Admin/Media'],
+  summary: '批量删除媒体文件',
+  method: 'post',
+  path: '/media/destroy',
+  request: {
+    body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.number().int().positive()) }) } } },
+  },
   responses: {
-    [HttpStatusCodes.OK]: { content: { "application/json": { schema: successResponseSchema(z.object({})) } }, description: "已删除" },
-    [HttpStatusCodes.NOT_FOUND]: { content: { "application/json": { schema: errorResponseSchema } }, description: "文件不存在" },
+    [HttpStatusCodes.OK]: { content: { 'application/json': { schema: successResponseSchema(z.object({})) } }, description: '已删除' },
   },
 });
 

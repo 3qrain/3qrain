@@ -113,7 +113,7 @@ function onEdited(note?: Note) {
 
 async function remove(note: Note) {
   try {
-    await deleteNote(note.id)
+    await deleteNote([note.id])
     toast.success('已移至回收站')
     if (paginationMode.value === 'scroll') {
       notes.value = notes.value.filter(n => n.id !== note.id)
@@ -143,7 +143,7 @@ async function handleRestore(note: Note) {
 
 async function handleDestroy(note: Note) {
   try {
-    await destroyNote(note.id)
+    await destroyNote([note.id])
     toast.success('已永久删除')
     if (paginationMode.value === 'scroll') {
       notes.value = notes.value.filter(n => n.id !== note.id)

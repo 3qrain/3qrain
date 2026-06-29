@@ -173,12 +173,12 @@ export const updatePostRoute = createRoute({
 });
 
 export const trashPostRoute = createRoute({
-  tags: ["Admin/Posts"],
-  summary: "移入回收站（软删除）",
-  method: "delete",
-  path: "/posts/{id}",
+  tags: ['Admin/Posts'],
+  summary: '移入回收站（软删除）',
+  method: 'post',
+  path: '/posts/trash',
   request: {
-    params: z.object({ id: z.string() }),
+    body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.number().int().positive()) }) } } },
   },
   responses: {
     [HttpStatusCodes.OK]: {
@@ -193,12 +193,12 @@ export const trashPostRoute = createRoute({
 });
 
 export const destroyPostRoute = createRoute({
-  tags: ["Admin/Posts"],
-  summary: "物理删除文章",
-  method: "delete",
-  path: "/posts/{id}/force",
+  tags: ['Admin/Posts'],
+  summary: '物理删除文章',
+  method: 'post',
+  path: '/posts/destroy',
   request: {
-    params: z.object({ id: z.string() }),
+    body: { content: { 'application/json': { schema: z.object({ ids: z.array(z.number().int().positive()) }) } } },
   },
   responses: {
     [HttpStatusCodes.OK]: {
