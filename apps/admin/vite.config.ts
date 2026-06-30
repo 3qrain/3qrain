@@ -11,6 +11,7 @@ export default defineConfig(({ command }) => ({
       '/api': {
         target: 'http://localhost:3010',
         changeOrigin: true,
+        ws: true,
         configure: proxy => {
           proxy.on('proxyReq', (proxyReq, req) => {
             proxyReq.setHeader('X-Forwarded-For', req.socket.remoteAddress || '127.0.0.1')

@@ -9,7 +9,10 @@ import mediaRouter from "./media/media.index";
 import visitorsRouter from "./visitors/visitors.index";
 import notesRouter from './notes/notes.index'
 import commentsRouter from './comments/comments.index'
+import notificationsRouter from './notifications/notifications.index'
 import { tusHandler } from './upload/tus'
+import { upgradeWebSocket } from 'hono/bun'
+import { adminWsHandler } from '~/services/ws'
 
 const adminRouter = createApp();
 
@@ -25,6 +28,10 @@ adminRouter.route("/", mediaRouter);
 adminRouter.route("/", visitorsRouter);
 adminRouter.route('/', notesRouter)
 adminRouter.route('/', commentsRouter)
+adminRouter.route('/', notificationsRouter)
 adminRouter.all('/upload/*', tusHandler)
+
+// WebSocket（authGuard 已验证）
+adminRouter.get('/ws', upgradeWebSocket(adminWsHandler))
 
 export default adminRouter;

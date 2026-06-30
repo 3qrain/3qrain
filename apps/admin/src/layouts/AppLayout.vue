@@ -10,9 +10,12 @@ import { useGlobalStore, type DrawerPanel } from '~/stores/global.ts'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
 import { syncThemeFromServer } from '~/css/themes/index'
+import { useWebSocket } from '~/composables/useWebSocket'
+import { getUnreadCount } from '~/api/notifications'
 
 const { drawerPanel } = storeToRefs(useGlobalStore())
 const appStore = useAppStore()
+const { connect, disconnect } = useWebSocket()
 
 const isMobile = ref(false)
 
@@ -31,8 +34,16 @@ async function fetchAdminInfo() {
   } catch { /* 401 拦截器会处理 */ }
 }
 
+async function fetchUnreadCount() {
+  try {
+    appStore.unreadCount = await getUnreadCount()
+  } catch { /* ignore */ }
+}
+
 onMounted(() => {
   fetchAdminInfo()
+  fetchUnreadCount()
+  connect()
   syncThemeFromServer()
 
   mediaQuery = window.matchMedia(`(width <= ${BREAKPOINT}px)`)
@@ -45,6 +56,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  disconnect()
   mediaQuery.removeEventListener('change', () => {})
 })
 </script>
@@ -72,8 +84,11 @@ onUnmounted(() => {
           </button>
         </div>
         <div class="header-right">
-          <button class="header-btn" @click="openPanel('notify')">
+          <button class="header-btn notify-btn" @click="openPanel('notify')">
             <Bell style="width: 1.375rem; height: 1.375rem;" />
+            <span v-if="appStore.unreadCount > 0" class="notify-badge">
+              {{ appStore.unreadCount > 99 ? '99+' : appStore.unreadCount }}
+            </span>
           </button>
           <button class="header-btn" @click="openPanel('upload')">
             <CloudUpload style="width: 1.375rem; height: 1.375rem;" />
@@ -148,6 +163,22 @@ onUnmounted(() => {
     border: none;
     background: transparent;
     cursor: pointer;
+    position: relative;
+  }
+  .notify-badge {
+    position: absolute;
+    top: .375rem;
+    right: .375rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 .1875rem;
+    border-radius: 62.4375rem;
+    background: #ef4444;
+    color: #fff;
+    font-size: .5625rem;
+    font-weight: 700;
+    line-height: 1rem;
+    text-align: center;
   }
 }
 

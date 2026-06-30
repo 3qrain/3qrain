@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import { menuRoutes } from '~/router/routes'
 import ThemeToggle from '~/components/theme/ThemeToggle.vue'
+import { Bell } from '@lucide/vue'
+import { useGlobalStore } from '~/stores/global.ts'
+import { useAppStore } from '~/stores/app'
+import { storeToRefs } from 'pinia'
 
 defineProps<{
   mobile?: boolean
@@ -10,8 +14,20 @@ const emit = defineEmits<{
   close: []
 }>()
 
+const { drawerPanel } = storeToRefs(useGlobalStore())
+const appStore = useAppStore()
+
 function handleClick() {
   emit('close')
+}
+
+function openNotifications() {
+  drawerPanel.value = 'notify'
+  if (window.innerWidth <= 768) return
+  // desktop: toggle
+  drawerPanel.value = drawerPanel.value === 'notify' ? 'notify' : 'notify'
+  // 实际上 drawer 在桌面端才显示，但桌面端一般用抽屉不太合适
+  // 这里在桌面端也打开抽屉
 }
 </script>
 
@@ -44,6 +60,12 @@ function handleClick() {
     </nav>
 
     <div class="sidebar-footer">
+      <button class="notify-btn" @click="openNotifications">
+        <Bell style="width: 1.125rem; height: 1.125rem;" />
+        <span v-if="appStore.unreadCount > 0" class="notify-badge">
+          {{ appStore.unreadCount > 99 ? '99+' : appStore.unreadCount }}
+        </span>
+      </button>
       <ThemeToggle />
     </div>
   </div>
@@ -130,5 +152,41 @@ function handleClick() {
   flex-shrink: 0;
   padding: 1rem 0.75rem;
   border-top: 0.0625rem solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.notify-btn {
+  position: relative;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-base-content);
+  opacity: .5;
+  cursor: pointer;
+  border-radius: .375rem;
+  transition: opacity .15s, background .15s;
+  &:hover { opacity: .8; background: color-mix(in oklab, var(--color-base-content) 10%, transparent); }
+}
+
+.notify-badge {
+  position: absolute;
+  top: .125rem;
+  right: .125rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 .1875rem;
+  border-radius: 62.4375rem;
+  background: #ef4444;
+  color: #fff;
+  font-size: .5625rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-align: center;
 }
 </style>

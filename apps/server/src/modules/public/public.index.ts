@@ -1,4 +1,6 @@
 import { createApp } from '~/lib/core/create-app'
+import { upgradeWebSocket } from 'hono/bun'
+import { publicWsHandler } from '~/services/ws'
 import userRouter from './user/user.index'
 import postsRouter from './posts/posts.index'
 import notesRouter from './notes/notes.index'
@@ -14,5 +16,8 @@ publicRouter.route('/', notesRouter)
 publicRouter.route('/', viewRouter)
 publicRouter.route('/', siteRouter)
 publicRouter.route('/', commentsRouter)
+
+// 前台 WebSocket（无需认证）
+publicRouter.get('/ws', upgradeWebSocket(publicWsHandler))
 
 export default publicRouter

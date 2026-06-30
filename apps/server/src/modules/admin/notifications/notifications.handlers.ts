@@ -1,0 +1,76 @@
+import type { Context } from 'hono'
+import { eq, desc, and, count } from 'drizzle-orm'
+import { db } from '~/db'
+import { notifications } from '~/db/schema'
+import { ok, fail } from '~/utils/response'
+import { ErrorCode } from '@3qrain/shared'
+import * as HttpStatusCodes from '~/constants/http-status-codes'
+
+export async function list(c: Context) {
+  const query = c.req.query()
+  const page = Number(query.page || 1)
+  const pageSize = Number(query.pageSize || 20)
+
+  const conditions = []
+  if (query.type) conditions.push(eq(notifications.type, query.type))
+  const where = conditions.length > 0 ? and(...conditions) : undefined
+
+  const total = db.select({ count: count() }).from(notifications).where(where).get()!.count
+
+  const rows = db
+    .select()
+    .from(notifications)
+    .where(where)
+    .orderBy(desc(notifications.createdAt))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize)
+    .all()
+
+  return c.json(ok({ list: rows, total, page, pageSize }, '获取成功'), HttpStatusCodes.OK)
+}
+
+export async function unreadCount(c: Context) {
+  const result = db
+    .select({ count: count() })
+    .from(notifications)
+    .where(eq(notifications.isRead, 0))
+    .get()!
+
+  return c.json(ok({ count: result.count }, '获取成功'), HttpStatusCodes.OK)
+}
+
+export async function markRead(c: Context) {
+  const id = Number(c.req.param('id')!)
+
+  const existing = db.select().from(notifications).where(eq(notifications.id, id)).get()
+  if (!existing) {
+    return c.json(fail(ErrorCode.INVALID_PARAMS, '通知不存在'), HttpStatusCodes.NOT_FOUND)
+  }
+
+  db.update(notifications).set({ isRead: 1 }).where(eq(notifications.id, id)).run()
+
+  const updated = db.select().from(notifications).where(eq(notifications.id, id)).get()!
+  return c.json(ok(updated, '已读'), HttpStatusCodes.OK)
+}
+
+export async function markAllRead(c: Context) {
+  db.update(notifications).set({ isRead: 1 }).run()
+  return c.json(ok({}, '全部已读'), HttpStatusCodes.OK)
+}
+
+export async function destroy(c: Context) {
+  const id = Number(c.req.param('id')!)
+
+  const existing = db.select().from(notifications).where(eq(notifications.id, id)).get()
+  if (!existing) {
+    return c.json(fail(ErrorCode.INVALID_PARAMS, '通知不存在'), HttpStatusCodes.NOT_FOUND)
+  }
+
+  db.delete(notifications).where(eq(notifications.id, id)).run()
+  return c.json(ok({}, '已删除'), HttpStatusCodes.OK)
+}
+
+export async function clearRead(c: Context) {
+  db.delete(notifications).where(eq(notifications.isRead, 1)).run()
+  return c.json(ok({}, '已清空已读通知'), HttpStatusCodes.OK)
+}

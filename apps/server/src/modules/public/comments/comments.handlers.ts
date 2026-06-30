@@ -1,7 +1,8 @@
 import type { Context } from 'hono'
 import { eq, and, asc, desc, isNull, count, inArray, lt } from 'drizzle-orm'
 import { db, redis } from '~/db'
-import { comments, users } from '~/db/schema'
+import { comments, users, posts, notes } from '~/db/schema'
+import { notify } from '~/services/notify'
 import { ok, fail } from '~/utils/response'
 import { ErrorCode } from '@3qrain/shared'
 import * as HttpStatusCodes from '~/constants/http-status-codes'
@@ -156,5 +157,40 @@ export async function create(c: Context) {
     .get()
 
   const [enriched] = enrichComments([result])
+
+  // 通知管理员
+  try {
+    let targetTitle = ''
+    if (body.targetType === 'post') {
+      const post = db.select({ title: posts.title }).from(posts).where(eq(posts.id, body.targetId)).get()
+      targetTitle = post?.title || ''
+    } else if (body.targetType === 'note') {
+      targetTitle = '说说'
+    }
+
+    const isReply = !!body.parentId
+    const summary = body.content.slice(0, 80)
+    const meta = JSON.stringify({
+      targetType: body.targetType,
+      targetId: body.targetId,
+      commentId: result.id,
+      parentId: body.parentId || null,
+    })
+
+    await notify({
+      scope: 'admin',
+      type: isReply ? 'new_reply' : 'new_comment',
+      title: isReply
+        ? `有人回复了评论`
+        : targetTitle
+          ? `《${targetTitle}》有新评论`
+          : '有新评论',
+      content: summary,
+      meta,
+    })
+  } catch (e) {
+    console.error('[notify] failed to send notification:', e)
+  }
+
   return c.json(ok(enriched, '评论成功'), HttpStatusCodes.CREATED)
 }

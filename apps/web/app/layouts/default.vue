@@ -4,6 +4,7 @@ import { onMounted } from 'vue'
 const store = useAppStore()
 const siteApi = useSiteApi()
 const userApi = useUserApi()
+useWebSocket()
 
 const { data: siteRes } = await useAsyncData('layout-site', () => siteApi.get())
 

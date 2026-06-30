@@ -1,7 +1,7 @@
 import './env'
 import { createApp } from '~/lib/core/create-app'
 import { csrf } from 'hono/csrf'
-import { serveStatic } from 'hono/bun'
+import { serveStatic, websocket } from 'hono/bun'
 import { errorHandler } from '~/middleware/error-handler'
 import authRouter from '~/modules/auth/auth.index'
 import adminRouter from '~/modules/admin/admin.index'
@@ -66,4 +66,8 @@ app.onError(errorHandler)
 
 cron_cleanUpExpiredUploads()
 
-export default app
+export default {
+  fetch: app.fetch,
+  websocket,
+  idleTimeout: 15,
+}

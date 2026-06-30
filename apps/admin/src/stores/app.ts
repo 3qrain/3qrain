@@ -24,6 +24,7 @@ interface AppState {
   commentsPaginationMode: PaginationMode
   noteComposeDraft: NoteComposeDraft | null
   adminUser: AdminUser | null
+  unreadCount: number
 }
 
 export const useAppStore = defineStore('app', {
@@ -35,6 +36,7 @@ export const useAppStore = defineStore('app', {
     commentsPaginationMode: 'scroll',
     noteComposeDraft: null,
     adminUser: null,
+    unreadCount: 0,
   }),
   persist: { key: '3qrain:admin-app' },
 })
