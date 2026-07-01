@@ -264,7 +264,7 @@ onMounted(() => fetchList())
   font-size: .75rem;
   line-height: 1.3;
   color: var(--color-base-content);
-  opacity: .4;
+  opacity: .6;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

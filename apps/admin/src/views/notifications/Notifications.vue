@@ -46,15 +46,14 @@ function handleSelect(item: NotificationItem) {
 
 .right {
   flex: 1;
-  min-width: 0;
+  padding: 1.25rem 2rem;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .modal-card {
+  padding: 1.25rem 2rem;
   background: var(--color-base-200);
-  border-radius: .75rem;
-  width: min(32rem, calc(100vw - 2rem));
-  max-height: calc(100vh - 4rem);
-  overflow-y: auto;
 }
 
 @media (width <= 48rem) {

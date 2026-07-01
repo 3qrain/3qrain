@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { Mail } from '@lucide/vue'
+import Skeleton from '~/components/base/Skeleton.vue'
 import type { NotificationItem } from '~/api/notifications/types'
 import { getComments } from '~/api/comments'
 import type { Comment } from '~/api/comments/types'
 import { formatDate } from '~/utils/date'
-
+import { withMinDuration } from '~/utils/async'
 const props = defineProps<{
   item: NotificationItem | null
 }>()
@@ -28,7 +29,7 @@ watch(
       const commentId = meta?.commentId
       if (!commentId) return
 
-      const res = await getComments({ id: commentId })
+      const res = await withMinDuration(() => getComments({ id: commentId }))
       comment.value = res.list[0] || null
     } catch {
       /* ignore */
@@ -63,14 +64,14 @@ watch(
       </div>
 
       <!-- 通知内容 -->
-      <div v-if="comment" class="detail-section">
+      <div class="detail-section">
         <h3 class="section-title">通知内容</h3>
         <div v-if="comment" class="comment-card">
           <div class="comment-author">
             <img v-if="comment.user.avatarUrl" :src="comment.user.avatarUrl" class="comment-avatar" />
             <span class="comment-username">{{ comment.user.username }}</span>
             <template v-if="comment.replyToUser">
-              <span style="opacity: 0.5; font-size: .875rem;">@</span>
+              <span style="opacity: 0.5; font-size: 0.875rem">@</span>
               <img :src="comment.replyToUser?.avatarUrl" class="comment-avatar" />
               <span class="comment-username">{{ comment.replyToUser?.username }}</span>
             </template>
@@ -82,9 +83,7 @@ watch(
             <!-- <span v-if="comment.replyToUser">回复 {{ comment.replyToUser.username }}</span> -->
           </div>
         </div>
-        <div v-else-if="commentLoading" class="detail-section">
-          <p class="loading-text">加载评论详情...</p>
-        </div>
+        <Skeleton v-else class="comment-card" />
       </div>
 
       <!-- 邮件发送（占位） -->
@@ -108,8 +107,6 @@ watch(
 <style scoped lang="less">
 .detail-panel {
   height: 100%;
-  overflow-y: auto;
-  padding: 1.25rem 2rem;
 }
 
 .detail-empty {
@@ -169,15 +166,12 @@ watch(
   margin: 0;
 }
 
-.loading-text {
-  font-size: 0.75rem;
-  color: var(--color-base-content);
-  opacity: 0.35;
-  margin: 0;
-}
-
 .comment-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 0.75rem;
+  min-height: 6.25rem;
   background: color-mix(in oklab, var(--color-base-content) 4%, transparent);
   border-radius: 0.5rem;
 }
