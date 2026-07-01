@@ -30,7 +30,7 @@ watch(
       if (!commentId) return
 
       const res = await withMinDuration(() => getComments({ id: commentId }))
-      comment.value = res.list[0] || null
+      comment.value = res.list[0] || undefined
     } catch {
       /* ignore */
     } finally {
@@ -83,7 +83,9 @@ watch(
             <!-- <span v-if="comment.replyToUser">回复 {{ comment.replyToUser.username }}</span> -->
           </div>
         </div>
-        <Skeleton v-else class="comment-card" />
+        <Skeleton v-else class="comment-card comment-card-skeleton">
+          {{ comment === undefined ? '评论不存在或已被删除' : '' }}
+        </Skeleton>
       </div>
 
       <!-- 邮件发送（占位） -->
@@ -209,6 +211,14 @@ watch(
   font-size: 0.6875rem;
   color: var(--color-base-content);
   opacity: 0.4;
+}
+
+.comment-card-skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .875rem;
+  color: color-mix(in oklab, var(--color-base-content) 65%, transparent 50%) ;
 }
 
 .email-placeholder {

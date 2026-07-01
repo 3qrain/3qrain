@@ -1,5 +1,7 @@
 <template>
-  <div class="skeleton" />
+  <div class="skeleton" >
+    <slot/>
+  </div>
 </template>
 
 <style scoped lang="less">
