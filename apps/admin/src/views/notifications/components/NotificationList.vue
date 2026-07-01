@@ -131,6 +131,7 @@ onMounted(() => fetchList())
           </div>
           <div class="item-main">
             <div class="item-title">{{ item.title }}</div>
+            <div v-if="item.content" class="item-preview">{{ item.content }}</div>
             <div class="item-meta">
               <span class="item-time">{{ formatDate(item.createdAt) }}</span>
             </div>
@@ -257,6 +258,17 @@ onMounted(() => fetchList())
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.item-preview {
+  font-size: .75rem;
+  line-height: 1.3;
+  color: var(--color-base-content);
+  opacity: .4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: .125rem;
 }
 
 .item-meta {

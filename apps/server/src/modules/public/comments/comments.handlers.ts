@@ -163,13 +163,15 @@ export async function create(c: Context) {
     let targetTitle = ''
     if (body.targetType === 'post') {
       const post = db.select({ title: posts.title }).from(posts).where(eq(posts.id, body.targetId)).get()
-      targetTitle = post?.title || ''
+      targetTitle = `「${post?.title || ''}」`    
     } else if (body.targetType === 'note') {
-      targetTitle = '说说'
+      targetTitle = '说说#' + body.targetId + ' '
     }
 
     const isReply = !!body.parentId
-    const summary = body.content.slice(0, 50) + '...'
+    const maxLength = 25
+    let summary = body.content.slice(0, maxLength)
+    if (body.content.length > maxLength) summary += '...'
     const meta = JSON.stringify({
       targetType: body.targetType,
       targetId: body.targetId,
@@ -180,11 +182,7 @@ export async function create(c: Context) {
     await notify({
       scope: 'admin',
       type: isReply ? 'new_reply' : 'new_comment',
-      title: isReply
-        ? `有人回复了评论`
-        : targetTitle
-          ? `《${targetTitle}》有新评论`
-          : '有新评论',
+      title: targetTitle + (isReply ? '有新回复' : '有新评论'),  
       content: summary,
       meta,
     })

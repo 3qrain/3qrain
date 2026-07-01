@@ -5,6 +5,7 @@ export interface CommentQuery {
   page?: number
   pageSize?: number
   offset?: number
+  id?: number
   status?: string
   targetType?: string
   targetId?: number

@@ -9,7 +9,9 @@ import * as HttpStatusCodes from '~/constants/http-status-codes'
 function buildFilters(query: Record<string, string | undefined>) {
   const conditions = []
 
-  if (query.deleted) {
+  if (query.id) {
+    conditions.push(eq(comments.id, Number(query.id)))
+  } else if (query.deleted) {
     conditions.push(isNotNull(comments.deletedAt))
   } else {
     conditions.push(isNull(comments.deletedAt))

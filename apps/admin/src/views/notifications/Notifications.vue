@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import NotificationList from './components/NotificationList.vue'
-import EmailDetail from './components/EmailDetail.vue'
+import NotificationDetail from './components/NotificationDetail.vue'
 import BaseModal from '~/components/base/Modal.vue'
 import type { NotificationItem } from '~/api/notifications/types'
 
@@ -22,12 +22,12 @@ function handleSelect(item: NotificationItem) {
       <NotificationList @select="handleSelect" />
     </div>
     <div class="right">
-      <EmailDetail :item="selectedItem" />
+      <NotificationDetail :item="selectedItem" />
     </div>
 
     <BaseModal v-model:open="showModal">
       <div class="modal-card">
-        <EmailDetail :item="selectedItem" />
+        <NotificationDetail :item="selectedItem" />
       </div>
     </BaseModal>
   </div>
@@ -58,9 +58,8 @@ function handleSelect(item: NotificationItem) {
 }
 
 @media (width <= 48rem) {
-  .page {
-    height: calc(100vh - 3.75rem - 1rem);
-    margin: -1rem -1rem 0;
+  .list-panel {
+    border-right: none;
   }
   .left { width: 100%; }
   .right { display: none; }
