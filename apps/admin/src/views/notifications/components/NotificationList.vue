@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, type VNodeRef } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { Bell, MessageCircle, MessageCircleReply, Link2, Settings, Trash2 } from '@lucide/vue'
 import Pagination from '~/components/table/Pagination.vue'
 import { getNotifications, markRead, deleteNotifications } from '~/api/notifications'
@@ -8,7 +8,7 @@ import { formatDate } from '~/utils/date'
 import { useAppStore } from '~/stores/app'
 
 const emit = defineEmits<{
-  select: [item: NotificationItem]
+  select: [item: NotificationItem | null]
 }>()
 
 const store = useAppStore()
@@ -84,7 +84,10 @@ async function handleDelete(item: NotificationItem) {
   list.value = list.value.filter(n => n.id !== item.id)
   total.value--
   totalPages.value = Math.ceil(total.value / pageSize)
-  if (selectedId.value === item.id) selectedId.value = null
+  if (selectedId.value === item.id) {
+    selectedId.value = null
+    emit('select', null)
+  }
 }
 
 function handleSelect(item: NotificationItem) {
@@ -249,7 +252,7 @@ onMounted(() => load(true))
   transition:
     background 0.12s,
     padding 0.2s cubic-bezier(0.34, 1.56, 0.64, 1.5);
-  border-bottom: 0.0625rem solid var(--color-border);
+  // border-bottom: 0.0625rem solid var(--color-border);
 
   &:hover {
     background: color-mix(in oklab, var(--color-base-content) 3%, transparent);

@@ -17,7 +17,7 @@ const router = useRouter()
 const postId = ref(Number(route.params.id) || 0)
 const categories = ref<Category[]>([])
 const tags = ref<Tag[]>([])
-const showSettings = ref(true)
+const showSettings = ref(false)
 const isDirty = ref(false)
 const saving = ref(false)
 // 编辑已有文章时先显示加载中，创建新文章直接显示编辑界面
@@ -154,6 +154,10 @@ onMounted(() => {
     )
   })
   window.addEventListener('keydown', onKeydown)
+  console.log(window.innerWidth);
+  if (window.innerWidth > 1024) {
+    showSettings.value = true
+  }
 })
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
@@ -251,16 +255,16 @@ onUnmounted(() => {
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (width >= 68.75rem) {
+@media (width >= 64rem) {
   .sidebar-wrap {
     display: block;
   }
 }
 
-/* 窄屏浮层（< 68.75rem 时 sidebar-wrap 不显示，用浮层） */
+/* 窄屏浮层（< 64rem 时 sidebar-wrap 不显示，用浮层） */
 .overlay-bg {
   display: none;
-  @media (width < 68.75rem) {
+  @media (width < 64rem) {
     display: flex;
     justify-content: flex-end;
     position: fixed;

@@ -8,9 +8,9 @@ import type { NotificationItem } from '~/api/notifications/types'
 const selectedItem = ref<NotificationItem | null>(null)
 const showModal = ref(false)
 
-function handleSelect(item: NotificationItem) {
+function handleSelect(item: NotificationItem | null) {
   selectedItem.value = item
-  if (window.innerWidth <= 768) {
+  if (window.innerWidth <= 1024) {
     showModal.value = true
   }
 }
@@ -56,7 +56,7 @@ function handleSelect(item: NotificationItem) {
   background: var(--color-base-200);
 }
 
-@media (width <= 48rem) {
+@media (width <= 64rem) {
   .list-panel {
     border-right: none;
   }
