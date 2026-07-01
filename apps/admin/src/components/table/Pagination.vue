@@ -10,8 +10,9 @@ const props = withDefaults(
     totalPages: number
     mode?: 'button' | 'scroll'
     loading?: boolean
+    rootId?: string
   }>(),
-  { mode: 'button', loading: false, root: null }
+  { mode: 'button', loading: false, rootId: undefined }
 )
 
 const emit = defineEmits<{ (e: 'change', page: number): void }>()
@@ -37,7 +38,8 @@ function goTo(page: number) {
 /* ---- 滚动模式：IntersectionObserver ---- */
 function setupObserver() {
   if (!sentinel.value) return
-  const scrollRoot = document.getElementById('app-main')
+  const scrollRoot = props.rootId ? document.getElementById(props.rootId) : document.getElementById('app-main')
+  
   observer = new IntersectionObserver(
     ([entry]) => {      
       if (entry.isIntersecting && !props.loading && props.currentPage < props.totalPages) {

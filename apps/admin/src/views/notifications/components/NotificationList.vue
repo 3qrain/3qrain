@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, type VNodeRef } from 'vue'
 import { Bell, MessageCircle, MessageCircleReply, Link2, Settings, Trash2 } from '@lucide/vue'
+import Pagination from '~/components/table/Pagination.vue'
 import { getNotifications, markRead, deleteNotifications } from '~/api/notifications'
 import type { NotificationItem } from '~/api/notifications/types'
 import { formatDate } from '~/utils/date'
@@ -11,26 +12,28 @@ const emit = defineEmits<{
 }>()
 
 const store = useAppStore()
+
+const listBodyId = 'app-notifications-list-body'
 const list = ref<NotificationItem[]>([])
 const loading = ref(false)
 const total = ref(0)
 const page = ref(1)
+const totalPages = ref(1)
 const pageSize = 20
 const activeCategory = ref('')
 const activeFilter = ref<'all' | 'unread'>('all')
 const selectedId = ref<number | null>(null)
 
-// UI 分类 → 后端 type 值映射
 const categoryTypeMap: Record<string, string[]> = {
   comment: ['new_comment', 'new_reply'],
-  friend_link: ['friend_apply'],
+  friend_apply: ['friend_apply'],
   system: ['system']
 }
 
 const categories = [
   { value: '', label: '全部类型' },
   { value: 'comment', label: '评论' },
-  { value: 'friend_link', label: '友链申请' },
+  { value: 'friend_apply', label: '友链申请' },
   { value: 'system', label: '系统' }
 ]
 
@@ -39,7 +42,6 @@ const filters = [
   { value: 'unread', label: '未读' }
 ]
 
-// 根据 type 推导图标
 function typeIcon(type: string) {
   if (type === 'new_comment') return MessageCircle
   if (type === 'new_reply') return MessageCircleReply
@@ -47,21 +49,26 @@ function typeIcon(type: string) {
   return Settings
 }
 
-async function fetchList(reset = false) {
-  if (reset) page.value = 1
+async function load(append = false) {
   loading.value = true
   try {
     const res = await getNotifications({
-      page: page.value,
       pageSize,
       types: activeCategory.value ? categoryTypeMap[activeCategory.value]?.join(',') : undefined,
-      isRead: activeFilter.value === 'unread' ? '0' : undefined
+      isRead: activeFilter.value === 'unread' ? '0' : undefined,
+      offset: String(append ? list.value.length : 0)
     })
-    list.value = res.list
+    list.value = append ? [...list.value, ...res.list] : res.list
     total.value = res.total
+    totalPages.value = Math.ceil(res.total / pageSize)
   } finally {
     loading.value = false
   }
+}
+
+function goPage(p: number) {
+  page.value = p
+  load(true)
 }
 
 async function handleMarkRead(item: NotificationItem) {
@@ -76,6 +83,7 @@ async function handleDelete(item: NotificationItem) {
   if (!item.isRead && store.unreadCount > 0) store.unreadCount--
   list.value = list.value.filter(n => n.id !== item.id)
   total.value--
+  totalPages.value = Math.ceil(total.value / pageSize)
   if (selectedId.value === item.id) selectedId.value = null
 }
 
@@ -85,14 +93,18 @@ function handleSelect(item: NotificationItem) {
   if (!item.isRead) handleMarkRead(item)
 }
 
-watch([activeCategory, activeFilter], () => fetchList(true))
+watch([activeCategory, activeFilter], () => {
+  page.value = 1
+  totalPages.value = 1
+  list.value = []
+  load(true)
+})
 
-onMounted(() => fetchList())
+onMounted(() => load(true))
 </script>
 
 <template>
   <div class="list-panel">
-    <!-- Header -->
     <div class="panel-header">
       <div class="filter-tabs">
         <button
@@ -110,15 +122,14 @@ onMounted(() => fetchList())
       </select>
     </div>
 
-    <!-- List -->
-    <div v-if="loading" class="list-loading">加载中...</div>
+    <div v-if="loading && list.length === 0" class="list-loading">加载中...</div>
 
-    <div v-else-if="list.length === 0" class="list-empty">
+    <div v-else-if="!loading && list.length === 0" class="list-empty">
       <Bell :size="28" :stroke-width="1" />
       <p>暂无通知</p>
     </div>
 
-    <div v-else class="list-body">
+    <div v-else :id="listBodyId" class="list-body">
       <div
         v-for="item in list"
         :key="item.id"
@@ -141,6 +152,7 @@ onMounted(() => fetchList())
           <Trash2 :size="13" :stroke-width="1.5" />
         </button>
       </div>
+      <Pagination :current-page="page" :total-pages="totalPages" :loading="loading" :mode="'scroll'" @change="goPage" :rootId="listBodyId" />
     </div>
   </div>
 </template>
@@ -187,6 +199,12 @@ onMounted(() => fetchList())
     background: color-mix(in oklab, var(--color-base-content) 10%, transparent);
     font-weight: 600;
   }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 .category-select {
@@ -274,7 +292,7 @@ onMounted(() => fetchList())
   border-radius: 2rem;
   opacity: 0;
   transform: scaleY(0.4);
-  transition: all .4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
 }
 .item-dot::after {
@@ -284,10 +302,10 @@ onMounted(() => fetchList())
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--color-info), var(--color-success));
+  background: linear-gradient(135deg, #3b82f6, var(--color-info));
   // background: linear-gradient(135deg, var(--color-success), var(--color-neutral), var(--color-info));
   opacity: 0;
-  transition: opacity .6s;
+  transition: opacity 0.6s;
 }
 
 .item-icon {

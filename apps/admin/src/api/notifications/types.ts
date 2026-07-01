@@ -19,6 +19,7 @@ export interface NotificationListResult {
 export interface NotificationListQuery {
   page?: number
   pageSize?: number
+  offset?: string
   types?: string
   isRead?: string
 }

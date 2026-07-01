@@ -37,6 +37,7 @@ export const listRoute = createRoute({
     query: z.object({
       page: z.string().optional(),
       pageSize: z.string().optional(),
+      offset: z.string().optional(),
       types: z.string().optional(),
       isRead: z.string().optional(),
     }),

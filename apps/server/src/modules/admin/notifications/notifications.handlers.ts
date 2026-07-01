@@ -10,6 +10,7 @@ export async function list(c: Context) {
   const query = c.req.query()
   const page = Number(query.page || 1)
   const pageSize = Number(query.pageSize || 20)
+  const actualOffset = query.offset !== undefined ? Number(query.offset) : (page - 1) * pageSize
 
   const conditions = []
   if (query.types) {
@@ -27,7 +28,7 @@ export async function list(c: Context) {
     .where(where)
     .orderBy(desc(notifications.createdAt))
     .limit(pageSize)
-    .offset((page - 1) * pageSize)
+    .offset(actualOffset)
     .all()
 
   return c.json(ok({ list: rows, total, page, pageSize }, '获取成功'), HttpStatusCodes.OK)
