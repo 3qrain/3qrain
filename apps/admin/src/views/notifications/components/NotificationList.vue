@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import { Bell, MessageCircle, Link2, Settings, Trash2 } from '@lucide/vue'
+import { Bell, MessageCircle, MessageCircleReply, Link2, Settings, Trash2 } from '@lucide/vue'
 import { getNotifications, markRead, deleteNotifications } from '~/api/notifications'
 import type { NotificationItem } from '~/api/notifications/types'
 import { formatDate } from '~/utils/date'
@@ -24,24 +24,25 @@ const selectedId = ref<number | null>(null)
 const categoryTypeMap: Record<string, string[]> = {
   comment: ['new_comment', 'new_reply'],
   friend_link: ['friend_apply'],
-  system: ['system'],
+  system: ['system']
 }
 
 const categories = [
   { value: '', label: '全部类型' },
   { value: 'comment', label: '评论' },
   { value: 'friend_link', label: '友链申请' },
-  { value: 'system', label: '系统' },
+  { value: 'system', label: '系统' }
 ]
 
 const filters = [
   { value: 'all', label: '全部' },
-  { value: 'unread', label: '未读' },
+  { value: 'unread', label: '未读' }
 ]
 
 // 根据 type 推导图标
 function typeIcon(type: string) {
-  if (type === 'new_comment' || type === 'new_reply') return MessageCircle
+  if (type === 'new_comment') return MessageCircle
+  if (type === 'new_reply') return MessageCircleReply
   if (type === 'friend_apply') return Link2
   return Settings
 }
@@ -54,7 +55,7 @@ async function fetchList(reset = false) {
       page: page.value,
       pageSize,
       types: activeCategory.value ? categoryTypeMap[activeCategory.value]?.join(',') : undefined,
-      isRead: activeFilter.value === 'unread' ? '0' : undefined,
+      isRead: activeFilter.value === 'unread' ? '0' : undefined
     })
     list.value = res.list
     total.value = res.total
@@ -125,16 +126,15 @@ onMounted(() => fetchList())
         :class="{ unread: !item.isRead, selected: selectedId === item.id }"
         @click="handleSelect(item)"
       >
-        <div class="item-left">
-          <div class="item-icon">
-            <component :is="typeIcon(item.type)" :size="14" :stroke-width="1.5" />
-          </div>
-          <div class="item-main">
-            <div class="item-title">{{ item.title }}</div>
-            <div v-if="item.content" class="item-preview">{{ item.content }}</div>
-            <div class="item-meta">
-              <span class="item-time">{{ formatDate(item.createdAt) }}</span>
-            </div>
+        <span class="item-dot" />
+        <div class="item-icon">
+          <component :is="typeIcon(item.type)" style="width: 1rem; height: 1rem" />
+        </div>
+        <div class="item-main">
+          <div class="item-title">{{ item.title }}</div>
+          <div v-if="item.content" class="item-preview">{{ item.content }}</div>
+          <div class="item-meta">
+            <span class="item-time">{{ formatDate(item.createdAt) }}</span>
           </div>
         </div>
         <button class="item-trash" title="删除" @click.stop="handleDelete(item)">
@@ -150,60 +150,70 @@ onMounted(() => fetchList())
   display: flex;
   flex-direction: column;
   height: 100%;
-  border-right: .0625rem solid var(--color-border);
+  border-right: 0.0625rem solid var(--color-border);
 }
 
 .panel-header {
   flex-shrink: 0;
-  padding: .75rem 1rem;
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: .5rem;
-  border-bottom: .0625rem solid var(--color-border);
+  gap: 0.5rem;
+  border-bottom: 0.0625rem solid var(--color-border);
 }
 
 .filter-tabs {
   display: flex;
-  gap: .125rem;
+  gap: 0.125rem;
 }
 
 .tab-btn {
-  padding: .25rem .625rem;
-  border-radius: .25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.25rem;
   border: none;
   background: transparent;
-  font-size: .8125rem;
+  font-size: 0.8125rem;
   color: var(--color-base-content);
-  opacity: .5;
+  opacity: 0.5;
   cursor: pointer;
-  transition: all .15s;
-  &:hover { opacity: .8; background: color-mix(in oklab, var(--color-base-content) 6%, transparent); }
-  &.active { opacity: 1; background: color-mix(in oklab, var(--color-base-content) 10%, transparent); font-weight: 600; }
+  transition: all 0.15s;
+  &:hover {
+    opacity: 0.8;
+    background: color-mix(in oklab, var(--color-base-content) 6%, transparent);
+  }
+  &.active {
+    opacity: 1;
+    background: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    font-weight: 600;
+  }
 }
 
 .category-select {
-  padding: .25rem .5rem;
-  border: .0625rem solid var(--color-border);
-  border-radius: .25rem;
+  padding: 0.25rem 0.5rem;
+  border: 0.0625rem solid var(--color-border);
+  border-radius: 0.25rem;
   background: transparent;
-  font-size: .75rem;
+  font-size: 0.75rem;
   color: var(--color-base-content);
-  opacity: .6;
+  opacity: 0.6;
   cursor: pointer;
 }
 
-.list-loading, .list-empty {
+.list-loading,
+.list-empty {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: .5rem;
+  gap: 0.5rem;
   color: var(--color-base-content);
-  opacity: .3;
-  font-size: .8125rem;
-  p { margin: 0; }
+  opacity: 0.3;
+  font-size: 0.8125rem;
+  p {
+    margin: 0;
+  }
 }
 
 .list-body {
@@ -212,81 +222,140 @@ onMounted(() => fetchList())
 }
 
 .list-item {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: .5rem;
-  padding: .625rem 1rem;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 0.75rem 0.75rem;
   cursor: pointer;
-  transition: background .1s;
-  border-bottom: .0625rem solid var(--color-border);
+  transition:
+    background 0.12s,
+    padding 0.2s cubic-bezier(0.34, 1.56, 0.64, 1.5);
+  border-bottom: 0.0625rem solid var(--color-border);
 
-  &:hover { background: color-mix(in oklab, var(--color-base-content) 4%, transparent); }
-  &.selected { background: color-mix(in oklab, var(--color-base-content) 6%, transparent); }
+  &:hover {
+    background: color-mix(in oklab, var(--color-base-content) 3%, transparent);
+  }
+
+  &.selected {
+    background: color-mix(in oklab, var(--color-base-content) 5%, transparent);
+    padding-left: 1rem;
+
+    .item-dot {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+    .item-dot::after {
+      opacity: 0;
+    }
+  }
+
   &.unread {
-    background: color-mix(in oklab, var(--color-base-content) 2.5%, transparent);
-    .item-title { font-weight: 600; }
+    .item-dot {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+    .item-dot::after {
+      opacity: 1;
+    }
+    .item-title {
+      font-weight: 600;
+    }
   }
 }
 
-.item-left {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  min-width: 0;
+.item-dot {
+  position: relative;
+  flex-shrink: 0;
+  width: 0.1875rem;
+  height: 2rem;
+  border-radius: 62.4375rem;
+  background: var(--color-base-content);
+  border-radius: 2rem;
+  opacity: 0;
+  transform: scaleY(0.4);
+  transition: all .4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+.item-dot::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--color-info), var(--color-success));
+  // background: linear-gradient(135deg, var(--color-success), var(--color-neutral), var(--color-info));
+  opacity: 0;
+  transition: opacity .6s;
 }
 
 .item-icon {
   flex-shrink: 0;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: .25rem;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 0.375rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in oklab, var(--color-base-content) 6%, transparent);
   color: var(--color-base-content);
-  opacity: .5;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+
+  .list-item.unread & {
+    opacity: 1;
+  }
+  .list-item.selected & {
+    opacity: 0.8;
+  }
 }
 
-.item-main { min-width: 0; }
+.item-main {
+  flex: 1;
+  min-width: 0;
+}
 
 .item-title {
-  font-size: .8125rem;
+  font-size: 0.8125rem;
   line-height: 1.3;
   color: var(--color-base-content);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: opacity 0.15s;
+
+  .list-item:not(.unread) & {
+    opacity: 0.6;
+  }
 }
 
 .item-preview {
-  font-size: .75rem;
+  font-size: 0.75rem;
   line-height: 1.3;
   color: var(--color-base-content);
-  opacity: .6;
+  opacity: 0.6;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-top: .125rem;
+  margin-top: 0.125rem;
 }
 
 .item-meta {
-  margin-top: .125rem;
+  margin-top: 0.25rem;
   display: flex;
-  gap: .375rem;
+  gap: 0.375rem;
 }
 
-.item-time, .item-type {
-  font-size: .6875rem;
+.item-time {
+  font-size: 0.6875rem;
   color: var(--color-base-content);
-  opacity: .35;
+  opacity: 0.3;
 }
 
 .item-trash {
   flex-shrink: 0;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -295,10 +364,23 @@ onMounted(() => fetchList())
   color: var(--color-base-content);
   opacity: 0;
   cursor: pointer;
-  border-radius: .25rem;
-  transition: all .15s;
-  &:hover { background: color-mix(in oklab, #ef4444 15%, transparent); color: #ef4444; }
-  .list-item:hover & { opacity: .2; }
-  .list-item:hover &:hover { opacity: 1; }
+  border-radius: 0.375rem;
+  transition: all 0.15s;
+  &:hover {
+    background: color-mix(in oklab, #ef4444 15%, transparent);
+    color: #ef4444;
+  }
+  .list-item:hover & {
+    opacity: 0.2;
+  }
+  .list-item:hover &:hover {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 48rem) {
+  .panel-header {
+    padding-top: 0;
+  }
 }
 </style>

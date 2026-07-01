@@ -2,6 +2,7 @@ import { ref, onUnmounted } from 'vue'
 import { toast } from 'vue-sonner'
 import { useAppStore } from '~/stores/app'
 import type { WsPing, WsServerMessage } from '@3qrain/shared'
+import router from '~/router'
 
 export function useWebSocket() {
   const store = useAppStore()
@@ -56,6 +57,7 @@ export function useWebSocket() {
                       const meta = JSON.parse(msg.data.meta!)
                       if (meta.targetType === 'post' && meta.targetId) {
                         // 跳转到文章管理页
+                        router.push('/notifications')
                       }
                     } catch {
                       /* ignore */
