@@ -1,6 +1,7 @@
 import type { Context } from 'hono'
 import type { WSContext } from 'hono/ws'
 import Redis from 'ioredis'
+import type { WsChannelMessage, WsConnected, WsNotification, WsPing, WsPong } from '@3qrain/shared'
 
 /* ------------------------------------------------------------------ */
 /* 连接管理                                                            */
@@ -10,7 +11,7 @@ type ConnInfo =
   | { role: 'admin' }
   | { role: 'visitor'; visitorId: string }
 
-const connections = new Map<unknown, ConnInfo>()
+const connections = new Map<any, ConnInfo>()
 
 function countByRole(role: ConnInfo['role']): number {
   let n = 0
@@ -32,7 +33,7 @@ export function getVisitorCount(): number {
 /* Redis 订阅                                                           */
 /* ------------------------------------------------------------------ */
 
-const CHANNEL = '3qrain:ws:events'
+export const CHANNEL = '3qrain:notifications'
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379'
 const subscriber = new Redis(REDIS_URL, { lazyConnect: true })
 
@@ -51,13 +52,15 @@ subscriber.on('message', (channel, message) => {
   if (channel !== CHANNEL || connections.size === 0) return
 
   try {
-    const { scope, payload } = JSON.parse(message)
+    const { scope, payload } = JSON.parse(message) as WsChannelMessage
+
+    const out: WsNotification = { type: 'notification', data: payload }
 
     for (const [raw, info] of connections) {
       if (scope === 'admin' && info.role !== 'admin') continue
       if (scope === 'public' && info.role !== 'visitor') continue
 
-      try { (raw as any).send(JSON.stringify(payload)) } catch { /* ignore */ }
+      try { (raw as any).send(JSON.stringify(out)) } catch { /* ignore */ }
     }
   } catch { /* ignore malformed */ }
 })
@@ -94,20 +97,24 @@ function makeHandler(role: ConnInfo['role']) {
 
         connections.set(ws.raw, info)
 
-        console.log(`[ws] ${role} connected (size=${connections.size}, admin=${countByRole('admin')}, visitor=${getVisitorCount()})`)
+        const connected: WsConnected = { type: 'connected' }
+        ws.send(JSON.stringify(connected))
+
+        // console.log(`[ws] ${role} connected (size=${connections.size}, admin=${countByRole('admin')}, visitor=${getVisitorCount()})`)
       },
 
       onClose(_evt: Event, ws: WSContext) {
         const existed = connections.has(ws.raw)
         if (existed) connections.delete(ws.raw)
-        console.log(`[ws] ${role} disconnected (existed=${existed}, size=${connections.size}, admin=${countByRole('admin')})`)
+        // console.log(`[ws] ${role} disconnected (existed=${existed}, size=${connections.size}, admin=${countByRole('admin')})`)
       },
 
       onMessage(evt: MessageEvent, ws: WSContext) {
         try {
-          const msg = JSON.parse(evt.data as string)
+          const msg = JSON.parse(evt.data as string) as WsPing
           if (msg.type === 'ping') {
-            ws.send(JSON.stringify({ type: 'pong' }))
+            const pong: WsPong = { type: 'pong' }
+            ws.send(JSON.stringify(pong))
           }
         } catch { /* ignore malformed */ }
       },

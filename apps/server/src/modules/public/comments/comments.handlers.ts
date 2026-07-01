@@ -169,14 +169,14 @@ export async function create(c: Context) {
     }
 
     const isReply = !!body.parentId
-    const summary = body.content.slice(0, 80)
+    const summary = body.content.slice(0, 50) + '...'
     const meta = JSON.stringify({
       targetType: body.targetType,
       targetId: body.targetId,
       commentId: result.id,
       parentId: body.parentId || null,
     })
-
+    
     await notify({
       scope: 'admin',
       type: isReply ? 'new_reply' : 'new_comment',

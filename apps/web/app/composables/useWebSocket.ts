@@ -1,3 +1,5 @@
+import type { WsServerMessage } from '@3qrain/shared'
+
 export function useWebSocket() {
   if (import.meta.server) return
 
@@ -9,12 +11,14 @@ export function useWebSocket() {
     const url = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.hostname}:${serverPort}/api/ws?visitorId=${visitorId}`
     const ws = new WebSocket(url)
 
-    ws.onopen = () => console.log('[ws] public connected')
-    ws.onclose = () => console.log('[ws] public disconnected')
+    ws.onopen = () => console.log('[ws] connected')
+    ws.onclose = () => console.log('[ws] disconnected')
     ws.onmessage = (e) => {
       try {
-        const msg = JSON.parse(e.data)
-        console.log('[ws] public message:', msg)
+        const msg: WsServerMessage = JSON.parse(e.data)
+        if (msg.type === 'notification') {
+          console.log('[ws] notification:', msg.data)
+        }
       } catch { /* ignore */ }
     }
 

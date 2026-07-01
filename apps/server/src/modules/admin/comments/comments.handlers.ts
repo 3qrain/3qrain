@@ -88,7 +88,7 @@ export async function list(c: Context) {
 export async function create(c: Context) {
   const body = await c.req.json() as {
     targetType: string; targetId: number; content: string
-    parentId?: number; replyToUserId?: number
+    parentId?: number; replyToUserId?: number; replyToId?: number
   }
 
   const systemUser = db.select({ id: users.id }).from(users).where(eq(users.role, 'system')).get()!

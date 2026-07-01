@@ -11,6 +11,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@3qrain/shared": "workspace:*",
     "@lucide/vue": "^1.14.0",
     "@pinia/nuxt": "0.11.3",
     "nuxt": "^4.4.8",
