@@ -87,9 +87,9 @@ function buildForm() {
 async function doSave(asStatus?: string, silent = false, successMsg?: string): Promise<boolean> {
   if (saving.value) return false
   // 发布/归档时前端先校验
-  if (!silent && asStatus && asStatus !== 'draft') {
+  if (asStatus && asStatus !== 'draft') {
     if (!title.value || !slug.value || !categoryId.value) {
-      toast.error('发布/归档时标题、标识和分类为必填')
+      if(!silent) toast.error('发布/归档时标题、标识和分类为必填')
       return false
     }
   }
@@ -124,14 +124,14 @@ async function doSave(asStatus?: string, silent = false, successMsg?: string): P
 function scheduleAutoSave() {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
-    if (isDirty.value) doSave('draft', true)
+    if (isDirty.value) doSave(status.value, true)
   }, 2000)
 }
 
 function onKeydown(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault()
-    doSave('draft')
+    doSave(status.value)
   }
 }
 async function publish() {
@@ -154,7 +154,6 @@ onMounted(() => {
     )
   })
   window.addEventListener('keydown', onKeydown)
-  console.log(window.innerWidth);
   if (window.innerWidth > 1024) {
     showSettings.value = true
   }
