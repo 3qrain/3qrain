@@ -1,5 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { LayoutDashboard, FileText, MessageCircle, FolderTree, Tags, Image, Users, Settings } from '@lucide/vue'
+import { LayoutDashboard, FileText, MessageCircle, FolderTree, Tags, Image, Users, Settings, Bell } from '@lucide/vue'
 import AppLayout from '~/layouts/AppLayout.vue'
 
 export const menuRoutes: RouteRecordRaw[] = [
@@ -121,6 +121,15 @@ export const menuRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/notifications',
+    name: 'notifications',
+    component: () => import('~/views/notifications/Notifications.vue'),
+    meta: {
+      title: '通知管理',
+      icon: Bell
+    }
+  },
+  {
     path: '/settings',
     meta: {
       title: '设置',
@@ -146,9 +155,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/',
     component: AppLayout,
     redirect: '/dashboard',
-    children: [
-      ...menuRoutes
-    ]
+    children: [...menuRoutes]
   },
   {
     path: '/:pathMatch(.*)*',

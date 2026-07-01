@@ -1,7 +1,7 @@
 import { apiClient } from '~/lib/axios'
-import type { NotificationItem, NotificationListResult } from './types'
+import type { NotificationItem, NotificationListResult, NotificationListQuery } from './types'
 
-export async function getNotifications(params?: { page?: number; pageSize?: number }) {
+export async function getNotifications(params?: NotificationListQuery) {
   const { data } = await apiClient.get<{ data: NotificationListResult }>('/admin/notifications', { params })
   return data.data
 }
@@ -21,8 +21,8 @@ export async function markAllRead() {
   return data
 }
 
-export async function deleteNotification(id: number) {
-  const { data } = await apiClient.delete(`/admin/notifications/${id}`)
+export async function deleteNotifications(ids: number[]) {
+  const { data } = await apiClient.post('/admin/notifications/destroy', { ids })
   return data
 }
 

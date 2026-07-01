@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Menu, CloudUpload, Bell } from '@lucide/vue'
+import { useRouter } from 'vue-router'
 import AppSidebar from './components/AppSidebar.vue'
 import Drawer from '~/components/base/Drawer.vue'
-import Notification from '~/components/notification/Notification.vue'
 import UppyUploader from '~/components/uppy-uploader/UppyUploader.vue'
 import { apiClient } from '~/lib/axios'
 import { useGlobalStore, type DrawerPanel } from '~/stores/global.ts'
@@ -15,6 +15,7 @@ import { getUnreadCount } from '~/api/notifications'
 
 const { drawerPanel } = storeToRefs(useGlobalStore())
 const appStore = useAppStore()
+const router = useRouter()
 const { connect, disconnect } = useWebSocket()
 
 const isMobile = ref(false)
@@ -31,13 +32,17 @@ async function fetchAdminInfo() {
   try {
     const { data } = await apiClient.get('/admin/profile')
     appStore.adminUser = data.data
-  } catch { /* 401 拦截器会处理 */ }
+  } catch {
+    /* 401 拦截器会处理 */
+  }
 }
 
 async function fetchUnreadCount() {
   try {
     appStore.unreadCount = await getUnreadCount()
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 onMounted(() => {
@@ -69,9 +74,8 @@ onUnmounted(() => {
     </aside>
 
     <!-- Mobile Bottom Drawer -->
-    <Drawer :open="drawerPanel !== null" @update:open="(v) => !v && (drawerPanel = null)">
+    <Drawer :open="drawerPanel !== null" @update:open="v => !v && (drawerPanel = null)">
       <AppSidebar v-if="drawerPanel === 'menu'" mobile @close="drawerPanel = null" />
-      <Notification v-else-if="drawerPanel === 'notify'" />
       <UppyUploader v-else-if="drawerPanel === 'upload'" />
     </Drawer>
 
@@ -80,18 +84,18 @@ onUnmounted(() => {
       <header v-if="isMobile" class="header">
         <div class="header-left">
           <button class="header-btn" @click="openPanel('menu')">
-            <Menu style="width: 1.375rem; height: 1.375rem;" />
+            <Menu style="width: 1.375rem; height: 1.375rem" />
           </button>
         </div>
         <div class="header-right">
-          <button class="header-btn notify-btn" @click="openPanel('notify')">
-            <Bell style="width: 1.375rem; height: 1.375rem;" />
+          <button class="header-btn notify-btn" @click="router.push('/notifications')">
+            <Bell style="width: 1.375rem; height: 1.375rem" />
             <span v-if="appStore.unreadCount > 0" class="notify-badge">
               {{ appStore.unreadCount > 99 ? '99+' : appStore.unreadCount }}
             </span>
           </button>
           <button class="header-btn" @click="openPanel('upload')">
-            <CloudUpload style="width: 1.375rem; height: 1.375rem;" />
+            <CloudUpload style="width: 1.375rem; height: 1.375rem" />
           </button>
         </div>
       </header>
@@ -137,12 +141,12 @@ onUnmounted(() => {
 }
 
 .header {
-  padding: 0 .5rem;
+  padding: 0 0.5rem;
   height: 3.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: .0625rem solid var(--color-border);
+  border-bottom: 0.0625rem solid var(--color-border);
   background: var(--color-base-100);
   .header-left {
     display: flex;
@@ -152,7 +156,7 @@ onUnmounted(() => {
   .header-right {
     display: flex;
     align-items: center;
-    gap: .3125rem;
+    gap: 0.3125rem;
   }
   .header-btn {
     width: 2.75rem;
@@ -167,15 +171,15 @@ onUnmounted(() => {
   }
   .notify-badge {
     position: absolute;
-    top: .375rem;
-    right: .375rem;
+    top: 0.375rem;
+    right: 0.375rem;
     min-width: 1rem;
     height: 1rem;
-    padding: 0 .1875rem;
+    padding: 0 0.1875rem;
     border-radius: 62.4375rem;
     background: #ef4444;
     color: #fff;
-    font-size: .5625rem;
+    font-size: 0.5625rem;
     font-weight: 700;
     line-height: 1rem;
     text-align: center;
@@ -185,24 +189,23 @@ onUnmounted(() => {
 .main {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem 1.5rem 0rem;
+  padding: 1.5rem 1.5rem 1.5rem;
 }
 
 /* --- Responsive --- */
 @media (width <= 48rem) {
+  .main {
+    padding: 1.5rem 1.5rem;
+  }
   .sidebar {
     width: 0;
-  }
-
-  .main {
-    padding: 1rem 1rem 0rem;
   }
 }
 
 /* Page transition */
 .page-fade-enter-active,
 .page-fade-leave-active {
-  transition: opacity .12s ease;
+  transition: opacity 0.12s ease;
 }
 .page-fade-enter-from,
 .page-fade-leave-to {

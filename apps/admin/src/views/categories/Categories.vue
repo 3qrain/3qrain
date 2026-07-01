@@ -132,7 +132,6 @@ onMounted(load);
 <style scoped lang="less">
 .page {
   max-width: 36rem;
-  padding: 1.75rem 2rem;
 }
 
 .head {
@@ -276,10 +275,5 @@ onMounted(load);
   padding: 3rem 0;
   font-size: 0.875rem;
   opacity: 0.3;
-}
-
-@media (max-width: 48rem) {
-  .page { padding: 1.25rem 1rem; }
-  .slug { display: none; }
 }
 </style>

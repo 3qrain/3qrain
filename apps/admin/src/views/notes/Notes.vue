@@ -338,7 +338,6 @@ onMounted(() => {
 <style scoped lang="less">
 .page {
   max-width: 38rem;
-  padding: 1.75rem 2rem;
 }
 
 .head {
@@ -553,9 +552,6 @@ onMounted(() => {
 }
 
 @media (max-width: 48rem) {
-  .page {
-    padding: 1.25rem 1rem;
-  }
   .note-actions {
     opacity: 1;
   }

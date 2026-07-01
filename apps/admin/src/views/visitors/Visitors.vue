@@ -82,7 +82,7 @@ onMounted(load)
 <style scoped lang="less">
 .page {
   max-width: 42rem;
-  padding: 1.75rem 2rem;
+  // padding: 1.75rem 2rem;
 }
 
 .head {
@@ -214,7 +214,7 @@ onMounted(load)
 }
 
 @media (max-width: 48rem) {
-  .page { padding: 1.25rem 1rem; }
+  // .page { padding: 1.25rem 1rem; }
   .email { display: none; }
 }
 </style>

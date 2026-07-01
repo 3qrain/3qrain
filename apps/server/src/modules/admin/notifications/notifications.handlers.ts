@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { eq, desc, and, count } from 'drizzle-orm'
+import { eq, desc, and, count, inArray } from 'drizzle-orm'
 import { db } from '~/db'
 import { notifications } from '~/db/schema'
 import { ok, fail } from '~/utils/response'
@@ -12,7 +12,11 @@ export async function list(c: Context) {
   const pageSize = Number(query.pageSize || 20)
 
   const conditions = []
-  if (query.type) conditions.push(eq(notifications.type, query.type))
+  if (query.types) {
+    const types = query.types.split(',').filter(Boolean)
+    if (types.length > 0) conditions.push(inArray(notifications.type, types))
+  }
+  if (query.isRead) conditions.push(eq(notifications.isRead, Number(query.isRead)))
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
   const total = db.select({ count: count() }).from(notifications).where(where).get()!.count
@@ -48,9 +52,7 @@ export async function markRead(c: Context) {
   }
 
   db.update(notifications).set({ isRead: 1 }).where(eq(notifications.id, id)).run()
-
-  const updated = db.select().from(notifications).where(eq(notifications.id, id)).get()!
-  return c.json(ok(updated, '已读'), HttpStatusCodes.OK)
+  return c.json(ok({}, '已读'), HttpStatusCodes.OK)
 }
 
 export async function markAllRead(c: Context) {
@@ -59,14 +61,10 @@ export async function markAllRead(c: Context) {
 }
 
 export async function destroy(c: Context) {
-  const id = Number(c.req.param('id')!)
-
-  const existing = db.select().from(notifications).where(eq(notifications.id, id)).get()
-  if (!existing) {
-    return c.json(fail(ErrorCode.INVALID_PARAMS, '通知不存在'), HttpStatusCodes.NOT_FOUND)
+  const { ids } = await c.req.json<{ ids: number[] }>()
+  for (const id of ids) {
+    db.delete(notifications).where(eq(notifications.id, id)).run()
   }
-
-  db.delete(notifications).where(eq(notifications.id, id)).run()
   return c.json(ok({}, '已删除'), HttpStatusCodes.OK)
 }
 

@@ -217,7 +217,7 @@ onMounted(load)
     </div>
 
     <div v-if="!showDeleted" class="toolbar">
-      <ToggleGroup v-model="tab" :options="tabOptions" />
+      <ToggleGroup size="sm" v-model="tab" :options="tabOptions" />
       <Input v-model="keyword" placeholder="搜索..." class="search" @keyup.enter="load()">
         <Search style="width: 0.875rem; height: 0.875rem; opacity: 0.4" />
       </Input>
@@ -411,7 +411,7 @@ onMounted(load)
 
 <style scoped lang="less">
 .page {
-  padding: 1.75rem 2rem;
+  // padding: 1.75rem 2rem;
   max-width: 48rem;
 }
 .head {
@@ -619,8 +619,8 @@ onMounted(load)
 }
 
 @media (max-width: 48rem) {
-  .page {
-    padding: 1.25rem 1rem;
-  }
+  // .page {
+  //   padding: 1.25rem 1rem;
+  // }
 }
 </style>

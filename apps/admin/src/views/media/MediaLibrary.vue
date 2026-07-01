@@ -253,7 +253,7 @@ onUnmounted(() => {
 
 <style scoped lang="less">
 .page {
-  padding: 1.5rem 2rem;
+  // padding: 1.5rem 2rem;
 }
 
 /* Header */
@@ -508,8 +508,8 @@ h1 {
 }
 
 @media (max-width: 48rem) {
-  .page {
-    padding: 1.25rem 1rem;
-  }
+  // .page {
+  //   padding: 1.25rem 1rem;
+  // }
 }
 </style>

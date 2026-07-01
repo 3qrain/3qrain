@@ -1,7 +1,8 @@
-// ---- 通知业务类型 ----
+// ---- 通知事件类型（DB 存储，细粒度） ----
 export type NotificationType =
   | 'new_comment'
   | 'new_reply'
+  | 'friend_apply'
   | 'new_post'
   | 'new_note'
   | 'system'

@@ -15,3 +15,10 @@ export interface NotificationListResult {
   page: number
   pageSize: number
 }
+
+export interface NotificationListQuery {
+  page?: number
+  pageSize?: number
+  types?: string
+  isRead?: string
+}

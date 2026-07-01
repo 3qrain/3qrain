@@ -62,7 +62,7 @@ function switchTab(key: string) {
 <style scoped lang="less">
 .page {
   max-width: 50rem;
-  padding: 1.75rem 2rem;
+  // padding: 1.75rem 2rem;
 }
 
 .head {
@@ -120,9 +120,9 @@ function switchTab(key: string) {
 }
 
 @media (max-width: 64rem) {
-  .page {
-    padding: 1.25rem 1rem;
-  }
+  // .page {
+  //   padding: 1.25rem 1rem;
+  // }
 
   .settings {
     flex-direction: column;

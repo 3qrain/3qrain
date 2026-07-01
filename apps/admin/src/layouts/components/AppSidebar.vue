@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { menuRoutes } from '~/router/routes'
 import ThemeToggle from '~/components/theme/ThemeToggle.vue'
-import { Bell } from '@lucide/vue'
-import { useGlobalStore } from '~/stores/global.ts'
 import { useAppStore } from '~/stores/app'
-import { storeToRefs } from 'pinia'
+
+const appStore = useAppStore()
 
 defineProps<{
   mobile?: boolean
@@ -14,20 +13,8 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { drawerPanel } = storeToRefs(useGlobalStore())
-const appStore = useAppStore()
-
 function handleClick() {
   emit('close')
-}
-
-function openNotifications() {
-  drawerPanel.value = 'notify'
-  if (window.innerWidth <= 768) return
-  // desktop: toggle
-  drawerPanel.value = drawerPanel.value === 'notify' ? 'notify' : 'notify'
-  // 实际上 drawer 在桌面端才显示，但桌面端一般用抽屉不太合适
-  // 这里在桌面端也打开抽屉
 }
 </script>
 
@@ -56,16 +43,13 @@ function openNotifications() {
           class="nav-icon"
         />
         <span>{{ route.meta?.title }}</span>
+        <span v-if="route.name === 'notifications' && appStore.unreadCount > 0" class="notify-badge">
+          {{ appStore.unreadCount > 99 ? '99+' : appStore.unreadCount }}
+        </span>
       </router-link>
     </nav>
 
     <div class="sidebar-footer">
-      <button class="notify-btn" @click="openNotifications">
-        <Bell style="width: 1.125rem; height: 1.125rem;" />
-        <span v-if="appStore.unreadCount > 0" class="notify-badge">
-          {{ appStore.unreadCount > 99 ? '99+' : appStore.unreadCount }}
-        </span>
-      </button>
       <ThemeToggle />
     </div>
   </div>
@@ -80,7 +64,6 @@ function openNotifications() {
   padding: 0 0.75rem;
 }
 
-/* --- Logo --- */
 .logo {
   display: flex;
   align-items: baseline;
@@ -103,7 +86,6 @@ function openNotifications() {
   opacity: 0.4;
 }
 
-/* --- Nav --- */
 .nav {
   flex: 1;
   display: flex;
@@ -112,11 +94,12 @@ function openNotifications() {
 }
 
 .nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.625rem;
   padding: 0.625rem 0.75rem;
-  border-radius: .375rem;
+  border-radius: 0.375rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-base-content);
@@ -147,46 +130,26 @@ function openNotifications() {
   opacity: 1;
 }
 
-/* --- Footer --- */
+.notify-badge {
+  position: absolute;
+  top: calc(50% - .5rem);
+  right: .5rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 .25rem;
+  border-radius: 62.4375rem;
+  box-shadow: 0 0 .1875rem .0625rem #ef4444;
+  background: #ef4444;
+  color: #fff;
+  font-size: .625rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-align: center;
+}
+
 .sidebar-footer {
   flex-shrink: 0;
   padding: 1rem 0.75rem;
   border-top: 0.0625rem solid var(--color-border);
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-}
-
-.notify-btn {
-  position: relative;
-  width: 2.25rem;
-  height: 2.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  color: var(--color-base-content);
-  opacity: .5;
-  cursor: pointer;
-  border-radius: .375rem;
-  transition: opacity .15s, background .15s;
-  &:hover { opacity: .8; background: color-mix(in oklab, var(--color-base-content) 10%, transparent); }
-}
-
-.notify-badge {
-  position: absolute;
-  top: .125rem;
-  right: .125rem;
-  min-width: 1rem;
-  height: 1rem;
-  padding: 0 .1875rem;
-  border-radius: 62.4375rem;
-  background: #ef4444;
-  color: #fff;
-  font-size: .5625rem;
-  font-weight: 700;
-  line-height: 1rem;
-  text-align: center;
 }
 </style>
